@@ -1,448 +1,257 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import {
-  type OAuthProvider,
-  type OAuthLoginState,
-} from "./types";
+import { useEffect, useRef, useState } from "react";
+import { logoutOAuth, submitOAuthInput } from "./api";
 import { SectionTitle } from "./shared";
+import type {
+  OAuthLoginState,
+  OAuthProvider,
+  OAuthServerEvent,
+} from "./types";
 
-interface Props {
+export default function OAuthDetail({
+  provider,
+}: {
   provider: OAuthProvider;
-  onRefresh: () => void;
-}
-
-export default function OAuthDetail({ provider, onRefresh }: Props) {
-  const [loginState, setLoginState] = useState<OAuthLoginState>({
-    phase: "idle",
-  });
-  const [inputValue, setInputValue] = useState("");
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+}) {
+  const [state, setState] = useState<OAuthLoginState>({ phase: "idle" });
+  const [input, setInput] = useState("");
+  const [connected, setConnected] = useState<boolean | null>(null);
+  const sourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-    };
+    return () => sourceRef.current?.close();
   }, []);
 
-  useEffect(() => {
-    if (
-      loginState.phase === "auth" ||
-      loginState.phase === "prompt"
-    ) {
-      const t = setTimeout(() => inputRef.current?.focus(), 50);
-      return () => clearTimeout(t);
-    }
-  }, [loginState]);
-
-  function handleLogin() {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-    }
-    setLoginState({ phase: "connecting" });
-
-    const es = new EventSource(
+  function startLogin() {
+    sourceRef.current?.close();
+    setState({ phase: "connecting" });
+    setInput("");
+    const source = new EventSource(
       `/api/auth/login/${encodeURIComponent(provider.id)}`,
     );
-    eventSourceRef.current = es;
+    sourceRef.current = source;
 
-    es.onmessage = (e) => {
+    const onOAuthEvent = (event: MessageEvent<string>) => {
       try {
-        const data = JSON.parse(e.data);
+        const data = JSON.parse(event.data) as OAuthServerEvent;
         switch (data.type) {
           case "auth":
-            setLoginState({
+            setState({
               phase: "auth",
               url: data.url,
-              instructions: data.instructions ?? null,
-              token: data.token,
+              instructions: data.instructions,
             });
-            window.open(
-              data.url,
-              "_blank",
-              "noopener,noreferrer",
-            );
+            window.open(data.url, "_blank", "noopener,noreferrer");
             break;
           case "device_code":
-            setLoginState({
-              phase: "device_code",
-              userCode: data.userCode,
-              verificationUri: data.verificationUri,
-              intervalSeconds: data.intervalSeconds ?? null,
-              expiresInSeconds: data.expiresInSeconds ?? null,
-            });
+            setState({ phase: "device_code", ...data });
             window.open(
               data.verificationUri,
               "_blank",
               "noopener,noreferrer",
             );
             break;
-          case "prompt_request":
-            setLoginState({
-              phase: "prompt",
-              message: data.message,
-              placeholder: data.placeholder ?? null,
-              token: data.token,
-            });
+          case "prompt":
+            setInput("");
+            setState({ phase: "prompt", ...data });
             break;
-          case "select_request":
-            setLoginState({
-              phase: "select",
-              message: data.message,
-              options: data.options,
-              token: data.token,
-            });
+          case "select":
+            setState({ phase: "select", ...data });
             break;
           case "progress":
-            setLoginState({
-              phase: "progress",
-              message: data.message,
-            });
+            setState({ phase: "progress", message: data.message });
             break;
-          case "success":
-            es.close();
-            setLoginState({ phase: "success" });
-            onRefresh();
+          case "complete":
+            source.close();
+            setConnected(true);
+            setState({ phase: "success" });
             break;
           case "error":
-            es.close();
-            setLoginState({
-              phase: "error",
-              message: data.message,
-            });
-            break;
-          case "cancelled":
-            es.close();
-            setLoginState({ phase: "idle" });
+            source.close();
+            setState({ phase: "error", message: data.message });
             break;
         }
       } catch {
-        // ignore malformed events
+        setState({ phase: "error", message: "Invalid login response" });
       }
     };
 
-    es.onerror = () => {
-      es.close();
-      setLoginState((prev) => {
-        if (prev.phase === "success") return prev;
-        return { phase: "error", message: "Connection lost" };
-      });
+    source.addEventListener("oauth", onOAuthEvent);
+    source.onerror = () => {
+      source.close();
+      setState((current) =>
+        current.phase === "success"
+          ? current
+          : { phase: "error", message: "Connection lost" },
+      );
     };
   }
 
-  async function submitCode(token: string, code: string) {
-    setLoginState({ phase: "progress", message: "Verifying…" });
+  async function submit(token: string, value: string) {
+    setState({ phase: "progress", message: "Verifying..." });
     try {
-      await fetch(`/api/auth/login/${provider.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, code: code.trim() }),
+      await submitOAuthInput(provider.id, token, value);
+    } catch (error) {
+      setState({
+        phase: "error",
+        message: error instanceof Error ? error.message : "Failed to submit",
       });
-    } catch {
-      setLoginState({ phase: "error", message: "Failed to submit" });
     }
   }
 
-  async function submitSelection(
-    token: string,
-    value: string,
-  ) {
-    setLoginState({ phase: "progress", message: "Verifying…" });
+  async function disconnect() {
     try {
-      await fetch(`/api/auth/login/${provider.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, code: value }),
+      await logoutOAuth(provider.id);
+      setConnected(false);
+      setState({ phase: "idle" });
+    } catch (error) {
+      setState({
+        phase: "error",
+        message: error instanceof Error ? error.message : "Failed to disconnect",
       });
-    } catch {
-      setLoginState({ phase: "error", message: "Failed to submit" });
     }
   }
 
-  async function handleDisconnect() {
-    try {
-      await fetch(`/api/auth/logout/${provider.id}`, {
-        method: "POST",
-      });
-      onRefresh();
-    } catch {
-      // ignore
-    }
-  }
-
-  const isWorking =
-    loginState.phase === "connecting" ||
-    loginState.phase === "progress" ||
-    loginState.phase === "auth" ||
-    loginState.phase === "device_code" ||
-    loginState.phase === "prompt" ||
-    loginState.phase === "select";
-
+  const working = !["idle", "success", "error"].includes(state.phase);
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <SectionTitle>Subscription</SectionTitle>
-        <div className="flex items-center gap-1.5">
-          <span
-            className="h-[7px] w-[7px] rounded-full"
-            style={{
-              background: provider.loggedIn
-                ? "#4ade80"
-                : "var(--border)",
-            }}
-          />
-          <span
-            className="text-[11px]"
-            style={{
-              color: provider.loggedIn
-                ? "#4ade80"
-                : "var(--text-dim)",
-            }}
-          >
-            {provider.loggedIn ? "connected" : "not connected"}
-          </span>
-        </div>
+        <span className="text-[11px] text-dim">
+          {connected === null
+            ? "status unavailable"
+            : connected
+              ? "connected"
+              : "not connected"}
+        </span>
       </div>
 
-      {/* Status area */}
-      <div className="min-h-[48px]">
-        {loginState.phase === "idle" && (
-          <p className="text-[13px] text-muted">
-            {provider.loggedIn
-              ? `Already connected to ${provider.name}. Click Re-login to refresh your session.`
-              : `Connect your ${provider.name} account.`}
-          </p>
-        )}
+      <OAuthState state={state} input={input} setInput={setInput} submit={submit} />
 
-        {loginState.phase === "connecting" && (
-          <p className="text-[13px] text-muted">
-            Opening browser…
-          </p>
-        )}
-
-        {loginState.phase === "auth" && (
-          <div className="flex flex-col gap-2">
-            {loginState.instructions && (
-              <p className="text-[13px] text-muted">
-                {loginState.instructions}
-              </p>
-            )}
-            <a
-              href={loginState.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[13px] text-accent hover:underline"
-            >
-              Open login page
-            </a>
-            <div className="flex gap-1.5">
-              <input
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="callback URL"
-                className="font-ui-mono flex-1 rounded-[5px] border border-line px-2 py-1.5 text-[12px]"
-                style={{
-                  background: "var(--bg)",
-                  color: "var(--text)",
-                }}
-              />
-              <button
-                onClick={() =>
-                  submitCode(loginState.token, inputValue)
-                }
-                disabled={!inputValue.trim()}
-                className="rounded-[5px] px-3 py-1.5 text-[12px] font-semibold"
-                style={{
-                  background: inputValue.trim()
-                    ? "var(--accent)"
-                    : "var(--bg-panel)",
-                  color: inputValue.trim()
-                    ? "#fff"
-                    : "var(--text-dim)",
-                  cursor: inputValue.trim()
-                    ? "pointer"
-                    : "not-allowed",
-                }}
-                type="button"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        )}
-
-        {loginState.phase === "device_code" && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[13px] text-muted">
-              Open the verification page and enter the code
-              below.
-            </p>
-            <div
-              className="inline-block rounded-[5px] border border-line px-4 py-2 font-ui-mono text-[16px] font-bold"
-              style={{ background: "var(--bg)" }}
-            >
-              {loginState.userCode}
-            </div>
-            <a
-              href={loginState.verificationUri}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[13px] text-accent hover:underline"
-            >
-              {loginState.verificationUri}
-            </a>
-            {loginState.expiresInSeconds && (
-              <p className="text-[11px] text-dim">
-                Expires in {loginState.expiresInSeconds}s
-              </p>
-            )}
-          </div>
-        )}
-
-        {loginState.phase === "prompt" && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[13px] text-muted">
-              {loginState.message}
-            </p>
-            <div className="flex gap-1.5">
-              <input
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={loginState.placeholder ?? ""}
-                className="font-ui-mono flex-1 rounded-[5px] border border-line px-2 py-1.5 text-[12px]"
-                style={{
-                  background: "var(--bg)",
-                  color: "var(--text)",
-                }}
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    inputValue.trim()
-                  ) {
-                    submitCode(
-                      loginState.token,
-                      inputValue,
-                    );
-                  }
-                }}
-              />
-              <button
-                onClick={() =>
-                  submitCode(loginState.token, inputValue)
-                }
-                disabled={!inputValue.trim()}
-                className="rounded-[5px] px-3 py-1.5 text-[12px] font-semibold"
-                style={{
-                  background: inputValue.trim()
-                    ? "var(--accent)"
-                    : "var(--bg-panel)",
-                  color: inputValue.trim()
-                    ? "#fff"
-                    : "var(--text-dim)",
-                  cursor: inputValue.trim()
-                    ? "pointer"
-                    : "not-allowed",
-                }}
-                type="button"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        )}
-
-        {loginState.phase === "select" && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[13px] text-muted">
-              {loginState.message}
-            </p>
-            <div className="flex flex-col gap-1.5">
-              {loginState.options.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() =>
-                    submitSelection(loginState.token, opt.id)
-                  }
-                  className="cursor-pointer rounded border border-line px-2.5 py-1.5 text-left text-[12px]"
-                  style={{ background: "var(--bg)" }}
-                  type="button"
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {loginState.phase === "progress" && (
-          <p className="text-[13px] text-muted">
-            {loginState.message}
-          </p>
-        )}
-
-        {loginState.phase === "success" && (
-          <p className="text-[13px]" style={{ color: "#4ade80" }}>
-            Connected successfully.
-          </p>
-        )}
-
-        {loginState.phase === "error" && (
-          <p className="text-[13px]" style={{ color: "#f87171" }}>
-            {loginState.message}
-          </p>
-        )}
-      </div>
-
-      {/* Action buttons */}
       <div className="flex gap-2">
-        {isWorking ? (
+        {working ? (
           <button
-            onClick={() => {
-              eventSourceRef.current?.close();
-              setLoginState({ phase: "idle" });
-            }}
-            className="cursor-pointer rounded-[5px] border border-line px-3 py-1.5 text-[12px]"
-            style={{
-              background: "none",
-              color: "var(--text-muted)",
-            }}
             type="button"
+            onClick={() => {
+              sourceRef.current?.close();
+              setState({ phase: "idle" });
+            }}
+            className="rounded-[5px] border border-line px-3 py-1.5 text-[12px] text-muted"
           >
             Cancel
           </button>
         ) : (
           <>
             <button
-              onClick={handleLogin}
-              className="cursor-pointer rounded-[5px] px-4 py-1.5 text-[12px] font-semibold text-white"
-              style={{ background: "var(--accent)" }}
               type="button"
+              onClick={startLogin}
+              className="rounded-[5px] bg-accent px-4 py-1.5 text-[12px] font-semibold text-white"
             >
-              {provider.loggedIn ? "Re-login" : "Login"}
+              Login / Re-login
             </button>
-            {provider.loggedIn && (
-              <button
-                onClick={handleDisconnect}
-                className="cursor-pointer rounded-[5px] border px-3 py-1.5 text-[12px]"
-                style={{
-                  borderColor: "rgba(239,68,68,0.3)",
-                  color: "#ef4444",
-                  background: "none",
-                }}
-                type="button"
-              >
-                Disconnect
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={disconnect}
+              className="rounded-[5px] border border-red-400/30 px-3 py-1.5 text-[12px] text-red-500"
+            >
+              Disconnect
+            </button>
           </>
         )}
       </div>
     </div>
+  );
+}
+
+function OAuthState({
+  state,
+  input,
+  setInput,
+  submit,
+}: {
+  state: OAuthLoginState;
+  input: string;
+  setInput: (value: string) => void;
+  submit: (token: string, value: string) => void;
+}) {
+  if (state.phase === "idle") {
+    return <p className="text-[13px] text-muted">Connect this account with OAuth.</p>;
+  }
+  if (state.phase === "connecting") {
+    return <p className="text-[13px] text-muted">Opening login flow...</p>;
+  }
+  if (state.phase === "auth") {
+    return (
+      <div className="flex flex-col gap-2 text-[13px] text-muted">
+        {state.instructions && <p>{state.instructions}</p>}
+        <a className="text-accent hover:underline" href={state.url} target="_blank" rel="noreferrer">
+          Open login page
+        </a>
+      </div>
+    );
+  }
+  if (state.phase === "device_code") {
+    return (
+      <div className="flex flex-col gap-2 text-[13px] text-muted">
+        <p>Enter this code on the verification page:</p>
+        <code className="self-start rounded border border-line px-4 py-2 text-[16px] font-bold">
+          {state.userCode}
+        </code>
+        <a className="text-accent hover:underline" href={state.verificationUri} target="_blank" rel="noreferrer">
+          {state.verificationUri}
+        </a>
+      </div>
+    );
+  }
+  if (state.phase === "prompt") {
+    const canSubmit = state.allowEmpty || input.trim().length > 0;
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-[13px] text-muted">{state.message}</p>
+        <div className="flex gap-1.5">
+          <input
+            autoFocus
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder={state.placeholder}
+            className="flex-1 rounded-[5px] border border-line bg-panel px-2 py-1.5 text-[12px] text-primary"
+          />
+          <button
+            type="button"
+            disabled={!canSubmit}
+            onClick={() => submit(state.token, input)}
+            className="rounded-[5px] bg-accent px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    );
+  }
+  if (state.phase === "select") {
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-[13px] text-muted">{state.message}</p>
+        {state.options.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => submit(state.token, option.id)}
+            className="rounded border border-line px-2.5 py-1.5 text-left text-[12px]"
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+  if (state.phase === "success") {
+    return <p className="text-[13px] text-green-400">Connected successfully.</p>;
+  }
+  return (
+    <p className={`text-[13px] ${state.phase === "error" ? "text-red-400" : "text-muted"}`}>
+      {state.message}
+    </p>
   );
 }

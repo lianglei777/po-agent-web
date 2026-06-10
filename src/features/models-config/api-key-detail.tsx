@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { removeApiKey, saveApiKey } from "./api";
 import {
   type ApiKeyProvider,
 } from "./types";
@@ -23,22 +24,13 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/auth/api-key/${provider.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey: apiKey.trim() }),
-      });
-      const d = await res.json();
-      if (!res.ok || d.error) {
-        setError(d.error ?? "Failed to save");
-      } else {
-        setApiKey("");
-        setSavedOk(true);
-        setTimeout(() => setSavedOk(false), 2000);
-        onRefresh();
-      }
-    } catch {
-      setError("Failed to save");
+      await saveApiKey(provider.id, apiKey.trim());
+      setApiKey("");
+      setSavedOk(true);
+      setTimeout(() => setSavedOk(false), 2000);
+      await onRefresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Failed to save");
     } finally {
       setSaving(false);
     }
@@ -48,12 +40,10 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
     if (!provider.configured) return;
     setRemoving(true);
     try {
-      await fetch(`/api/auth/api-key/${provider.id}`, {
-        method: "DELETE",
-      });
-      onRefresh();
-    } catch {
-      // ignore
+      await removeApiKey(provider.id);
+      await onRefresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Failed to remove");
     } finally {
       setRemoving(false);
     }
@@ -90,7 +80,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
       <p className="text-[13px] text-muted">
         {provider.configured
           ? "API key is stored. Enter a new key below to replace it, or disconnect to remove it."
-          : `Enter your ${provider.displayName} API key to enable ${provider.modelCount} model${provider.modelCount === 1 ? "" : "s"}.`}
+          : `Enter your ${provider.name} API key to enable ${provider.modelCount} model${provider.modelCount === 1 ? "" : "s"}.`}
       </p>
 
       {/* Input + Save */}
@@ -103,8 +93,8 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
           }}
           placeholder={
             provider.configured
-              ? "Enter new key to replace…"
-              : "sk-…"
+              ? "Enter new key to replace..."
+              : "sk-..."
           }
           style={{ flex: 1 }}
         />
@@ -130,7 +120,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
           type="button"
         >
           {savedOk && <CheckIcon />}
-          {savedOk ? "Saved" : saving ? "Saving…" : "Save"}
+          {savedOk ? "Saved" : saving ? "Saving..." : "Save"}
         </button>
       </div>
 
@@ -154,7 +144,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
           }}
           type="button"
         >
-          {removing ? "Removing…" : "Disconnect"}
+          {removing ? "Removing..." : "Disconnect"}
         </button>
       )}
     </div>

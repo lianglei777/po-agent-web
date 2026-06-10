@@ -128,11 +128,13 @@ body {
   font-synthesis: none;
 }
 
-button,
-input,
-textarea {
-  color: inherit;
-  font: inherit;
+@layer base {
+  button,
+  input,
+  textarea {
+    color: inherit;
+    font: inherit;
+  }
 }
 
 /* ModelsConfig save button animations */

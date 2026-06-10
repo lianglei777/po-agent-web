@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { testModelConfig } from "./api";
 import {
   API_OPTIONS,
   type ModelEntry,
-  type ProviderEntry,
+  type ModelsJson,
   type ModelTestState,
 } from "./types";
 import { SectionTitle, Field, inputStyle } from "./shared";
@@ -17,7 +18,7 @@ const DEEPSEEK_COMPAT = {
 
 interface Props {
   providerName: string;
-  provider: ProviderEntry;
+  config: ModelsJson;
   model: ModelEntry;
   onChange: (m: ModelEntry) => void;
   onDelete: () => void;
@@ -25,36 +26,39 @@ interface Props {
 
 export default function ModelDetail({
   providerName,
-  provider,
+  config,
   model,
   onChange,
   onDelete,
 }: Props) {
   const [testState, setTestState] = useState<ModelTestState>({ phase: "idle" });
+  const [testedConfig, setTestedConfig] = useState("");
+  const currentConfig = JSON.stringify({ providerName, config, model });
+  const visibleTestState: ModelTestState =
+    testedConfig === currentConfig ? testState : { phase: "idle" };
 
   const handleTest = useCallback(async () => {
-    if (!model.id.trim() || testState.phase === "testing") return;
+    if (!model.id.trim() || visibleTestState.phase === "testing") return;
+    setTestedConfig(currentConfig);
     setTestState({ phase: "testing" });
     try {
-      const res = await fetch("/api/models-config/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerName, provider, model }),
+      const result = await testModelConfig({
+        provider: providerName,
+        modelId: model.id.trim(),
+        config,
+        timeoutMs: 15_000,
       });
-      const d = await res.json();
-      if (!res.ok || !d.ok) {
+      if (!result.ok) {
         setTestState({
           phase: "error",
-          message: d.error ?? `HTTP ${res.status}`,
-          latencyMs: d.latencyMs,
-          status: d.status ?? res.status,
+          message: result.error ?? "Model test failed",
+          latencyMs: result.latencyMs,
         });
       } else {
         setTestState({
           phase: "success",
-          latencyMs: d.latencyMs,
-          status: d.status ?? res.status,
-          responseText: d.responseText,
+          latencyMs: result.latencyMs,
+          responseText: result.responseText,
         });
       }
     } catch (e) {
@@ -63,22 +67,24 @@ export default function ModelDetail({
         message: e instanceof Error ? e.message : "Unknown error",
       });
     }
-  }, [providerName, provider, model, testState.phase]);
+  }, [providerName, config, model, currentConfig, visibleTestState.phase]);
 
   let testSummary: string | null = null;
   let testBorderColor = "var(--border)";
   let testBgColor = "#e5e7eb";
 
-  if (testState.phase === "testing") {
+  if (visibleTestState.phase === "testing") {
     testSummary = "Testing model connection...";
     testBorderColor = "var(--border)";
     testBgColor = "#e5e7eb";
-  } else if (testState.phase === "success") {
-    testSummary = `Connected · ${testState.latencyMs ?? "?"}ms · HTTP ${testState.status ?? "?"}${testState.responseText ? ` · ${testState.responseText}` : ""}`;
+  } else if (visibleTestState.phase === "success") {
+    testSummary = `Connected | ${visibleTestState.latencyMs ?? "?"}ms${
+      visibleTestState.responseText ? ` | ${visibleTestState.responseText}` : ""
+    }`;
     testBorderColor = "#bbf7d0";
     testBgColor = "#dcfce7";
-  } else if (testState.phase === "error") {
-    testSummary = `Failed · ${testState.latencyMs ?? "?"}ms · HTTP ${testState.status ?? "?"} · ${testState.message}`;
+  } else if (visibleTestState.phase === "error") {
+    testSummary = `Failed | ${visibleTestState.latencyMs ?? "?"}ms | ${visibleTestState.message}`;
     testBorderColor = "#fecaca";
     testBgColor = "#fee2e2";
   }
@@ -112,32 +118,32 @@ export default function ModelDetail({
           )}
           <button
             onClick={handleTest}
-            disabled={!model.id.trim() || testState.phase === "testing"}
+            disabled={!model.id.trim() || visibleTestState.phase === "testing"}
             className="flex items-center gap-1 rounded px-2 py-[3px] text-[11px]"
             style={{
               background:
-                testState.phase === "success" ? "#16a34a" : "none",
+                visibleTestState.phase === "success" ? "#16a34a" : "none",
               border:
-                testState.phase === "success"
+                visibleTestState.phase === "success"
                   ? "1px solid #16a34a"
                   : "1px solid var(--border)",
               color:
-                testState.phase === "success"
+                visibleTestState.phase === "success"
                   ? "#fff"
-                  : !model.id.trim() || testState.phase === "testing"
+                  : !model.id.trim() || visibleTestState.phase === "testing"
                     ? "var(--text-dim)"
                     : "var(--text-muted)",
               cursor:
-                !model.id.trim() || testState.phase === "testing"
+                !model.id.trim() || visibleTestState.phase === "testing"
                   ? "not-allowed"
                   : "pointer",
             }}
             type="button"
           >
-            {testState.phase === "success" && <CheckIcon />}
-            {testState.phase === "testing"
-              ? "Testing…"
-              : testState.phase === "success"
+            {visibleTestState.phase === "success" && <CheckIcon />}
+            {visibleTestState.phase === "testing"
+              ? "Testing..."
+              : visibleTestState.phase === "success"
                 ? "OK"
                 : "Test"}
           </button>
@@ -195,7 +201,7 @@ export default function ModelDetail({
             color: model.api ? "var(--text)" : "var(--text-dim)",
           }}
         >
-          <option value="">— inherit / none —</option>
+          <option value="">inherit / none</option>
           {API_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
               {opt}
