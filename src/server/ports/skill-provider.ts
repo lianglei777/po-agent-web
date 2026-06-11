@@ -1,21 +1,16 @@
 import type {
   InstallSkillInput,
   InstallSkillResult,
-  SkillDiagnostic,
-  SkillInfo,
+  SetSkillInvocationInput,
+  SkillLoadResult,
   SkillSearchResult,
 } from "@/server/domain/skill";
 
 export interface SkillProvider {
-  load(cwd: string): Promise<{
-    skills: SkillInfo[];
-    diagnostics: SkillDiagnostic[];
-  }>;
+  load(cwd: string): Promise<SkillLoadResult>;
   setModelInvocationDisabled(
-    filePath: string,
-    disabled: boolean,
-  ): Promise<void>;
+    input: SetSkillInvocationInput,
+  ): Promise<SkillLoadResult>;
   search(query: string, limit: number): Promise<SkillSearchResult[]>;
   install(input: InstallSkillInput): Promise<InstallSkillResult>;
 }
-

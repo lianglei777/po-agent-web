@@ -100,6 +100,8 @@ export function MessageList({
           </article>
         );
       })}
+
+      {/* 正在流方式输出内容 */}
       {streamingMessage ? (
         <article
           className="relative mb-8"
@@ -150,6 +152,8 @@ function UserMessageView({
     <div className="flex flex-col items-end">
       <div className="max-w-[85%] rounded-xl border border-blue-500/15 bg-[var(--user-bg)] px-3 py-2 text-sm leading-[1.6] break-words whitespace-pre-wrap max-[640px]:max-w-[94%]">
         <div className="flex flex-wrap gap-2">
+
+          {/* image content */}
           {blocks
             .filter((block) => block.type === "image")
             .map((block, index) => (
@@ -165,6 +169,8 @@ function UserMessageView({
               />
             ))}
         </div>
+
+        {/* text content */}
         {blocks
           .filter((block) => block.type === "text")
           .map((block, index) => (
@@ -173,10 +179,14 @@ function UserMessageView({
             </div>
           ))}
       </div>
+
+
       <div className="mt-1 flex min-h-7 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
         {message.status === "failed" ? (
           <Badge variant="destructive">Failed</Badge>
         ) : null}
+
+        {/* copy button */}
         <SmallAction
           label={copied ? "Copied" : "Copy"}
           onClick={() => void copyText(messageText(message)).then(() => {
@@ -186,11 +196,15 @@ function UserMessageView({
         >
           {copied ? <Check /> : <Copy />}
         </SmallAction>
+
+        {/* edit button  */}
         {canEdit && !running ? (
           <SmallAction label="Edit from here" onClick={onEdit}>
             <PencilLine />
           </SmallAction>
         ) : null}
+
+        {/* fork  */}
         {canFork && entryId && !running ? (
           <SmallAction
             disabled={forking}
@@ -200,6 +214,8 @@ function UserMessageView({
             <GitFork />
           </SmallAction>
         ) : null}
+
+        {/* time */}
         {message.timestamp ? <MessageTime value={message.timestamp} /> : null}
       </div>
     </div>
@@ -215,23 +231,34 @@ function AssistantMessageView({
   results: Map<string, ToolResultMessage>;
   streaming?: boolean;
 }) {
+
   const [copied, setCopied] = useState(false);
   const text = message.content
     .filter((block) => block.type === "text")
     .map((block) => block.text)
     .join("\n\n");
+
   return (
     <div>
       <div className="mb-2 text-[11px] text-dim">
+        {/* provider: model */}
         {message.provider && message.model
           ? `${message.provider}:${message.model}`
           : "Pi Agent"}
+        
+        {/* 对话传输速度 */}
         {streaming ? <StreamingSpeed message={message} /> : null}
       </div>
+
+
+      {/* 助手回复内容 */}
       {message.content.map((block, index) => {
+        // 以 markdown 形式展示 模型返回的文字内容
         if (block.type === "text") {
           return <Markdown key={index} text={block.text} />;
         }
+
+        // 思考内容
         if (block.type === "thinking") {
           return (
             <Accordion className="my-2" collapsible key={index} type="single">
@@ -242,6 +269,8 @@ function AssistantMessageView({
             </Accordion>
           );
         }
+
+        // 图片
         if (block.type === "image") {
           return (
             // eslint-disable-next-line @next/next/no-img-element
@@ -256,8 +285,10 @@ function AssistantMessageView({
             />
           );
         }
+
         const result = results.get(block.toolCallId);
         const summary = toolSummary(block.input);
+
         return (
           <Accordion className="my-2" collapsible key={block.toolCallId} type="single">
             <AccordionItem
@@ -284,14 +315,17 @@ function AssistantMessageView({
           </Accordion>
         );
       })}
+
       {!streaming ? (
         <div className="mt-2 flex min-h-7 items-center gap-2 text-[10px] text-dim opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+          
           {message.usage ? (
             <span>
               in {message.usage.input} / out {message.usage.output} / cache{" "}
               {message.usage.cacheRead} / ${message.usage.cost.total.toFixed(4)}
             </span>
           ) : null}
+
           {text ? (
             <SmallAction
               label={copied ? "Copied" : "Copy"}
@@ -303,6 +337,7 @@ function AssistantMessageView({
               {copied ? <Check /> : <Copy />}
             </SmallAction>
           ) : null}
+
           {message.timestamp ? <MessageTime value={message.timestamp} /> : null}
         </div>
       ) : null}

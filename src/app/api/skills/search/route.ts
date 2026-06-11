@@ -13,9 +13,17 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   return handleRoute(async () => {
     const body = asObject(await readJson(request));
-    const limit =
-      typeof body.limit === "number" && body.limit > 0 ? body.limit : 20;
-    return container.skillService.search(requiredString(body, "query"), limit);
+    const limit = Math.min(
+      50,
+      typeof body.limit === "number" && body.limit > 0
+        ? Math.floor(body.limit)
+        : 20,
+    );
+    return {
+      results: await container.skillService.search(
+        requiredString(body, "query"),
+        limit,
+      ),
+    };
   });
 }
-

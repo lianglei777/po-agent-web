@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseAgentCommand, parseCreateAgent } from "./validators";
+import {
+  parseAgentCommand,
+  parseCreateAgent,
+  parseSkillInstall,
+} from "./validators";
 
 describe("agent HTTP validation", () => {
   it("accepts an image-only new session", () => {
@@ -27,5 +31,19 @@ describe("agent HTTP validation", () => {
     expect(() =>
       parseAgentCommand({ type: "prompt", message: "", images: [] }),
     ).toThrow("message or images must be provided");
+  });
+
+  it("accepts the skills market package contract", () => {
+    expect(
+      parseSkillInstall({
+        package: "owner/repo@demo",
+        scope: "project",
+        cwd: "C:\\work",
+      }),
+    ).toEqual({
+      packageSpec: "owner/repo@demo",
+      scope: "project",
+      cwd: "C:\\work",
+    });
   });
 });

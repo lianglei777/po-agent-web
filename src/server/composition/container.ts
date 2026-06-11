@@ -39,7 +39,7 @@ function createContainer() {
     modelService: new ModelService(models),
     authService: new AuthService(credentials, pendingInputs),
     fileService: new FileService(fileSystem, roots),
-    skillService: new SkillService(skills),
+    skillService: new SkillService(skills, roots),
   };
 }
 
@@ -55,4 +55,3 @@ export const container =
 if (process.env.NODE_ENV !== "production") {
   globalContainer.__piAgentContainer = container;
 }
-

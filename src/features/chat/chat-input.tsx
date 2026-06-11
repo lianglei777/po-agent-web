@@ -110,6 +110,7 @@ export function ChatInput({
 
   return (
     <div className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-[linear-gradient(transparent,var(--bg)_30%)] px-4 pt-12 pb-4 max-[640px]:right-0 max-[640px]:px-2">
+
       {retryInfo ? (
         <div className="pointer-events-auto mx-auto mb-2 max-w-[820px] rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-700 dark:text-yellow-300">
           Retrying ({retryInfo.attempt}/{retryInfo.maxAttempts})
@@ -121,11 +122,14 @@ export function ChatInput({
           {compactError}
         </div>
       ) : null}
+
       <div
         className={`pointer-events-auto mx-auto max-w-[820px] overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-soft)] ${
           running ? "border-yellow-500/45" : "border-border"
         }`}
       >
+
+        {/* 输入的图片 */}
         {images.length ? (
           <div className="flex gap-2 overflow-x-auto px-3 pt-2.5">
             {images.map((image) => (
@@ -152,6 +156,8 @@ export function ChatInput({
             ))}
           </div>
         ) : null}
+
+        {/* 文字输入框 */}
         <Textarea
           aria-label="Message"
           className="min-h-[58px] max-h-[200px] resize-none overflow-y-auto rounded-none border-0 px-4 pt-3.5 pb-2 text-sm leading-[1.6] shadow-none focus-visible:ring-0"
@@ -170,6 +176,7 @@ export function ChatInput({
           rows={1}
           value={draft}
         />
+
         <div className="flex min-h-11 items-center gap-1 border-t border-line/60 px-2 py-1.5">
           <input
             accept="image/*"
@@ -188,6 +195,8 @@ export function ChatInput({
           >
             <Paperclip />
           </IconButton>
+
+          {/* models select */}
           <Select disabled={running} onValueChange={(value) => void changeModel(value)} value={modelKey}>
             <SelectTrigger aria-label="Model" className="h-8 max-w-44 border-0 shadow-none">
               <SelectValue placeholder="No models" />
@@ -203,8 +212,11 @@ export function ChatInput({
               ))}
             </SelectContent>
           </Select>
+          
           {!running ? (
             <>
+
+             {/* thinking off / on */}
               <Select
                 onValueChange={(value) => void changeThinking(value as ThinkingLevel)}
                 value={thinkingLevel}
@@ -220,6 +232,8 @@ export function ChatInput({
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* tools presets select  */}
               <Select
                 onValueChange={(value) =>
                   void changeTools(value as keyof typeof TOOL_PRESETS)
@@ -235,6 +249,8 @@ export function ChatInput({
                   <SelectItem value="full">Tools full</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* prompt compact */}
               <Button
                 className={`h-8 px-2 text-[11px] ${isCompacting ? "text-destructive" : ""}`}
                 onClick={() => void compact()}
@@ -246,6 +262,9 @@ export function ChatInput({
               </Button>
             </>
           ) : null}
+
+
+          {/* sound  */}
           <IconButton
             label={soundEnabled ? "Disable sound" : "Enable sound"}
             onClick={toggleSound}
@@ -253,8 +272,11 @@ export function ChatInput({
           >
             {soundEnabled ? <Volume2 /> : <VolumeX />}
           </IconButton>
+
           <div className="flex-1" />
+
           {running ? (
+            
             <>
               <Button
                 className="h-8 px-2 text-[11px]"
@@ -262,6 +284,7 @@ export function ChatInput({
                 onClick={() => void submit("follow_up")}
                 size="sm"
                 variant="outline"
+                title="在 Agent 完成后排队发送"
               >
                 Follow-up
               </Button>
@@ -271,21 +294,26 @@ export function ChatInput({
                 onClick={() => void submit("steer")}
                 size="sm"
                 variant="outline"
+                title="打断 Agent 当前运行，立即注入消息"
               >
                 Steer
               </Button>
+
               <Button
                 className="h-8 border-destructive/30 px-2 text-[11px] text-destructive"
                 disabled={stopping}
                 onClick={() => void stop()}
                 size="sm"
                 variant="outline"
+                title="立刻停止本次对话"
               >
                 <Square className="size-3" />
                 {stopping ? "Stopping..." : "Stop"}
               </Button>
             </>
           ) : (
+
+            // 发送消息
             <Button
               aria-label="Send message"
               className="size-8"

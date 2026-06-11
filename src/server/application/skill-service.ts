@@ -1,23 +1,63 @@
-import type { InstallSkillInput } from "@/server/domain/skill";
+import path from "node:path";
+import { AppError } from "@/server/domain/app-error";
+import type {
+  InstallSkillInput,
+  SetSkillInvocationInput,
+} from "@/server/domain/skill";
+import type { WorkspaceRootProvider } from "@/server/ports/file-system";
 import type { SkillProvider } from "@/server/ports/skill-provider";
 
 export class SkillService {
-  constructor(private readonly skills: SkillProvider) {}
+  constructor(
+    private readonly skills: SkillProvider,
+    private readonly roots: WorkspaceRootProvider,
+  ) {}
 
-  load(cwd: string) {
-    return this.skills.load(cwd);
+  async load(cwd: string) {
+    return this.skills.load(await this.resolveAllowedCwd(cwd));
   }
 
-  setModelInvocationDisabled(filePath: string, disabled: boolean) {
-    return this.skills.setModelInvocationDisabled(filePath, disabled);
+  async setModelInvocationDisabled(input: SetSkillInvocationInput) {
+    return this.skills.setModelInvocationDisabled({
+      ...input,
+      cwd: await this.resolveAllowedCwd(input.cwd),
+    });
   }
 
   search(query: string, limit = 20) {
     return this.skills.search(query, limit);
   }
 
-  install(input: InstallSkillInput) {
-    return this.skills.install(input);
+  async install(input: InstallSkillInput) {
+    return this.skills.install({
+      ...input,
+      cwd:
+        input.scope === "project"
+          ? await this.resolveAllowedCwd(input.cwd ?? "")
+          : input.cwd,
+    });
+  }
+
+  private async resolveAllowedCwd(cwd: string): Promise<string> {
+    if (!cwd.trim()) {
+      throw new AppError("VALIDATION_ERROR", "cwd is required", 400);
+    }
+    const resolved = path.resolve(cwd);
+    const roots = await this.roots.listRoots();
+    const allowed = roots.some((root) => {
+      const relative = path.relative(path.resolve(root), resolved);
+      return (
+        relative === "" ||
+        (!relative.startsWith("..") && !path.isAbsolute(relative))
+      );
+    });
+    if (!allowed) {
+      throw new AppError(
+        "VALIDATION_ERROR",
+        "cwd is not a registered workspace root",
+        403,
+      );
+    }
+    return resolved;
   }
 }
-

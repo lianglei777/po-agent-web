@@ -214,6 +214,7 @@ const eslintConfig = defineConfig([
   featureBoundary("files"),
   featureBoundary("models-config"),
   featureBoundary("sessions"),
+  featureBoundary("skills-config"),
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

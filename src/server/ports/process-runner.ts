@@ -5,6 +5,7 @@ export interface ProcessRunner {
     options?: {
       cwd?: string;
       timeoutMs?: number;
+      maxOutputBytes?: number;
       env?: Record<string, string | undefined>;
     },
   ): Promise<{
@@ -12,4 +13,3 @@ export interface ProcessRunner {
     stderr: string;
   }>;
 }
-

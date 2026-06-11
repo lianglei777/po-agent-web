@@ -7,13 +7,14 @@ import {
   asObject,
   requiredBoolean,
   requiredString,
+  optionalString,
 } from "@/server/transport/http/validators";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   return handleRoute(() => {
-    const cwd = new URL(request.url).searchParams.get("cwd") ?? process.cwd();
+    const cwd = new URL(request.url).searchParams.get("cwd") ?? "";
     return container.skillService.load(cwd);
   });
 }
@@ -21,11 +22,11 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   return handleRoute(async () => {
     const body = asObject(await readJson(request));
-    await container.skillService.setModelInvocationDisabled(
-      requiredString(body, "filePath"),
-      requiredBoolean(body, "disabled"),
-    );
-    return { success: true };
+    return container.skillService.setModelInvocationDisabled({
+      cwd: requiredString(body, "cwd"),
+      skillId: requiredString(body, "skillId"),
+      disabled: requiredBoolean(body, "disabled"),
+      expectedVersion: optionalString(body, "expectedVersion"),
+    });
   });
 }
-

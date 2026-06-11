@@ -1,56 +1,169 @@
+import { createHash, randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
+  DefaultResourceLoader,
   getAgentDir,
-  loadSkills,
+  SettingsManager,
+  type Skill,
 } from "@earendil-works/pi-coding-agent";
 import { AppError } from "@/server/domain/app-error";
 import type {
   InstallSkillInput,
+  SetSkillInvocationInput,
+  SkillInfo,
+  SkillLoadResult,
   SkillSearchResult,
 } from "@/server/domain/skill";
 import type { ProcessRunner } from "@/server/ports/process-runner";
 import type { SkillProvider } from "@/server/ports/skill-provider";
 
+const ANSI_PATTERN = /\u001b\[[0-?]*[ -/]*[@-~]/g;
+const MAX_COMMAND_OUTPUT = 1024 * 1024;
+
 export class PiSkillProvider implements SkillProvider {
+  private installRunning = false;
+  private readonly fileLocks = new Map<string, Promise<void>>();
+
   constructor(private readonly processes: ProcessRunner) {}
 
-  async load(cwd: string) {
-    const result = loadSkills({
+  async load(cwd: string): Promise<SkillLoadResult> {
+    const agentDir = getAgentDir();
+    const loader = new DefaultResourceLoader({
       cwd,
-      agentDir: getAgentDir(),
-      skillPaths: [],
-      includeDefaults: true,
+      agentDir,
+      settingsManager: SettingsManager.create(cwd, agentDir),
     });
+    await loader.reload();
+    const result = loader.getSkills();
     return {
-      skills: result.skills.map((skill) => ({
-        name: skill.name,
-        description: skill.description,
-        filePath: skill.filePath,
-        baseDir: skill.baseDir,
-        source: skill.sourceInfo.source,
-        disableModelInvocation: skill.disableModelInvocation,
-      })),
+      skills: await Promise.all(
+        result.skills.map((skill) => mapSkill(skill, cwd)),
+      ),
       diagnostics: result.diagnostics.map((diagnostic) => ({
         severity: diagnostic.type,
         message: diagnostic.message,
         path: diagnostic.path,
       })),
+      homeDir: os.homedir(),
     };
   }
 
   async setModelInvocationDisabled(
-    filePath: string,
-    disabled: boolean,
-  ): Promise<void> {
-    const content = await fs.readFile(filePath, "utf8");
-    await fs.writeFile(filePath, updateFrontmatter(content, disabled), "utf8");
+    input: SetSkillInvocationInput,
+  ): Promise<SkillLoadResult> {
+    const discovered = await this.load(input.cwd);
+    const skill = discovered.skills.find(
+      (candidate) => candidate.skillId === input.skillId,
+    );
+    if (!skill) {
+      throw new AppError(
+        "SKILL_NOT_FOUND",
+        "The selected skill is no longer available. Refresh and try again.",
+        404,
+      );
+    }
+
+    await this.withFileLock(skill.filePath, async () => {
+      await updateSkillFile(skill, input.disabled, input.expectedVersion);
+    });
+    return this.load(input.cwd);
   }
 
   async search(query: string, limit: number): Promise<SkillSearchResult[]> {
+    const normalized = query.trim();
+    if (!normalized) return [];
     try {
-      return await searchSkillsApi(query, limit);
-    } catch {
-      return this.searchWithCli(query, limit);
+      return await searchSkillsApi(normalized, limit);
+    } catch (apiError) {
+      try {
+        return await this.searchWithCli(normalized, limit);
+      } catch (cliError) {
+        throw new AppError(
+          "SKILL_SEARCH_FAILED",
+          "Skill search is temporarily unavailable.",
+          502,
+          {
+            market:
+              apiError instanceof Error ? apiError.message : String(apiError),
+            cli:
+              cliError instanceof Error ? cliError.message : String(cliError),
+          },
+        );
+      }
+    }
+  }
+
+  async install(input: InstallSkillInput) {
+    validatePackageSpec(input.packageSpec);
+    if (this.installRunning) {
+      throw new AppError(
+        "SKILL_INSTALL_BUSY",
+        "Another skill installation is already running.",
+        409,
+      );
+    }
+
+    this.installRunning = true;
+    try {
+      const cwd = input.cwd ?? process.cwd();
+      const before = await this.load(cwd);
+      const npxCli = await resolveNpxCli();
+      const args = buildInstallArgs(npxCli, input);
+
+      const result = await this.processes.run(process.execPath, args, {
+        cwd,
+        timeoutMs: 90_000,
+        maxOutputBytes: MAX_COMMAND_OUTPUT,
+        env: { FORCE_COLOR: "0", NO_COLOR: "1" },
+      });
+      const after = await this.load(cwd);
+      const beforeVersions = new Map(
+        before.skills.map((skill) => [skill.skillId, skill.version]),
+      );
+      const installed = after.skills.filter((skill) => {
+        const correctScope =
+          input.scope === "global"
+            ? skill.sourceInfo.scope === "user"
+            : skill.sourceInfo.scope === "project";
+        const changed =
+          beforeVersions.get(skill.skillId) !== skill.version;
+        return correctScope && changed;
+      });
+      if (installed.length === 0) {
+        throw new AppError(
+          "SKILL_INSTALL_FAILED",
+          "The installer completed, but ResourceLoader could not verify the skill.",
+          500,
+        );
+      }
+
+      for (const skill of installed) {
+        if (!skill.disableModelInvocation) {
+          await this.withFileLock(skill.filePath, () =>
+            updateSkillFile(skill, true, skill.version),
+          );
+        }
+      }
+      const verified = await this.load(cwd);
+      const installedIds = new Set(installed.map((skill) => skill.skillId));
+      return {
+        installed: true as const,
+        skills: verified.skills.filter((skill) =>
+          installedIds.has(skill.skillId),
+        ),
+        output: cleanAnsi(`${result.stdout}\n${result.stderr}`).trim(),
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(
+        "SKILL_INSTALL_FAILED",
+        error instanceof Error ? error.message : String(error),
+        500,
+      );
+    } finally {
+      this.installRunning = false;
     }
   }
 
@@ -58,35 +171,125 @@ export class PiSkillProvider implements SkillProvider {
     query: string,
     limit: number,
   ): Promise<SkillSearchResult[]> {
-    try {
-      const { stdout } = await this.processes.run(
-        process.platform === "win32" ? "npx.cmd" : "npx",
-        ["--yes", "skills", "find", query],
-        { timeoutMs: 20_000 },
-      );
-      return parseCliSearch(stdout, limit);
-    } catch {
-      return [];
-    }
+    const npxCli = await resolveNpxCli();
+    const { stdout } = await this.processes.run(
+      process.execPath,
+      [npxCli, "--yes", "skills", "find", query],
+      {
+        timeoutMs: 20_000,
+        maxOutputBytes: MAX_COMMAND_OUTPUT,
+        env: { FORCE_COLOR: "0", NO_COLOR: "1" },
+      },
+    );
+    return parseCliSearch(stdout, limit);
   }
 
-  async install(input: InstallSkillInput) {
-    const args = ["--yes", "skills", "add", input.source, "--yes"];
-    if (input.scope === "global") args.push("--global");
+  private async withFileLock<T>(
+    filePath: string,
+    work: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.fileLocks.get(filePath) ?? Promise.resolve();
+    let release = () => {};
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const queued = previous.then(() => current);
+    this.fileLocks.set(filePath, queued);
+    await previous;
     try {
-      const result = await this.processes.run(
-        process.platform === "win32" ? "npx.cmd" : "npx",
-        args,
-        { cwd: input.cwd, timeoutMs: 60_000 },
-      );
-      return { installed: true, ...result };
-    } catch (error) {
+      return await work();
+    } finally {
+      release();
+      if (this.fileLocks.get(filePath) === queued) {
+        this.fileLocks.delete(filePath);
+      }
+    }
+  }
+}
+
+async function mapSkill(skill: Skill, cwd: string): Promise<SkillInfo> {
+  const resolvedFilePath = path.resolve(skill.filePath);
+  const realFilePath = await fs.realpath(skill.filePath);
+  const content = await fs.readFile(realFilePath);
+  return {
+    skillId: skillIdForPath(realFilePath),
+    name: skill.name,
+    description: skill.description,
+    filePath: realFilePath,
+    displayPath: displaySkillPath(realFilePath, cwd, os.homedir()),
+    baseDir: await fs.realpath(skill.baseDir),
+    sourceInfo: {
+      path: skill.sourceInfo.path,
+      source: skill.sourceInfo.source,
+      scope: skill.sourceInfo.scope,
+      origin: skill.sourceInfo.origin,
+      baseDir: skill.sourceInfo.baseDir,
+    },
+    canModify: samePath(resolvedFilePath, realFilePath),
+    disableModelInvocation: skill.disableModelInvocation,
+    version: versionForContent(content),
+  };
+}
+
+async function updateSkillFile(
+  skill: SkillInfo,
+  disabled: boolean,
+  expectedVersion?: string,
+): Promise<void> {
+  if (!skill.canModify) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "Skills discovered through symlinks cannot be modified.",
+      403,
+    );
+  }
+  const requested = path.resolve(skill.filePath);
+  const realFilePath = await fs.realpath(requested);
+  if (!samePath(realFilePath, requested)) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "Symlinked skill files cannot be modified.",
+      403,
+    );
+  }
+  if (skillIdForPath(realFilePath) !== skill.skillId) {
+    throw new AppError("VALIDATION_ERROR", "Skill path validation failed.", 403);
+  }
+
+  const stat = await fs.stat(realFilePath);
+  const original = await fs.readFile(realFilePath);
+  const originalVersion = versionForContent(original);
+  if (expectedVersion && originalVersion !== expectedVersion) {
+    throw new AppError(
+      "SKILL_CONFLICT",
+      "The skill changed on disk. Refresh before saving again.",
+      409,
+    );
+  }
+
+  const next = Buffer.from(
+    updateSkillFrontmatter(original.toString("utf8"), disabled),
+    "utf8",
+  );
+  if (original.equals(next)) return;
+
+  const temporaryPath = path.join(
+    path.dirname(realFilePath),
+    `.${path.basename(realFilePath)}.${randomUUID()}.tmp`,
+  );
+  try {
+    await fs.writeFile(temporaryPath, next, { mode: stat.mode });
+    const latest = await fs.readFile(realFilePath);
+    if (versionForContent(latest) !== originalVersion) {
       throw new AppError(
-        "SKILL_INSTALL_FAILED",
-        error instanceof Error ? error.message : String(error),
-        500,
+        "SKILL_CONFLICT",
+        "The skill changed while it was being saved.",
+        409,
       );
     }
+    await fs.rename(temporaryPath, realFilePath);
+  } finally {
+    await fs.rm(temporaryPath, { force: true });
   }
 }
 
@@ -105,65 +308,215 @@ async function searchSkillsApi(
     throw new Error(`Skill search returned ${response.status}`);
   }
   const payload = (await response.json()) as unknown;
-  if (!payload || typeof payload !== "object") return [];
-  const skills = (payload as { skills?: unknown }).skills;
-  if (!Array.isArray(skills)) return [];
-  return skills.slice(0, limit).flatMap(mapApiSkill);
+  const values =
+    payload && typeof payload === "object"
+      ? (payload as { skills?: unknown; results?: unknown }).skills ??
+        (payload as { results?: unknown }).results
+      : undefined;
+  if (!Array.isArray(values)) return [];
+  return values.flatMap(mapApiSkill).slice(0, limit);
 }
 
-function mapApiSkill(value: unknown): SkillSearchResult[] {
+export function mapApiSkill(value: unknown): SkillSearchResult[] {
   if (!value || typeof value !== "object") return [];
   const item = value as Record<string, unknown>;
-  const name = typeof item.name === "string" ? item.name : "";
-  const source = typeof item.source === "string" ? item.source : "";
+  const name =
+    stringValue(item.name) ||
+    stringValue(item.skillName) ||
+    stringValue(item.slug);
+  const source =
+    stringValue(item.source) ||
+    stringValue(item.repository) ||
+    stringValue(item.repo);
   if (!name || !source) return [];
+  const packageSpec =
+    stringValue(item.package) ||
+    stringValue(item.installRef) ||
+    `${source}@${name}`;
   return [
     {
+      id: packageSpec,
       name,
-      description: "",
+      description: stringValue(item.description),
       source,
-      installRef: `${source}@${name}`,
+      packageSpec,
+      installs: numberValue(item.installs) ?? numberValue(item.installCount),
+      url: stringValue(item.url) || undefined,
     },
   ];
 }
 
-function parseCliSearch(
+export function parseCliSearch(
   output: string,
   limit: number,
 ): SkillSearchResult[] {
-  const clean = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
   const results: SkillSearchResult[] = [];
   const seen = new Set<string>();
-  for (const line of clean.split(/\r?\n/)) {
+  for (const line of cleanAnsi(output).split(/\r?\n/)) {
     const match = line.trim().match(/^([^\s]+\/[^\s]+)@([^\s]+)(?:\s|$)/);
     if (!match) continue;
-    const installRef = `${match[1]}@${match[2]}`;
-    if (seen.has(installRef)) continue;
-    seen.add(installRef);
+    const packageSpec = `${match[1]}@${match[2]}`;
+    if (seen.has(packageSpec)) continue;
+    seen.add(packageSpec);
     results.push({
+      id: packageSpec,
       name: match[2],
       description: "",
       source: match[1],
-      installRef,
+      packageSpec,
     });
     if (results.length >= limit) break;
   }
   return results;
 }
 
-function updateFrontmatter(content: string, disabled: boolean): string {
-  const line = "disable-model-invocation: true";
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+export function updateSkillFrontmatter(
+  content: string,
+  disabled: boolean,
+): string {
+  const hasBom = content.startsWith("\uFEFF");
+  const body = hasBom ? content.slice(1) : content;
+  const bom = hasBom ? "\uFEFF" : "";
+  const newline = body.includes("\r\n") ? "\r\n" : "\n";
+  const match = body.match(/^---(?:\r?\n)([\s\S]*?)(?:\r?\n)---(?=\r?\n|$)/);
   if (!match) {
-    return disabled ? `---\n${line}\n---\n${content}` : content;
+    return disabled
+      ? `${bom}---${newline}disable-model-invocation: true${newline}---${newline}${body}`
+      : content;
   }
 
-  const frontmatter = match[1];
-  const pattern = /^disable-model-invocation\s*:.*$/m;
-  const next = disabled
-    ? pattern.test(frontmatter)
-      ? frontmatter.replace(pattern, line)
-      : `${frontmatter}\n${line}`
-    : frontmatter.replace(pattern, "").replace(/\n{2,}/g, "\n").trim();
-  return content.replace(match[0], `---\n${next}\n---`);
+  const lines = match[1].split(/\r?\n/);
+  const keyPattern =
+    /^(\s*)disable-model-invocation\s*:\s*([^#]*?)(\s*(?:#.*)?)$/;
+  const index = lines.findIndex((line) => keyPattern.test(line));
+  if (disabled) {
+    if (index >= 0) {
+      lines[index] = lines[index].replace(
+        keyPattern,
+        "$1disable-model-invocation: true$3",
+      );
+    } else {
+      lines.push("disable-model-invocation: true");
+    }
+  } else if (index >= 0) {
+    lines.splice(index, 1);
+  }
+
+  const replacement = `---${newline}${lines.join(newline)}${newline}---`;
+  return `${bom}${body.replace(match[0], replacement)}`;
+}
+
+export function displaySkillPath(
+  filePath: string,
+  cwd: string,
+  homeDir: string,
+): string {
+  const flavor =
+    /^[A-Za-z]:[\\/]/.test(filePath) ? path.win32 : path.posix;
+  const relative = flavor.relative(cwd, filePath);
+  if (
+    relative === "" ||
+    (!relative.startsWith("..") && !flavor.isAbsolute(relative))
+  ) {
+    return relative || flavor.basename(filePath);
+  }
+  const homeRelative = flavor.relative(homeDir, filePath);
+  if (
+    homeRelative === "" ||
+    (!homeRelative.startsWith("..") && !flavor.isAbsolute(homeRelative))
+  ) {
+    return `~${flavor.sep}${homeRelative}`;
+  }
+  return filePath;
+}
+
+function cleanAnsi(value: string): string {
+  return value.replace(ANSI_PATTERN, "");
+}
+
+function skillIdForPath(filePath: string): string {
+  return createHash("sha256").update(filePath).digest("hex").slice(0, 24);
+}
+
+function versionForContent(content: Uint8Array): string {
+  return createHash("sha256").update(content).digest("hex");
+}
+
+function samePath(left: string, right: string): boolean {
+  return process.platform === "win32"
+    ? left.toLocaleLowerCase() === right.toLocaleLowerCase()
+    : left === right;
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
+export function validatePackageSpec(packageSpec: string): void {
+  if (
+    packageSpec.length > 300 ||
+    !packageSpec.includes("/") ||
+    packageSpec.startsWith("-") ||
+    packageSpec.includes("..") ||
+    !/^[A-Za-z0-9@._/-]+$/.test(packageSpec)
+  ) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "package must be a valid skills package reference",
+      400,
+    );
+  }
+}
+
+export function buildInstallArgs(
+  npxCli: string,
+  input: InstallSkillInput,
+): string[] {
+  const args = [
+    npxCli,
+    "--yes",
+    "skills",
+    "add",
+    input.packageSpec,
+    "-y",
+    "--agent",
+    "pi",
+  ];
+  if (input.scope === "global") args.push("-g");
+  return args;
+}
+
+async function resolveNpxCli(): Promise<string> {
+  const npmExecPath = process.env.npm_execpath;
+  const candidates = [
+    npmExecPath
+      ? path.join(path.dirname(npmExecPath), "npx-cli.js")
+      : undefined,
+    path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js"),
+    path.resolve(
+      path.dirname(process.execPath),
+      "..",
+      "lib",
+      "node_modules",
+      "npm",
+      "bin",
+      "npx-cli.js",
+    ),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  for (const candidate of candidates) {
+    try {
+      await fs.access(candidate);
+      return candidate;
+    } catch {
+      // Try the next npm installation layout.
+    }
+  }
+  throw new Error("Unable to locate npm's npx-cli.js");
 }

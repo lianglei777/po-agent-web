@@ -137,7 +137,9 @@ export function parseSkillInstall(value: unknown): InstallSkillInput {
     invalid("scope must be global or project");
   }
   return {
-    source: requiredString(object, "source"),
+    packageSpec:
+      optionalString(object, "package") ??
+      requiredString(object, "source"),
     scope,
     cwd: optionalString(object, "cwd"),
   };

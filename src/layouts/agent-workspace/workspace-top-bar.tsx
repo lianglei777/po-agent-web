@@ -54,6 +54,8 @@ export function WorkspaceTopBar({
   return (
     <>
       <header className="flex h-9 flex-none items-stretch border-b border-line bg-panel pr-12">
+
+        {/* left session sidebar  panel  展示开关*/}
         <TopBarIconButton
           label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
           onClick={onToggleSidebar}
@@ -61,6 +63,8 @@ export function WorkspaceTopBar({
         >
           {sidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
         </TopBarIconButton>
+
+        {/* color theme */}
         <TopBarIconButton
           label={dark ? "Use light theme" : "Use dark theme"}
           onClick={onToggleTheme}
@@ -68,7 +72,8 @@ export function WorkspaceTopBar({
         >
           {dark ? <Sun /> : <Moon />}
         </TopBarIconButton>
-        {sessionIsActive ? (
+
+        {/* {sessionIsActive ? (
           <>
             <Separator
               className="mx-1 h-[18px] self-center"
@@ -85,8 +90,10 @@ export function WorkspaceTopBar({
               onClick={() => onToggleTopPanel("system")}
             />
           </>
-        ) : null}
+        ) : null} */}
         <div className="flex-1" />
+
+        {/* input + output token / cost */}
         {stats ? (
           <div className="flex items-center px-2 font-ui-mono text-[10px] text-dim">
             {stats.input + stats.output} tokens / ${stats.cost.toFixed(4)}

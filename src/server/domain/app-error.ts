@@ -10,6 +10,10 @@ export type AppErrorCode =
   | "COMPACTION_NOT_AVAILABLE"
   | "OAUTH_PROVIDER_NOT_FOUND"
   | "PENDING_INPUT_NOT_FOUND"
+  | "SKILL_NOT_FOUND"
+  | "SKILL_CONFLICT"
+  | "SKILL_SEARCH_FAILED"
+  | "SKILL_INSTALL_BUSY"
   | "SKILL_INSTALL_FAILED"
   | "INTERNAL_ERROR";
 
@@ -24,4 +28,3 @@ export class AppError extends Error {
     this.name = "AppError";
   }
 }
-

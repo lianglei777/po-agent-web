@@ -126,6 +126,8 @@ export function ChatCenter({
                 }}
               >
                 {!hasConversation ? <Welcome /> : null}
+                
+                {/* message list */}
                 <MessageList
                   entryIds={controller.entryIds}
                   forkingEntryId={controller.forkingEntryId}
@@ -138,14 +140,20 @@ export function ChatCenter({
                   running={controller.running}
                   streamingMessage={controller.stream.streamingMessage}
                 />
-                {controller.agentPhase && !controller.stream.streamingMessage ? (
-                  <div className="animate-pulse text-[13px] text-muted">
-                    {controller.agentPhase}
-                  </div>
-                ) : null}
+
+
+                    {
+                      controller.agentPhase && !controller.stream.streamingMessage ? (
+                        <div className="animate-pulse text-[13px] text-muted">
+                          {controller.agentPhase}
+                        </div>
+                      ) : null
+                    }
                 {controller.running ? <div className="h-[80vh]" /> : null}
               </div>
             </div>
+
+            {/* chat mini map */}
             <ChatMinimap
               content={contentNode}
               messageCount={
@@ -155,6 +163,8 @@ export function ChatCenter({
               scroller={scrollerNode}
             />
           </div>
+
+          {/* 错误提示 */}
           {controller.actionError ? (
             <div className="absolute right-12 bottom-44 z-30 max-w-sm rounded-lg border border-destructive/30 bg-card p-3 text-xs text-destructive shadow-lg">
               {controller.actionError}
@@ -168,6 +178,8 @@ export function ChatCenter({
               </Button>
             </div>
           ) : null}
+
+          {/* chat 输入框 */}
           <ChatInput {...controller} />
         </>
       )}
@@ -200,9 +212,8 @@ function CenteredState({
 }) {
   return (
     <div
-      className={`grid flex-1 place-items-center text-sm ${
-        error ? "text-destructive" : "text-muted"
-      }`}
+      className={`grid flex-1 place-items-center text-sm ${error ? "text-destructive" : "text-muted"
+        }`}
     >
       {children}
     </div>

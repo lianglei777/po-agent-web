@@ -23,6 +23,12 @@ export interface SkillDiagnostic {
   path?: string;
 }
 
+export interface SkillLoadResult {
+  skills: SkillInfo[];
+  diagnostics: SkillDiagnostic[];
+  homeDir: string;
+}
+
 export interface SkillSearchResult {
   id: string;
   name: string;
@@ -33,27 +39,8 @@ export interface SkillSearchResult {
   url?: string;
 }
 
-export interface InstallSkillInput {
-  packageSpec: string;
-  scope: "global" | "project";
-  cwd?: string;
-}
-
 export interface InstallSkillResult {
   installed: true;
   skills: SkillInfo[];
   output?: string;
-}
-
-export interface SetSkillInvocationInput {
-  cwd: string;
-  skillId: string;
-  disabled: boolean;
-  expectedVersion?: string;
-}
-
-export interface SkillLoadResult {
-  skills: SkillInfo[];
-  diagnostics: SkillDiagnostic[];
-  homeDir: string;
 }

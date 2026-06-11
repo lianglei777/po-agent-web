@@ -8,6 +8,7 @@ export class NodeProcessRunner implements ProcessRunner {
     options?: {
       cwd?: string;
       timeoutMs?: number;
+      maxOutputBytes?: number;
       env?: Record<string, string | undefined>;
     },
   ): Promise<{ stdout: string; stderr: string }> {
@@ -20,25 +21,49 @@ export class NodeProcessRunner implements ProcessRunner {
       });
       let stdout = "";
       let stderr = "";
+      let outputBytes = 0;
+      let settled = false;
+      const finish = (
+        callback: () => void,
+      ) => {
+        if (settled) return;
+        settled = true;
+        if (timer) clearTimeout(timer);
+        callback();
+      };
+      const append = (current: string, chunk: string) => {
+        outputBytes += Buffer.byteLength(chunk);
+        if (
+          options?.maxOutputBytes &&
+          outputBytes > options.maxOutputBytes
+        ) {
+          child.kill();
+          finish(() => reject(new Error("Process output limit exceeded")));
+        }
+        return current + chunk;
+      };
       child.stdout.setEncoding("utf8");
       child.stderr.setEncoding("utf8");
       child.stdout.on("data", (chunk: string) => {
-        stdout += chunk;
+        stdout = append(stdout, chunk);
       });
       child.stderr.on("data", (chunk: string) => {
-        stderr += chunk;
+        stderr = append(stderr, chunk);
       });
 
       const timer = options?.timeoutMs
-        ? setTimeout(() => child.kill(), options.timeoutMs)
+        ? setTimeout(() => {
+            child.kill();
+            finish(() => reject(new Error("Process timed out")));
+          }, options.timeoutMs)
         : undefined;
-      child.once("error", reject);
+      child.once("error", (error) => finish(() => reject(error)));
       child.once("close", (code) => {
-        if (timer) clearTimeout(timer);
-        if (code === 0) resolve({ stdout, stderr });
-        else reject(new Error(stderr || `${executable} exited with ${code}`));
+        finish(() => {
+          if (code === 0) resolve({ stdout, stderr });
+          else reject(new Error(stderr || `${executable} exited with ${code}`));
+        });
       });
     });
   }
 }
-

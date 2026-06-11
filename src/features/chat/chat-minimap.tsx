@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { minimapSeek, minimapViewport } from "./minimap-logic";
 
-type Point = { top: number; role: "user" | "assistant"; preview: string };
+type Point = { 
+    top: number; 
+    role: "user" | "assistant"; 
+    preview: string 
+  };
 
 export function ChatMinimap({
   scroller,
