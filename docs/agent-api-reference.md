@@ -1572,7 +1572,7 @@ GET /api/skills
 GET /api/skills?cwd=C%3A%5Cworkspace%5Cproject
 ```
 
-`cwd` 省略时使用服务端 `process.cwd()`。
+`cwd` 必需，且必须是已注册的 Workspace Root。
 
 响应：
 
@@ -1580,12 +1580,21 @@ GET /api/skills?cwd=C%3A%5Cworkspace%5Cproject
 {
   "skills": [
     {
+      "skillId": "d60c...",
       "name": "example-skill",
       "description": "Example skill",
       "filePath": "C:\\...\\SKILL.md",
+      "displayPath": "~\\.pi\\agent\\skills\\example-skill\\SKILL.md",
       "baseDir": "C:\\...\\example-skill",
-      "source": "user",
-      "disableModelInvocation": false
+      "sourceInfo": {
+        "path": "C:\\...\\skills",
+        "source": "user",
+        "scope": "user",
+        "origin": "top-level"
+      },
+      "canModify": true,
+      "disableModelInvocation": false,
+      "version": "6f2d..."
     }
   ],
   "diagnostics": [
@@ -1594,11 +1603,14 @@ GET /api/skills?cwd=C%3A%5Cworkspace%5Cproject
       "message": "Invalid frontmatter",
       "path": "C:\\...\\SKILL.md"
     }
-  ]
+  ],
+  "homeDir": "C:\\Users\\example"
 }
 ```
 
-该接口使用 Pi SDK `loadSkills`，与 Agent 资源加载规则保持一致。
+该接口使用与 AgentSession 相同的 Pi SDK `DefaultResourceLoader`、
+`SettingsManager`、`cwd` 和 `agentDir`，因此包含 project、global、显式 path
+和 package/extension 提供的技能，并保留同名资源与 diagnostics。
 
 ### 10.2 修改模型调用开关
 
@@ -1611,8 +1623,10 @@ Content-Type: application/json
 
 ```json
 {
-  "filePath": "C:\\Users\\example\\.pi\\agent\\skills\\demo\\SKILL.md",
-  "disabled": true
+  "cwd": "C:\\workspace\\project",
+  "skillId": "d60c...",
+  "disabled": true,
+  "expectedVersion": "6f2d..."
 }
 ```
 
@@ -1621,17 +1635,14 @@ Content-Type: application/json
 - `disabled: true`：写入 `disable-model-invocation: true`。
 - `disabled: false`：删除该 Frontmatter 字段。
 - 保留其他 Frontmatter 内容。
+- 保留 BOM、换行风格、注释和其他字段。
 - 文件没有 Frontmatter 且需要禁用时，会创建 Frontmatter。
+- `disabled: true` 只从模型 prompt 中移除技能，显式 `/skill:name` 仍可调用。
+- 服务端通过 `cwd + skillId` 重新执行资源发现，不接受客户端文件路径。
+- 写入前校验 realpath、symlink 和 `expectedVersion`，并使用同目录临时文件替换。
 
-成功响应：
-
-```json
-{
-  "success": true
-}
-```
-
-安全说明：当前接口直接接受 `filePath`，没有复用 File API 的 Workspace Root 校验。
+成功响应是刷新后的完整 Skill 加载结果。`409 SKILL_CONFLICT` 表示文件已被
+其他进程修改，客户端应刷新后重试。
 
 ### 10.3 搜索 Skill
 
@@ -1655,19 +1666,25 @@ Content-Type: application/json
 - `limit` 必须是正数，否则使用默认值 `20`。
 - 先请求 `https://skills.sh/api/search`。
 - 远程 API 失败时回退 `npx --yes skills find`。
-- API 和 CLI 都失败时返回空数组，不返回错误。
+- CLI 回退使用 Node 执行 npm 自带的 `npx-cli.js`，所有参数独立传递，不使用 shell。
+- CLI 有超时、输出上限、ANSI 清理。
+- API 和 CLI 都失败时返回 `502 SKILL_SEARCH_FAILED`。
 
 响应：
 
 ```json
-[
-  {
-    "name": "react-testing",
-    "description": "",
-    "source": "owner/repository",
-    "installRef": "owner/repository@react-testing"
-  }
-]
+{
+  "results": [
+    {
+      "id": "owner/repository@react-testing",
+      "name": "react-testing",
+      "description": "",
+      "source": "owner/repository",
+      "packageSpec": "owner/repository@react-testing",
+      "installs": 1200
+    }
+  ]
+}
 ```
 
 ### 10.4 安装 Skill
@@ -1681,7 +1698,7 @@ Content-Type: application/json
 
 ```json
 {
-  "source": "owner/repository@react-testing",
+  "package": "owner/repository@react-testing",
   "scope": "project",
   "cwd": "C:\\workspace\\project"
 }
@@ -1691,20 +1708,20 @@ Content-Type: application/json
 
 | 字段 | 必需 | 说明 |
 | --- | --- | --- |
-| `source` | 是 | `skills add` 接受的 Skill Source |
+| `package` | 是 | `skills add` 接受的 Skill Package |
 | `scope` | 是 | `global` 或 `project` |
-| `cwd` | 否 | Project Scope 下的执行目录 |
+| `cwd` | Project 必需 | 已注册的 Workspace Root；Global 下用于安装后验证 |
 
 CLI：
 
 ```text
-npx --yes skills add <source> --yes
+node <npm>/bin/npx-cli.js --yes skills add <package> -y --agent pi
 ```
 
 Global Scope 会追加：
 
 ```text
---global
+-g
 ```
 
 成功响应：
@@ -1712,14 +1729,26 @@ Global Scope 会追加：
 ```json
 {
   "installed": true,
-  "stdout": "...",
-  "stderr": ""
+  "skills": [
+    {
+      "skillId": "d60c...",
+      "name": "react-testing",
+      "displayPath": ".agents\\skills\\react-testing\\SKILL.md"
+    }
+  ],
+  "output": "..."
 }
 ```
+
+命令成功后会重新运行 `DefaultResourceLoader`，只有发现新增或内容发生变化且 scope
+正确的技能才算安装成功；返回路径来自真实发现结果。新安装技能默认关闭模型自动
+调用，但仍可显式调用。正在运行的 AgentSession 不会被静默重启，新会话、恢复会话
+或显式资源 reload 后生效。
 
 错误：
 
 - `400 VALIDATION_ERROR`
+- `409 SKILL_INSTALL_BUSY`
 - `500 SKILL_INSTALL_FAILED`
 
 ## 11. SSE 通用行为
@@ -1823,12 +1852,12 @@ GET /api/agent/019e.../events
 5. 无业务返回值的 Agent Command 统一返回 `{ "success": true }`。
 6. Model Test 会执行真实模型请求，可能产生费用。
 7. Models Config PUT 是完整覆盖，不是增量更新。
-8. Skill Toggle 接口当前没有限制 `filePath` 必须位于 Workspace Root。
-9. Skill Search 失败会退化为空数组，调用方无法区分“无结果”和“搜索服务失败”。
-10. File API 仅过滤 `.git`、`.next`、`node_modules`，没有读取 `.gitignore`。
-11. 文本读取固定使用 UTF-8，没有编码探测。
-12. Range 只支持一个显式区间，不支持多 Range 和标准后缀区间语义。
-13. 当前默认模型是可用模型列表第一项，不是持久化的用户默认选择。
+8. 当前 Agent Runtime 没有公开资源热重载命令，Skill 设置在新建、恢复或已有
+   reload 能力的 Session 中生效。
+9. File API 仅过滤 `.git`、`.next`、`node_modules`，没有读取 `.gitignore`。
+10. 文本读取固定使用 UTF-8，没有编码探测。
+11. Range 只支持一个显式区间，不支持多 Range 和标准后缀区间语义。
+12. 当前默认模型是可用模型列表第一项，不是持久化的用户默认选择。
 
 ## 14. 实现位置
 

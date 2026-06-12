@@ -24,11 +24,11 @@ import type {
 import {
   FilePanel,
   type OpenFile,
-} from "@/features/files/file-panel";
+} from "@/features/file-panel/file-panel";
 import { ModelsConfigDialog } from "@/features/models-config/models-config-dialog";
-import { SessionSidebar } from "@/features/sessions/session-sidebar";
-import { loadSessions } from "@/features/sessions/api";
-import type { SessionInfo } from "@/features/sessions/types";
+import { SessionSidebar } from "@/features/session-sidebar/session-sidebar";
+import { loadSessions } from "@/features/session-sidebar/api";
+import type { SessionInfo } from "@/features/session-sidebar/types";
 import { SkillsConfigDialog } from "@/features/skills-config/skills-config-dialog";
 import {
   WorkspaceTopBar,
