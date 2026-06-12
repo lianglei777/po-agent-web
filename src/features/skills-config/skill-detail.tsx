@@ -12,12 +12,12 @@ export function SkillDetail({
 }) {
   const enabled = !skill.disableModelInvocation;
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+    <div className="min-h-0 flex-1 overflow-y-auto p-5">
       <div className="mx-auto max-w-2xl">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-semibold">{skill.name}</h2>
-            <p className="mt-1 text-sm leading-6 text-muted">
+            <h2 className="truncate text-[15px] font-semibold">{skill.name}</h2>
+            <p className="mt-1 text-[13px] leading-5 text-muted">
               {skill.description || "No description provided."}
             </p>
           </div>

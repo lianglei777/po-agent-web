@@ -81,10 +81,10 @@ export function AddSkillPanel({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+    <div className="min-h-0 flex-1 overflow-y-auto p-5">
       <div className="mx-auto max-w-2xl">
-        <h2 className="text-xl font-semibold">Add skill</h2>
-        <p className="mt-1 text-sm text-muted">
+        <h2 className="text-[15px] font-semibold">Add skill</h2>
+        <p className="mt-1 text-[13px] text-muted">
           Search the skills market, then install through the project&apos;s
           verified ResourceLoader workflow.
         </p>

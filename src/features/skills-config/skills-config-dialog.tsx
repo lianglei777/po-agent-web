@@ -35,10 +35,10 @@ export function SkillsConfigDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         aria-describedby="skills-config-description"
-        className="h-[78dvh] max-h-[760px] w-[860px] max-w-[calc(100vw-2rem)] grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden border-line bg-canvas p-0 max-[640px]:h-dvh max-[640px]:max-h-none max-[640px]:max-w-none max-[640px]:rounded-none"
+        className="h-[78vh] w-[min(860px,calc(100vw-32px))] max-w-none grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-[10px] border-line bg-canvas p-0 shadow-2xl sm:max-w-none"
         showCloseButton={false}
       >
-        <header className="flex min-h-14 items-center gap-3 border-b border-line bg-panel px-4">
+        <header className="flex min-h-[49px] shrink-0 items-center gap-3 border-b border-line bg-panel px-[18px] py-3">
           <Sparkles className="size-4" />
           <div className="min-w-0 flex-1">
             <DialogTitle className="text-base">Skills</DialogTitle>
@@ -70,8 +70,8 @@ export function SkillsConfigDialog({
           </Button>
         </header>
 
-        <div className="flex min-h-0 max-[640px]:flex-col">
-          <aside className="flex min-h-0 w-[270px] flex-col border-r border-line bg-panel max-[640px]:h-[42%] max-[640px]:w-full max-[640px]:border-b max-[640px]:border-r-0">
+        <div className="flex min-h-0">
+          <aside className="flex min-h-0 w-[210px] shrink-0 flex-col border-r border-line bg-panel">
             <div className="p-2">
               <Button
                 aria-pressed={adding}
