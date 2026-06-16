@@ -1,9 +1,10 @@
 "use client";
 
-import { type DragEvent, useRef, useState } from "react";
+import { type DragEvent, useCallback, useMemo, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatInput } from "./chat-input";
+import { createChatMinimapEntries } from "./chat-minimap-adapter";
 import { ChatMinimap } from "./chat-minimap";
 import { MessageList } from "./message-view";
 import type {
@@ -56,6 +57,29 @@ export function ChatCenter({
   const [scrollerNode, setScrollerNode] = useState<HTMLDivElement | null>(null);
   const [contentNode, setContentNode] = useState<HTMLDivElement | null>(null);
   const dragCounter = useRef(0);
+  const messageElementsRef = useRef<Map<string, HTMLElement>>(new Map());
+
+  const minimapEntries = useMemo(
+    () =>
+      createChatMinimapEntries({
+        entryIds: controller.entryIds,
+        messages: controller.messages,
+        streamingMessage: controller.stream.streamingMessage,
+      }),
+    [
+      controller.entryIds,
+      controller.messages,
+      controller.stream.streamingMessage,
+    ],
+  );
+
+  const handleMessageElement = useCallback(
+    (id: string, element: HTMLElement | null) => {
+      if (element) messageElementsRef.current.set(id, element);
+      else messageElementsRef.current.delete(id);
+    },
+    [],
+  );
 
   function hasImages(event: DragEvent<HTMLElement>) {
     return Array.from(event.dataTransfer.items).some(
@@ -110,9 +134,9 @@ export function ChatCenter({
         <CenteredState error>{controller.error}</CenteredState>
       ) : (
         <>
-          <div className="relative min-h-0 flex-1">
+          <div className="relative flex min-h-0 flex-1 overflow-hidden">
             <div
-              className="size-full overflow-y-auto overscroll-contain [scrollbar-width:none]"
+              className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none]"
               ref={(node) => {
                 controller.setScrollerNode(node);
                 setScrollerNode(node);
@@ -147,6 +171,7 @@ export function ChatCenter({
                     void controller.editFromHere(targetId, text)
                   }
                   onFork={(entryId) => void controller.fork(entryId)}
+                  onMessageElement={handleMessageElement}
                   running={controller.running}
                   streamingMessage={controller.stream.streamingMessage}
                 />
@@ -159,10 +184,8 @@ export function ChatCenter({
             {/* chat mini map */}
             <ChatMinimap
               content={contentNode}
-              messageCount={
-                controller.messages.length +
-                (controller.stream.streamingMessage ? 1 : 0)
-              }
+              messageElementsRef={messageElementsRef}
+              messages={minimapEntries}
               scroller={scrollerNode}
             />
           </div>

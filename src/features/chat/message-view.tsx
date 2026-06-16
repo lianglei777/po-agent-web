@@ -45,6 +45,7 @@ export function MessageList({
   running,
   forkingEntryId,
   lastUserRef,
+  onMessageElement,
   onFork,
   onEdit,
 }: {
@@ -54,6 +55,7 @@ export function MessageList({
   running: boolean;
   forkingEntryId: string | null;
   lastUserRef: React.MutableRefObject<HTMLElement | null>;
+  onMessageElement?: (id: string, element: HTMLElement | null) => void;
   onFork: (entryId: string) => void;
   onEdit: (targetId: string, text: string) => void;
 }) {
@@ -74,6 +76,10 @@ export function MessageList({
         const previous = index > 0 ? messages[index - 1] : null;
         const entryId = entryIds[index];
         const previousEntryId = index > 0 ? entryIds[index - 1] : undefined;
+        const minimapId =
+          entryId ??
+          (message.role === "user" ? message.clientId : undefined) ??
+          `${message.role}-${message.timestamp ?? "untimed"}-${index}`;
         const isLastUser =
           message.role === "user" &&
           !visible.slice(visibleIndex + 1).some((item) => item.message.role === "user");
@@ -82,7 +88,10 @@ export function MessageList({
             className="group relative mb-8 scroll-mt-4"
             data-message-role={message.role}
             key={entryId ?? `${message.role}-${index}-${message.timestamp ?? 0}`}
-            ref={isLastUser ? lastUserRef : undefined}
+            ref={(element) => {
+              onMessageElement?.(minimapId, element);
+              if (isLastUser) lastUserRef.current = element;
+            }}
           >
             {message.role === "user" ? (
               <UserMessageView
@@ -114,6 +123,9 @@ export function MessageList({
           className="relative mb-8"
           data-message-role="assistant"
           data-streaming="true"
+          ref={(element) => {
+            onMessageElement?.("streaming-assistant", element);
+          }}
         >
           <AssistantMessageView
             message={{
