@@ -67,7 +67,6 @@ describe("chat minimap geometry", () => {
       scrollTopForViewportRatio({
         clientHeight: 500,
         scrollHeight: 2000,
-        viewportRatio: 0.25,
         viewportTopRatio: 0.375,
       }),
     ).toBe(750);
@@ -75,24 +74,48 @@ describe("chat minimap geometry", () => {
       scrollTopForViewportRatio({
         clientHeight: 500,
         scrollHeight: 2000,
-        viewportRatio: 0.25,
         viewportTopRatio: 1,
       }),
     ).toBe(1500);
+  });
+
+  it("uses viewport insets for the readable chat viewport", () => {
+    expect(
+      computeViewportGeometry({
+        clientHeight: 500,
+        scrollHeight: 2000,
+        scrollTop: 750,
+        viewportInsets: { bottom: 160 },
+      }),
+    ).toEqual({
+      scrollRatio: 0.5,
+      viewportRatio: 0.17,
+      viewportTopRatio: 0.375,
+      visible: true,
+    });
+
+    expect(
+      scrollTopForViewportRatio({
+        clientHeight: 500,
+        scrollHeight: 2000,
+        viewportInsets: { top: 20 },
+        viewportTopRatio: 0.385,
+      }),
+    ).toBe(750);
   });
 
   it("keeps the grab offset inside the current viewport", () => {
     expect(
       dragOffsetForPointer({
         pointerRatio: 0.45,
-        scrollRatio: 0.5,
+        viewportTopRatio: 0.375,
         viewportRatio: 0.25,
       }),
     ).toBeCloseTo(0.075);
     expect(
       dragOffsetForPointer({
         pointerRatio: 0.05,
-        scrollRatio: 0.5,
+        viewportTopRatio: 0.375,
         viewportRatio: 0.25,
       }),
     ).toBe(0.125);

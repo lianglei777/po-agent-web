@@ -4,6 +4,7 @@ import type {
   ChangeEvent,
   ClipboardEventHandler,
   KeyboardEventHandler,
+  Ref,
   RefObject,
 } from "react";
 import {
@@ -84,6 +85,7 @@ export function ChatInput({
   handleKeyDown,
   handlePaste,
   setActionError,
+  rootRef,
 }: {
   draft: string;
   images: AttachedImage[];
@@ -121,6 +123,7 @@ export function ChatInput({
   handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement>;
   handlePaste: ClipboardEventHandler<HTMLTextAreaElement>;
   setActionError: (value: string) => void;
+  rootRef?: Ref<HTMLDivElement>;
 }) {
   const thinkingOptions = [
     "auto",
@@ -140,7 +143,10 @@ export function ChatInput({
     : "Enter to send · Shift+Enter for a new line";
 
   return (
-    <div className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-[linear-gradient(transparent,var(--bg)_26%)] px-4 pt-14 pb-4 max-[640px]:right-0 max-[640px]:px-2 max-[640px]:pb-2">
+    <div
+      className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-[linear-gradient(transparent,var(--bg)_26%)] px-4 pt-14 pb-4 max-[640px]:right-0 max-[640px]:px-2 max-[640px]:pb-2"
+      ref={rootRef}
+    >
       <div className="pointer-events-auto mx-auto max-w-[820px]">
         {retryInfo ? (
           <InlineStatus tone="warning">

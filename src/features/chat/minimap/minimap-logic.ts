@@ -30,10 +30,25 @@ type ViewportMetrics = {
   scrollTop: number;
   scrollHeight: number;
   clientHeight: number;
+  viewportInsets?: ViewportInsets;
+};
+
+export type ViewportInsets = {
+  top?: number;
+  bottom?: number;
 };
 
 export function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function normalizeViewportInsets(
+  insets: ViewportInsets | undefined,
+  clientHeight: number,
+) {
+  const top = clamp(insets?.top ?? 0, 0, clientHeight);
+  const bottom = clamp(insets?.bottom ?? 0, 0, Math.max(0, clientHeight - top));
+  return { bottom, top };
 }
 
 export function adaptMinimapMessages<TMessage>(
@@ -59,6 +74,7 @@ export function computeViewportGeometry({
   scrollTop,
   scrollHeight,
   clientHeight,
+  viewportInsets,
 }: ViewportMetrics) {
   if (scrollHeight <= 0) {
     return {
@@ -70,7 +86,12 @@ export function computeViewportGeometry({
   }
 
   const scrollable = scrollHeight - clientHeight;
-  const viewportRatio = clamp(clientHeight / scrollHeight, 0, 1);
+  const insets = normalizeViewportInsets(viewportInsets, clientHeight);
+  const effectiveClientHeight = Math.max(
+    0,
+    clientHeight - insets.top - insets.bottom,
+  );
+  const viewportRatio = clamp(effectiveClientHeight / scrollHeight, 0, 1);
   const scrollRatio =
     scrollable > 0 ? clamp(scrollTop / scrollable, 0, 1) : 0;
 
@@ -78,7 +99,7 @@ export function computeViewportGeometry({
     visible: scrollable > 20,
     scrollRatio,
     viewportRatio,
-    viewportTopRatio: scrollRatio * (1 - viewportRatio),
+    viewportTopRatio: clamp((scrollTop + insets.top) / scrollHeight, 0, 1),
   };
 }
 
@@ -99,19 +120,20 @@ export function computeMessageTopRatio({
 
 export function scrollTopForViewportRatio({
   viewportTopRatio,
-  viewportRatio,
   scrollHeight,
   clientHeight,
+  viewportInsets,
 }: {
   viewportTopRatio: number;
-  viewportRatio: number;
   scrollHeight: number;
   clientHeight: number;
+  viewportInsets?: ViewportInsets;
 }) {
   const scrollable = scrollHeight - clientHeight;
-  if (scrollable <= 0 || viewportRatio >= 1) return 0;
-  const clamped = clamp(viewportTopRatio, 0, 1 - viewportRatio);
-  return (clamped / (1 - viewportRatio)) * scrollable;
+  if (scrollable <= 0) return 0;
+  const insets = normalizeViewportInsets(viewportInsets, clientHeight);
+  const targetVisibleTop = clamp(viewportTopRatio, 0, 1) * scrollHeight;
+  return clamp(targetVisibleTop - insets.top, 0, scrollable);
 }
 
 export function pointerRatioFromClientY({
@@ -129,14 +151,13 @@ export function pointerRatioFromClientY({
 
 export function dragOffsetForPointer({
   pointerRatio,
-  scrollRatio,
+  viewportTopRatio,
   viewportRatio,
 }: {
   pointerRatio: number;
-  scrollRatio: number;
+  viewportTopRatio: number;
   viewportRatio: number;
 }) {
-  const viewportTopRatio = scrollRatio * (1 - viewportRatio);
   const grabOffset = pointerRatio - viewportTopRatio;
   return grabOffset >= 0 && grabOffset <= viewportRatio
     ? grabOffset

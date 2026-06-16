@@ -1,6 +1,13 @@
 "use client";
 
-import { type DragEvent, useCallback, useMemo, useRef, useState } from "react";
+import {
+  type DragEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatInput } from "./chat-input";
@@ -59,6 +66,8 @@ export function ChatCenter({
   const [highlightedMessageId, setHighlightedMessageId] = useState<
     string | null
   >(null);
+  const [composerNode, setComposerNode] = useState<HTMLDivElement | null>(null);
+  const [composerHeight, setComposerHeight] = useState(0);
   const dragCounter = useRef(0);
   const messageElementsRef = useRef<Map<string, HTMLElement>>(new Map());
 
@@ -75,6 +84,10 @@ export function ChatCenter({
       controller.stream.streamingMessage,
     ],
   );
+  const minimapViewportInsets = useMemo(
+    () => ({ bottom: composerHeight }),
+    [composerHeight],
+  );
 
   const handleMessageElement = useCallback(
     (id: string, element: HTMLElement | null) => {
@@ -83,6 +96,22 @@ export function ChatCenter({
     },
     [],
   );
+
+  useEffect(() => {
+    if (!composerNode) return;
+
+    const updateComposerHeight = () => {
+      setComposerHeight(composerNode.getBoundingClientRect().height);
+    };
+    const observer = new ResizeObserver(updateComposerHeight);
+    observer.observe(composerNode);
+    const frame = window.requestAnimationFrame(updateComposerHeight);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [composerNode]);
 
   function hasImages(event: DragEvent<HTMLElement>) {
     return Array.from(event.dataTransfer.items).some(
@@ -192,12 +221,13 @@ export function ChatCenter({
               messages={minimapEntries}
               onHoverMessageChange={setHighlightedMessageId}
               scroller={scrollerNode}
+              viewportInsets={minimapViewportInsets}
             />
           </div>
 
           {/* 错误提示 */}
           {/* chat 输入框 */}
-          <ChatInput {...controller} />
+          <ChatInput {...controller} rootRef={setComposerNode} />
         </>
       )}
     </main>

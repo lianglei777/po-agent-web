@@ -14,6 +14,7 @@ import {
   TOOLTIP_HEIGHT,
   type MinimapMessageEntry,
   type MinimapNodeInfo,
+  type ViewportInsets,
 } from "./minimap-logic";
 
 type Metrics = {
@@ -37,12 +38,14 @@ export function ChatMinimap({
   messages,
   messageElementsRef,
   onHoverMessageChange,
+  viewportInsets,
 }: {
   scroller: HTMLDivElement | null;
   content: HTMLDivElement | null;
   messages: MinimapMessageEntry[];
   messageElementsRef: React.RefObject<Map<string, HTMLElement>>;
   onHoverMessageChange?: (messageId: string | null) => void;
+  viewportInsets?: ViewportInsets;
 }) {
   const [nodes, setNodes] = useState<MinimapNodeInfo[]>([]);
   const [metrics, setMetrics] = useState<Metrics>(INITIAL_METRICS);
@@ -80,10 +83,11 @@ export function ChatMinimap({
       clientHeight: scroller.clientHeight,
       scrollHeight: scroller.scrollHeight,
       scrollTop: scroller.scrollTop,
+      viewportInsets,
     });
     setMetrics(viewport);
     setMinimapHeight(trackRef.current?.clientHeight ?? scroller.clientHeight);
-  }, [scroller]);
+  }, [scroller, viewportInsets]);
 
   const measure = useCallback(() => {
     if (!scroller) {
@@ -182,12 +186,12 @@ export function ChatMinimap({
       element.scrollTop = scrollTopForViewportRatio({
         clientHeight: element.clientHeight,
         scrollHeight: element.scrollHeight,
-        viewportRatio: metrics.viewportRatio,
+        viewportInsets,
         viewportTopRatio,
       });
       scheduleViewportUpdate();
     },
-    [metrics.viewportRatio, scheduleViewportUpdate],
+    [scheduleViewportUpdate, viewportInsets],
   );
 
   const nearestIndex = useMemo(
@@ -246,7 +250,7 @@ export function ChatMinimap({
         });
         const offset = dragOffsetForPointer({
           pointerRatio,
-          scrollRatio: metrics.scrollRatio,
+          viewportTopRatio: metrics.viewportTopRatio,
           viewportRatio: metrics.viewportRatio,
         });
         dragOffsetRef.current = offset;
@@ -288,9 +292,14 @@ export function ChatMinimap({
           return;
         }
 
+        const scrollRect = scrollElement.getBoundingClientRect();
+        const visibleViewport = {
+          bottom: scrollRect.bottom - (viewportInsets?.bottom ?? 0),
+          top: scrollRect.top + (viewportInsets?.top ?? 0),
+        };
         const isVisible = isElementVerticallyVisible(
           element.getBoundingClientRect(),
-          scrollElement.getBoundingClientRect(),
+          visibleViewport,
         );
         setHoverMessage(isVisible ? node.id : null);
       }}
@@ -303,7 +312,10 @@ export function ChatMinimap({
       ref={trackRef}
       role="presentation"
     >
+      {/* minimap 中线 */}
       <div className="absolute top-0 bottom-0 left-1/2 z-0 w-px -translate-x-1/2 bg-line" />
+
+      {/* scroll bar */}
       <div
         className="pointer-events-none absolute right-0 left-0 z-10 border-y border-neutral-500/20 bg-neutral-500/10"
         style={{
@@ -311,7 +323,8 @@ export function ChatMinimap({
           top: `${metrics.viewportTopRatio * 100}%`,
         }}
       />
-
+      
+      {/* chat node */}
       {nodes.map((node, index) => {
         const nearest = index === nearestIndex;
         return (
@@ -332,6 +345,7 @@ export function ChatMinimap({
         );
       })}
 
+      {/* hover node 展示的 chat 对话缩略内容 */}
       {hovered
         ? tooltipEntries.map(({ node, index }, tooltipIndex) => {
             const nearest = index === nearestIndex;
