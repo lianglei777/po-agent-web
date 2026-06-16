@@ -5,6 +5,8 @@ import {
   computeViewportGeometry,
   dragOffsetForPointer,
   findNearestNode,
+  isElementVerticallyVisible,
+  selectTooltipWindow,
   scrollTopForViewportRatio,
 } from "./minimap-logic";
 
@@ -146,5 +148,61 @@ describe("chat minimap tooltip positions", () => {
     expect(positions.every((position) => position >= 0 && position <= 58)).toBe(
       true,
     );
+  });
+});
+
+describe("chat minimap tooltip window", () => {
+  it("keeps all tooltips for ordinary conversations", () => {
+    expect(selectTooltipWindow(["a", "b"], 1, 5)).toEqual([
+      { item: "a", index: 0 },
+      { item: "b", index: 1 },
+    ]);
+  });
+
+  it("selects a bounded window around the nearest tooltip", () => {
+    const items = Array.from({ length: 100 }, (_, index) => index);
+    const selected = selectTooltipWindow(items, 50, 10);
+
+    expect(selected).toHaveLength(10);
+    expect(selected[0]).toEqual({ item: 45, index: 45 });
+    expect(selected.at(-1)).toEqual({ item: 54, index: 54 });
+  });
+
+  it("clamps the tooltip window at the edges", () => {
+    const items = Array.from({ length: 100 }, (_, index) => index);
+
+    expect(selectTooltipWindow(items, 2, 10)[0]).toEqual({
+      item: 0,
+      index: 0,
+    });
+    expect(selectTooltipWindow(items, 98, 10).at(-1)).toEqual({
+      item: 99,
+      index: 99,
+    });
+  });
+});
+
+describe("chat minimap viewport visibility", () => {
+  const viewport = { bottom: 500, top: 100 };
+
+  it("requires a minimum visible height", () => {
+    expect(
+      isElementVerticallyVisible({ bottom: 120, top: 90 }, viewport),
+    ).toBe(true);
+    expect(
+      isElementVerticallyVisible({ bottom: 106, top: 90 }, viewport),
+    ).toBe(false);
+  });
+
+  it("handles elements fully inside or outside the viewport", () => {
+    expect(
+      isElementVerticallyVisible({ bottom: 240, top: 160 }, viewport),
+    ).toBe(true);
+    expect(
+      isElementVerticallyVisible({ bottom: 80, top: 40 }, viewport),
+    ).toBe(false);
+    expect(
+      isElementVerticallyVisible({ bottom: 560, top: 520 }, viewport),
+    ).toBe(false);
   });
 });

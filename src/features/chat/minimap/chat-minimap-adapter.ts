@@ -3,7 +3,7 @@ import type {
   AssistantMessage,
   TextContent,
   UserMessage,
-} from "./agent-types";
+} from "../agent-types";
 import {
   adaptMinimapMessages,
   type MinimapMessageAdapter,

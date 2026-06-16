@@ -7,8 +7,10 @@ import {
   computeViewportGeometry,
   dragOffsetForPointer,
   findNearestNode,
+  isElementVerticallyVisible,
   pointerRatioFromClientY,
   scrollTopForViewportRatio,
+  selectTooltipWindow,
   TOOLTIP_HEIGHT,
   type MinimapMessageEntry,
   type MinimapNodeInfo,
@@ -27,17 +29,20 @@ const INITIAL_METRICS: Metrics = {
   viewportRatio: 1,
   viewportTopRatio: 0,
 };
+const MAX_HOVER_TOOLTIPS = 80;
 
 export function ChatMinimap({
   scroller,
   content,
   messages,
   messageElementsRef,
+  onHoverMessageChange,
 }: {
   scroller: HTMLDivElement | null;
   content: HTMLDivElement | null;
   messages: MinimapMessageEntry[];
   messageElementsRef: React.RefObject<Map<string, HTMLElement>>;
+  onHoverMessageChange?: (messageId: string | null) => void;
 }) {
   const [nodes, setNodes] = useState<MinimapNodeInfo[]>([]);
   const [metrics, setMetrics] = useState<Metrics>(INITIAL_METRICS);
@@ -48,16 +53,26 @@ export function ChatMinimap({
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef(0);
-  const frameRef = useRef<number | null>(null);
+  const measureFrameRef = useRef<number | null>(null);
+  const viewportFrameRef = useRef<number | null>(null);
+  const hoverMessageRef = useRef<string | null>(null);
 
   useEffect(() => {
     scrollerRef.current = scroller;
   }, [scroller]);
 
-  const measure = useCallback(() => {
+  const setHoverMessage = useCallback(
+    (messageId: string | null) => {
+      if (hoverMessageRef.current === messageId) return;
+      hoverMessageRef.current = messageId;
+      onHoverMessageChange?.(messageId);
+    },
+    [onHoverMessageChange],
+  );
+
+  const updateViewport = useCallback(() => {
     if (!scroller) {
       setMetrics(INITIAL_METRICS);
-      setNodes([]);
       return;
     }
 
@@ -68,6 +83,16 @@ export function ChatMinimap({
     });
     setMetrics(viewport);
     setMinimapHeight(trackRef.current?.clientHeight ?? scroller.clientHeight);
+  }, [scroller]);
+
+  const measure = useCallback(() => {
+    if (!scroller) {
+      setMetrics(INITIAL_METRICS);
+      setNodes([]);
+      return;
+    }
+
+    updateViewport();
 
     const containerRect = scroller.getBoundingClientRect();
     const nextNodes = messages.flatMap((message, index) => {
@@ -94,15 +119,23 @@ export function ChatMinimap({
     });
 
     setNodes(nextNodes);
-  }, [messageElementsRef, messages, scroller]);
+  }, [messageElementsRef, messages, scroller, updateViewport]);
 
   const scheduleMeasure = useCallback(() => {
-    if (frameRef.current !== null) return;
-    frameRef.current = window.requestAnimationFrame(() => {
-      frameRef.current = null;
+    if (measureFrameRef.current !== null) return;
+    measureFrameRef.current = window.requestAnimationFrame(() => {
+      measureFrameRef.current = null;
       measure();
     });
   }, [measure]);
+
+  const scheduleViewportUpdate = useCallback(() => {
+    if (viewportFrameRef.current !== null) return;
+    viewportFrameRef.current = window.requestAnimationFrame(() => {
+      viewportFrameRef.current = null;
+      updateViewport();
+    });
+  }, [updateViewport]);
 
   useEffect(() => {
     if (!scroller) return;
@@ -111,18 +144,24 @@ export function ChatMinimap({
     observer.observe(scroller);
     if (content) observer.observe(content);
 
-    scroller.addEventListener("scroll", scheduleMeasure, { passive: true });
+    scroller.addEventListener("scroll", scheduleViewportUpdate, {
+      passive: true,
+    });
     scheduleMeasure();
 
     return () => {
       observer.disconnect();
-      scroller.removeEventListener("scroll", scheduleMeasure);
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-        frameRef.current = null;
+      scroller.removeEventListener("scroll", scheduleViewportUpdate);
+      if (measureFrameRef.current !== null) {
+        window.cancelAnimationFrame(measureFrameRef.current);
+        measureFrameRef.current = null;
+      }
+      if (viewportFrameRef.current !== null) {
+        window.cancelAnimationFrame(viewportFrameRef.current);
+        viewportFrameRef.current = null;
       }
     };
-  }, [content, scheduleMeasure, scroller]);
+  }, [content, scheduleMeasure, scheduleViewportUpdate, scroller]);
 
   useEffect(() => {
     const timer = window.setTimeout(scheduleMeasure, 50);
@@ -132,8 +171,9 @@ export function ChatMinimap({
   useEffect(() => {
     return () => {
       draggingRef.current = false;
+      onHoverMessageChange?.(null);
     };
-  }, []);
+  }, [onHoverMessageChange]);
 
   const scrollToViewportTopRatio = useCallback(
     (viewportTopRatio: number) => {
@@ -145,18 +185,41 @@ export function ChatMinimap({
         viewportRatio: metrics.viewportRatio,
         viewportTopRatio,
       });
-      scheduleMeasure();
+      scheduleViewportUpdate();
     },
-    [metrics.viewportRatio, scheduleMeasure],
+    [metrics.viewportRatio, scheduleViewportUpdate],
   );
 
   const nearestIndex = useMemo(
     () => findNearestNode(nodes, mouseYRatio),
     [mouseYRatio, nodes],
   );
-  const tooltipPositions = useMemo(
-    () => computeTooltipPositions(nodes, minimapHeight || 600),
-    [minimapHeight, nodes],
+  const tooltipEntries = useMemo(() => {
+    const previewNodes = nodes
+      .map((node, index) => ({ index, node }))
+      .filter(({ node }) => node.preview);
+    const nearestPreviewIndex =
+      nearestIndex === null
+        ? null
+        : previewNodes.findIndex(({ index }) => index === nearestIndex);
+    const tooltipNearestIndex =
+      nearestPreviewIndex !== null && nearestPreviewIndex >= 0
+        ? nearestPreviewIndex
+        : null;
+
+    return selectTooltipWindow(
+      previewNodes,
+      tooltipNearestIndex,
+      MAX_HOVER_TOOLTIPS,
+    ).map(({ item }) => item);
+  }, [nearestIndex, nodes]);
+  const tooltipWindowPositions = useMemo(
+    () =>
+      computeTooltipPositions(
+        tooltipEntries.map(({ node }) => node),
+        minimapHeight || 600,
+      ),
+    [minimapHeight, tooltipEntries],
   );
 
   if (!metrics.visible || !scroller) return null;
@@ -167,6 +230,7 @@ export function ChatMinimap({
       className="relative w-9 flex-shrink-0 touch-none select-none overflow-visible border-l border-line bg-panel/85"
       onPointerCancel={(event) => {
         draggingRef.current = false;
+        setHoverMessage(null);
         if (event.currentTarget.hasPointerCapture(event.pointerId)) {
           event.currentTarget.releasePointerCapture(event.pointerId);
         }
@@ -187,6 +251,7 @@ export function ChatMinimap({
         });
         dragOffsetRef.current = offset;
         draggingRef.current = true;
+        setHoverMessage(null);
         event.currentTarget.setPointerCapture(event.pointerId);
         scrollToViewportTopRatio(pointerRatio - offset);
       }}
@@ -195,6 +260,7 @@ export function ChatMinimap({
         if (draggingRef.current) return;
         setHovered(false);
         setMouseYRatio(null);
+        setHoverMessage(null);
       }}
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
@@ -206,7 +272,27 @@ export function ChatMinimap({
         setMouseYRatio(pointerRatio);
         if (draggingRef.current) {
           scrollToViewportTopRatio(pointerRatio - dragOffsetRef.current);
+          return;
         }
+
+        const nearestNodeIndex = findNearestNode(nodes, pointerRatio);
+        const node =
+          nearestNodeIndex === null ? null : nodes[nearestNodeIndex] ?? null;
+        const element = node
+          ? messageElementsRef.current?.get(node.id) ?? null
+          : null;
+        const scrollElement = scrollerRef.current;
+
+        if (!node || !element || !scrollElement) {
+          setHoverMessage(null);
+          return;
+        }
+
+        const isVisible = isElementVerticallyVisible(
+          element.getBoundingClientRect(),
+          scrollElement.getBoundingClientRect(),
+        );
+        setHoverMessage(isVisible ? node.id : null);
       }}
       onPointerUp={(event) => {
         draggingRef.current = false;
@@ -247,8 +333,7 @@ export function ChatMinimap({
       })}
 
       {hovered
-        ? nodes.map((node, index) => {
-            if (!node.preview) return null;
+        ? tooltipEntries.map(({ node, index }, tooltipIndex) => {
             const nearest = index === nearestIndex;
             const roleBorder =
               node.role === "user"
@@ -268,7 +353,7 @@ export function ChatMinimap({
                   borderTopColor: nearest ? roleBorder : "var(--border)",
                   height: TOOLTIP_HEIGHT,
                   opacity: nearest ? 1 : 0.45,
-                  top: tooltipPositions[index] ?? 0,
+                  top: tooltipWindowPositions[tooltipIndex] ?? 0,
                 }}
               >
                 <div

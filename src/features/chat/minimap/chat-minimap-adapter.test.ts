@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AgentMessage } from "./agent-types";
+import type { AgentMessage } from "../agent-types";
 import {
   createChatMinimapEntries,
   getChatMessagePreview,

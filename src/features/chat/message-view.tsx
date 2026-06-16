@@ -30,6 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import type {
   AgentMessage,
   AssistantMessage,
@@ -45,6 +46,7 @@ export function MessageList({
   running,
   forkingEntryId,
   lastUserRef,
+  highlightedMessageId,
   onMessageElement,
   onFork,
   onEdit,
@@ -55,6 +57,7 @@ export function MessageList({
   running: boolean;
   forkingEntryId: string | null;
   lastUserRef: React.MutableRefObject<HTMLElement | null>;
+  highlightedMessageId?: string | null;
   onMessageElement?: (id: string, element: HTMLElement | null) => void;
   onFork: (entryId: string) => void;
   onEdit: (targetId: string, text: string) => void;
@@ -83,9 +86,14 @@ export function MessageList({
         const isLastUser =
           message.role === "user" &&
           !visible.slice(visibleIndex + 1).some((item) => item.message.role === "user");
+        const highlighted = highlightedMessageId === minimapId;
         return (
           <article
-            className="group relative mb-8 scroll-mt-4"
+            className={cn(
+              "group relative mb-8 scroll-mt-4 rounded-lg px-2 py-1 transition-[background-color,box-shadow,outline-color] duration-150 -mx-2",
+              highlighted &&
+                "bg-blue-500/5 outline outline-1 outline-blue-500/20 shadow-[0_0_0_3px_rgba(37,99,235,0.035)]",
+            )}
             data-message-role={message.role}
             key={entryId ?? `${message.role}-${index}-${message.timestamp ?? 0}`}
             ref={(element) => {
@@ -120,7 +128,11 @@ export function MessageList({
       {/* 正在流方式输出内容 */}
       {streamingMessage ? (
         <article
-          className="relative mb-8"
+          className={cn(
+            "relative mb-8 rounded-lg px-2 py-1 transition-[background-color,box-shadow,outline-color] duration-150 -mx-2",
+            highlightedMessageId === "streaming-assistant" &&
+              "bg-blue-500/5 outline outline-1 outline-blue-500/20 shadow-[0_0_0_3px_rgba(37,99,235,0.035)]",
+          )}
           data-message-role="assistant"
           data-streaming="true"
           ref={(element) => {

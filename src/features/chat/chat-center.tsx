@@ -4,8 +4,8 @@ import { type DragEvent, useCallback, useMemo, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatInput } from "./chat-input";
-import { createChatMinimapEntries } from "./chat-minimap-adapter";
-import { ChatMinimap } from "./chat-minimap";
+import { createChatMinimapEntries } from "./minimap/chat-minimap-adapter";
+import { ChatMinimap } from "./minimap/chat-minimap";
 import { MessageList } from "./message-view";
 import type {
   ContextUsage,
@@ -56,6 +56,9 @@ export function ChatCenter({
   const [dragActive, setDragActive] = useState(false);
   const [scrollerNode, setScrollerNode] = useState<HTMLDivElement | null>(null);
   const [contentNode, setContentNode] = useState<HTMLDivElement | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<
+    string | null
+  >(null);
   const dragCounter = useRef(0);
   const messageElementsRef = useRef<Map<string, HTMLElement>>(new Map());
 
@@ -171,6 +174,7 @@ export function ChatCenter({
                     void controller.editFromHere(targetId, text)
                   }
                   onFork={(entryId) => void controller.fork(entryId)}
+                  highlightedMessageId={highlightedMessageId}
                   onMessageElement={handleMessageElement}
                   running={controller.running}
                   streamingMessage={controller.stream.streamingMessage}
@@ -186,6 +190,7 @@ export function ChatCenter({
               content={contentNode}
               messageElementsRef={messageElementsRef}
               messages={minimapEntries}
+              onHoverMessageChange={setHighlightedMessageId}
               scroller={scrollerNode}
             />
           </div>

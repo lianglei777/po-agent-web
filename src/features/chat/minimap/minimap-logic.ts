@@ -187,3 +187,35 @@ export function computeTooltipPositions(
 
   return positions.map((position) => clamp(position, 0, maxTop));
 }
+
+export function selectTooltipWindow<TItem>(
+  items: TItem[],
+  nearestIndex: number | null,
+  maxItems = 80,
+) {
+  if (items.length <= maxItems) {
+    return items.map((item, index) => ({ item, index }));
+  }
+
+  if (nearestIndex === null) {
+    return items.slice(0, maxItems).map((item, index) => ({ item, index }));
+  }
+
+  const halfWindow = Math.floor(maxItems / 2);
+  const start = clamp(nearestIndex - halfWindow, 0, items.length - maxItems);
+  return items
+    .slice(start, start + maxItems)
+    .map((item, offset) => ({ item, index: start + offset }));
+}
+
+export function isElementVerticallyVisible(
+  element: Pick<DOMRect, "top" | "bottom">,
+  viewport: Pick<DOMRect, "top" | "bottom">,
+  minimumVisiblePx = 8,
+) {
+  const visibleHeight =
+    Math.min(element.bottom, viewport.bottom) -
+    Math.max(element.top, viewport.top);
+
+  return visibleHeight >= minimumVisiblePx;
+}
