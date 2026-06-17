@@ -30,6 +30,23 @@ export class PiCredentialProvider implements CredentialProvider {
       .map((id) => ({ id, name: registry.getProviderDisplayName(id) }));
   }
 
+  async listConfiguredApiKeyProviders() {
+    const providers = await this.listApiKeyProviders();
+    const configured = [];
+    for (const provider of providers) {
+      const status = await this.getApiKeyStatus(provider.id);
+      if (status.configured) {
+        configured.push({
+          ...provider,
+          configured: true as const,
+          source: status.source,
+          label: status.label,
+        });
+      }
+    }
+    return configured;
+  }
+
   async getApiKeyStatus(provider: string) {
     return this.auth.getAuthStatus(provider);
   }

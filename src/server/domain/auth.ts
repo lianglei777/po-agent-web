@@ -14,6 +14,12 @@ export interface ApiKeyStatus {
   label?: string;
 }
 
+export interface ConfiguredApiKeyProviderInfo extends ApiKeyProviderInfo {
+  configured: true;
+  source?: string;
+  label?: string;
+}
+
 export type OAuthServerEvent =
   | { type: "auth"; url: string; instructions?: string }
   | {

@@ -16,6 +16,14 @@ export class AuthService {
     return this.credentials.listApiKeyProviders();
   }
 
+  async listConfiguredApiKeyProviders(modelCounts: Record<string, number>) {
+    const providers = await this.credentials.listConfiguredApiKeyProviders();
+    return providers.map((provider) => ({
+      ...provider,
+      modelCount: modelCounts[provider.id] ?? 0,
+    }));
+  }
+
   getApiKeyStatus(provider: string) {
     return this.credentials.getApiKeyStatus(provider);
   }

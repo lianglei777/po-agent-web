@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { countModelsByProvider, normalizeModelsConfig } from "./api";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { loadModelsConfigData, normalizeModelsConfig } from "./api";
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("models config client contract", () => {
   it("normalizes invalid config values", () => {
@@ -17,13 +19,40 @@ describe("models config client contract", () => {
     expect(normalizeModelsConfig(config)).toEqual(config);
   });
 
-  it("counts available models by provider", () => {
-    expect(
-      countModelsByProvider([
-        { id: "a", name: "A", provider: "openai" },
-        { id: "b", name: "B", provider: "openai" },
-        { id: "c", name: "C", provider: "anthropic" },
-      ]),
-    ).toEqual({ openai: 2, anthropic: 1 });
+  it("loads bootstrap data without per-provider API key status requests", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      expect(String(input)).toBe("/api/models-config/bootstrap");
+      return Response.json({
+        config: { providers: { custom: { api: "openai-completions" } } },
+        oauthProviders: [{ id: "openai-codex", name: "OpenAI Codex" }],
+        apiKeyProviders: [
+          {
+            id: "anthropic",
+            name: "Anthropic",
+            configured: true,
+            source: "stored",
+            label: "Stored API key",
+            modelCount: 2,
+          },
+        ],
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(loadModelsConfigData()).resolves.toEqual({
+      config: { providers: { custom: { api: "openai-completions" } } },
+      oauthProviders: [{ id: "openai-codex", name: "OpenAI Codex" }],
+      apiKeyProviders: [
+        {
+          id: "anthropic",
+          name: "Anthropic",
+          configured: true,
+          source: "stored",
+          label: "Stored API key",
+          modelCount: 2,
+        },
+      ],
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

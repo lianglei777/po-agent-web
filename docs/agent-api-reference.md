@@ -131,6 +131,7 @@ Content-Type: text/event-stream; charset=utf-8
 | --- | --- | --- |
 | `GET` | `/api/models` | 获取当前可用模型和默认模型 |
 | `GET` | `/api/models-config` | 读取原始模型配置 |
+| `GET` | `/api/models-config/bootstrap` | 获取模型配置弹窗初始化数据 |
 | `PUT` | `/api/models-config` | 覆盖原始模型配置 |
 | `POST` | `/api/models-config/test` | 隔离测试模型配置 |
 
@@ -1012,7 +1013,45 @@ GET /api/models-config
 {}
 ```
 
-### 7.3 覆盖 Models Config
+### 7.3 获取 Models Config 初始化数据
+
+```http
+GET /api/models-config/bootstrap
+```
+
+响应聚合模型配置弹窗初始化所需数据，避免客户端逐个请求 API Key Provider 状态。
+
+```json
+{
+  "config": {
+    "providers": {
+      "custom": {
+        "api": "openai-completions"
+      }
+    }
+  },
+  "oauthProviders": [
+    {
+      "id": "openai-codex",
+      "name": "OpenAI Codex"
+    }
+  ],
+  "apiKeyProviders": [
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "configured": true,
+      "source": "stored",
+      "label": "Stored API key",
+      "modelCount": 2
+    }
+  ]
+}
+```
+
+`apiKeyProviders` 只包含已配置的 API Key Provider，不返回真实 API Key。
+
+### 7.4 覆盖 Models Config
 
 ```http
 PUT /api/models-config
@@ -1046,7 +1085,7 @@ Content-Type: application/json
 - 写入采用临时文件加 Rename。
 - 具体 Config Schema 由当前 Pi SDK 版本决定。
 
-### 7.4 测试模型配置
+### 7.5 测试模型配置
 
 ```http
 POST /api/models-config/test

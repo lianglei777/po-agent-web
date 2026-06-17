@@ -1,7 +1,6 @@
 import type {
   ApiKeyProvider,
   ApiKeyProviderInfo,
-  ModelInfo,
   ModelsJson,
   ModelTestResult,
   OAuthProvider,
@@ -13,19 +12,16 @@ interface ApiErrorResponse {
   };
 }
 
-interface AllProvidersResponse {
-  oauth: OAuthProvider[];
-  apiKey: ApiKeyProviderInfo[];
-}
-
-interface ModelsResponse {
-  models: ModelInfo[];
-}
-
 interface ApiKeyStatus {
   configured: boolean;
   source?: string;
   label?: string;
+}
+
+interface ModelsConfigBootstrapResponse {
+  config: unknown;
+  oauthProviders: OAuthProvider[];
+  apiKeyProviders: ApiKeyProvider[];
 }
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -53,13 +49,6 @@ export function normalizeModelsConfig(value: unknown): ModelsJson {
   };
 }
 
-export function countModelsByProvider(models: ModelInfo[]) {
-  return models.reduce<Record<string, number>>((counts, model) => {
-    counts[model.provider] = (counts[model.provider] ?? 0) + 1;
-    return counts;
-  }, {});
-}
-
 export async function loadApiKeyProvider(
   provider: ApiKeyProviderInfo,
   modelCount = 0,
@@ -75,21 +64,13 @@ export async function loadApiKeyProvider(
 }
 
 export async function loadModelsConfigData() {
-  const [rawConfig, providers, models] = await Promise.all([
-    requestJson<unknown>("/api/models-config"),
-    requestJson<AllProvidersResponse>("/api/auth/all-providers"),
-    requestJson<ModelsResponse>("/api/models"),
-  ]);
-  const counts = countModelsByProvider(models.models);
-  const apiKeyProviders = await Promise.all(
-    providers.apiKey.map((provider) =>
-      loadApiKeyProvider(provider, counts[provider.id] ?? 0),
-    ),
+  const data = await requestJson<ModelsConfigBootstrapResponse>(
+    "/api/models-config/bootstrap",
   );
   return {
-    config: normalizeModelsConfig(rawConfig),
-    oauthProviders: providers.oauth,
-    apiKeyProviders,
+    config: normalizeModelsConfig(data.config),
+    oauthProviders: data.oauthProviders,
+    apiKeyProviders: data.apiKeyProviders,
   };
 }
 
