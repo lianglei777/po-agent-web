@@ -56,6 +56,38 @@ describe("mergeDiscoveredModels", () => {
     });
   });
 
+  it("adds only the selected subset of discovered models", () => {
+    const config: ModelsJson = {
+      providers: { custom: { models: [{ id: "existing" }] } },
+    };
+    const suggestions: ModelDiscoverySuggestion[] = [
+      {
+        source: "remote",
+        confidence: "medium",
+        verification: "unverified",
+        model: { id: "new-a" },
+      },
+      {
+        source: "remote",
+        confidence: "medium",
+        verification: "unverified",
+        model: { id: "new-b" },
+      },
+    ];
+
+    const result = mergeDiscoveredModels(config, "custom", [suggestions[0]]);
+
+    expect(result.insertedCount).toBe(1);
+    expect(
+      result.config.providers?.custom.models?.map((m) => m.id),
+    ).toEqual(["existing", "new-a"]);
+    expect(result.selection).toEqual({
+      type: "model",
+      providerName: "custom",
+      index: 1,
+    });
+  });
+
   it("keeps selection on the provider when every suggestion already exists", () => {
     const config: ModelsJson = {
       providers: { custom: { models: [{ id: "existing" }] } },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   API_OPTIONS,
   type ModelDiscoverySuggestion,
@@ -19,7 +19,10 @@ interface Props {
   onDelete: (name: string) => void;
   discovery: DiscoveryState;
   onDiscoverModels: (providerName: string) => void;
-  onAcceptDiscoveredModels: (providerName: string) => void;
+  onAcceptDiscoveredModels: (
+    providerName: string,
+    selected: ModelDiscoverySuggestion[],
+  ) => void;
 }
 
 type DiscoveryState =
@@ -81,7 +84,7 @@ export default function ProviderDetail({
             className="mt-1 cursor-pointer self-start rounded border-none px-2.5 py-[3px] text-[11px] text-white"
             style={{ background: "var(--accent)" }}
           type="button"
-        >
+          >
             {t.models.rename}
           </button>
         )}
@@ -155,19 +158,63 @@ function ModelDiscoveryPanel({
   provider: ProviderEntry;
   discovery: DiscoveryState;
   onDiscoverModels: (providerName: string) => void;
-  onAcceptDiscoveredModels: (providerName: string) => void;
+  onAcceptDiscoveredModels: (
+    providerName: string,
+    selected: ModelDiscoverySuggestion[],
+  ) => void;
 }) {
   const { t } = useI18n();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const relevant =
     discovery.phase !== "idle" && discovery.providerName === providerName
       ? discovery
       : null;
   const discovering = relevant?.phase === "discovering";
-  const suggestions = relevant?.phase === "result" ? relevant.models : [];
+  const resultModels = relevant?.phase === "result" ? relevant.models : null;
+
+  // 发现结果变化时重置选择（默认不选）
+  const lastResultRef = useRef(resultModels);
+  useEffect(() => {
+    if (lastResultRef.current !== resultModels) {
+      lastResultRef.current = resultModels;
+      setSelectedIds(new Set());
+    }
+  }, [resultModels]);
+
   const existingIds = new Set((provider.models ?? []).map((model) => model.id));
-  const newCount = suggestions.filter(
-    (suggestion) => !existingIds.has(suggestion.model.id),
-  ).length;
+  const newSuggestions = resultModels
+    ? resultModels.filter((suggestion) => !existingIds.has(suggestion.model.id))
+    : [];
+  const existingHiddenCount = resultModels
+    ? resultModels.length - newSuggestions.length
+    : 0;
+  const selectedSuggestions = newSuggestions.filter((suggestion) =>
+    selectedIds.has(suggestion.model.id),
+  );
+  const allSelected =
+    newSuggestions.length > 0 &&
+    newSuggestions.every((suggestion) =>
+      selectedIds.has(suggestion.model.id),
+    );
+
+  const toggleModel = (id: string) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(
+        new Set(newSuggestions.map((suggestion) => suggestion.model.id)),
+      );
+    }
+  };
 
   return (
     <section className="rounded-[8px] border border-line bg-panel p-3">
@@ -199,45 +246,75 @@ function ModelDiscoveryPanel({
               {t.models.remoteDiscoveryFailed}: {relevant.remoteError}
             </p>
           )}
-          {suggestions.length === 0 ? (
+          {newSuggestions.length === 0 ? (
             <p className="text-[12px] text-dim">
-              {t.models.noDiscoveredModels}
+              {existingHiddenCount > 0
+                ? t.models.allDiscoveredModelsExist
+                : t.models.noDiscoveredModels}
             </p>
           ) : (
             <>
-              <div className="max-h-[168px] overflow-y-auto rounded border border-line">
-                {suggestions.slice(0, 6).map((suggestion) => (
-                  <div
-                    key={suggestion.model.id}
-                    className="flex items-center gap-2 border-b border-line px-2.5 py-2 last:border-b-0"
-                  >
-                    <span className="min-w-0 flex-1 truncate font-ui-mono text-[11px] text-primary">
-                      {suggestion.model.id}
-                    </span>
-                    {suggestion.source !== "inferred" && (
-                      <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
-                        {sourceLabel(suggestion, t)}
-                      </span>
-                    )}
-                    <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
-                      {t.models.unverified}
-                    </span>
-                  </div>
-                ))}
-              </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-[12px] text-dim">
-                  {newCount === 0
-                    ? t.models.allDiscoveredModelsExist
-                    : `${newCount} ${t.models.newModelsDiscovered}`}
+                  {t.models.selectedCount} {selectedSuggestions.length} /{" "}
+                  {newSuggestions.length}
                 </span>
                 <button
                   type="button"
-                  disabled={newCount === 0}
-                  onClick={() => onAcceptDiscoveredModels(providerName)}
+                  onClick={toggleAll}
+                  className="cursor-pointer rounded border border-line px-2 py-[3px] text-[11px] text-muted hover:bg-hover"
+                >
+                  {allSelected
+                    ? t.models.clearSelection
+                    : t.models.selectDiscovered}
+                </button>
+              </div>
+              <div className="max-h-[168px] overflow-y-auto rounded border border-line">
+                {newSuggestions.map((suggestion) => {
+                  const checked = selectedIds.has(suggestion.model.id);
+                  return (
+                    <label
+                      key={suggestion.model.id}
+                      className="flex cursor-pointer items-center gap-2 border-b border-line px-2.5 py-2 last:border-b-0 hover:bg-hover"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleModel(suggestion.model.id)}
+                        className="h-[13px] w-[13px] cursor-pointer"
+                        style={{ accentColor: "var(--accent)" }}
+                      />
+                      <span className="min-w-0 flex-1 truncate font-ui-mono text-[11px] text-primary">
+                        {suggestion.model.id}
+                      </span>
+                      {suggestion.source !== "inferred" && (
+                        <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
+                          {sourceLabel(suggestion, t)}
+                        </span>
+                      )}
+                      <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
+                        {t.models.unverified}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {existingHiddenCount > 0 && (
+                <p className="text-[11px] text-dim">
+                  {existingHiddenCount} {t.models.existingHidden}
+                </p>
+              )}
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  disabled={selectedSuggestions.length === 0}
+                  onClick={() => {
+                    onAcceptDiscoveredModels(providerName, selectedSuggestions);
+                    setSelectedIds(new Set());
+                  }}
                   className="rounded border border-line px-2.5 py-[5px] text-[11px] text-muted hover:bg-hover disabled:cursor-not-allowed disabled:text-dim"
                 >
-                  {t.models.addDiscovered}
+                  {t.models.addSelected} ({selectedSuggestions.length})
                 </button>
               </div>
             </>

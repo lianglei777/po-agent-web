@@ -12,6 +12,7 @@ import { mergeDiscoveredModels } from "./model-discovery-merge";
 import type {
   ApiKeyProvider,
   ModelDiscoveryResult,
+  ModelDiscoverySuggestion,
   ModelEntry,
   ModelsJson,
   OAuthProvider,
@@ -151,7 +152,7 @@ export function useModelsConfig(onSaved?: () => void) {
   );
 
   const acceptDiscoveredModels = useCallback(
-    (providerName: string) => {
+    (providerName: string, selected: ModelDiscoverySuggestion[]) => {
       if (
         discovery.phase !== "result" ||
         discovery.providerName !== providerName
@@ -161,7 +162,7 @@ export function useModelsConfig(onSaved?: () => void) {
       const result = mergeDiscoveredModels(
         config,
         providerName,
-        discovery.models,
+        selected,
       );
       setConfig(result.config);
       setSelection(result.selection);
