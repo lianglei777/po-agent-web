@@ -156,7 +156,7 @@ export default function OAuthDetail({
               sourceRef.current?.close();
               setState({ phase: "idle" });
             }}
-            className="rounded-[5px] border border-line px-3 py-1.5 text-[12px] text-muted"
+            className="rounded-md border border-line px-3 py-1.5 text-[12px] text-muted"
           >
             {t.common.cancel}
           </button>
@@ -165,7 +165,7 @@ export default function OAuthDetail({
             <button
               type="button"
               onClick={startLogin}
-              className="rounded-[5px] bg-accent px-4 py-1.5 text-[12px] font-semibold text-white"
+              className="rounded-md bg-accent px-4 py-1.5 text-[12px] font-semibold text-primary-foreground"
             >
               {t.models.login}
             </button>
@@ -284,13 +284,13 @@ function OAuthState({
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder={state.placeholder}
-            className="flex-1 rounded-[5px] border border-line bg-panel px-2 py-1.5 text-[12px] text-primary"
+            className="flex-1 rounded-md border border-line bg-panel px-2 py-1.5 text-[12px] text-primary"
           />
           <button
             type="button"
             disabled={!canSubmit}
             onClick={() => submit(state.token, input)}
-            className="rounded-[5px] bg-accent px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50"
+            className="rounded-md bg-accent px-3 py-1.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50"
           >
             {t.models.submit}
           </button>

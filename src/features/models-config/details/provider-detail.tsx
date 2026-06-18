@@ -125,7 +125,7 @@ export default function ProviderDetail({
         {canRename && (
           <button
             onClick={() => onRename(name, editingName.trim())}
-            className="mt-1 cursor-pointer self-start rounded border-none px-2.5 py-[3px] text-[11px] text-white"
+            className="mt-1 cursor-pointer self-start rounded border-none px-2.5 py-[3px] text-[11px] text-primary-foreground"
             style={{ background: "var(--accent)" }}
           type="button"
           >

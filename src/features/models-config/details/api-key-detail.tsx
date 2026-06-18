@@ -118,7 +118,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
         <button
           onClick={handleSave}
           disabled={saving || !apiKey.trim() || savedOk}
-          className="flex items-center gap-1 rounded-[5px] px-3 py-1.5 text-[12px] font-semibold text-white"
+          className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[12px] font-semibold text-primary-foreground"
           style={{
             background: savedOk
               ? "var(--success)"

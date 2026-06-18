@@ -222,7 +222,7 @@ export default function ModelDetail({
                   : "1px solid var(--border)",
               color:
                 visibleTestState.phase === "success"
-                  ? "#fff"
+                  ? "var(--primary-foreground)"
                   : !model.id.trim() || visibleTestState.phase === "testing"
                     ? "var(--text-dim)"
                     : "var(--text-muted)",
