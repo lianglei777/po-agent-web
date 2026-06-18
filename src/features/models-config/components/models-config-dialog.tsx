@@ -22,7 +22,7 @@ export function ModelsConfigDialog({
 
   return (
     <>
-      <ModalOverlay onClose={onClose} label={t.models.configuration}>
+      <ModalOverlay label={t.models.configuration}>
         <div className="flex h-[78vh] w-[min(860px,calc(100vw-32px))] flex-col overflow-hidden rounded-[10px] border border-line bg-canvas shadow-2xl">
           <header className="flex shrink-0 items-center justify-between border-b border-line px-[18px] py-3">
             <div className="flex items-baseline gap-2.5">

@@ -258,6 +258,7 @@ export default function ModelDetail({
       <Dialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
         <DialogContent
           className="z-[1101] sm:max-w-[420px]"
+          closeLabel={t.common.close}
           overlayClassName="z-[1100]"
         >
           <DialogHeader>

@@ -34,7 +34,7 @@ export function SkillsConfigDialog({
   const { t } = useI18n();
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <Dialog open>
       <DialogContent
         aria-describedby="skills-config-description"
         className="h-[78vh] w-[min(860px,calc(100vw-32px))] max-w-none grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-[10px] border-line bg-canvas p-0 shadow-2xl sm:max-w-none"

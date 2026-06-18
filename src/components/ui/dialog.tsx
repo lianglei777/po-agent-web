@@ -47,16 +47,31 @@ function DialogOverlay({
   )
 }
 
+type DialogContentProps =
+  React.ComponentProps<typeof DialogPrimitive.Content> & {
+    overlayClassName?: string
+  } & (
+    | {
+        showCloseButton?: true
+        closeLabel: string
+      }
+    | {
+        showCloseButton: false
+        closeLabel?: never
+      }
+  )
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  closeLabel,
   overlayClassName,
+  onEscapeKeyDown,
+  onInteractOutside,
+  onPointerDownOutside,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean
-  overlayClassName?: string
-}) {
+}: DialogContentProps) {
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay className={overlayClassName} />
@@ -66,6 +81,18 @@ function DialogContent({
           "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-line-strong bg-elevated p-6 shadow-[var(--shadow-floating)] duration-[var(--motion-standard)] outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg",
           className
         )}
+        onEscapeKeyDown={(event) => {
+          event.preventDefault()
+          onEscapeKeyDown?.(event)
+        }}
+        onInteractOutside={(event) => {
+          event.preventDefault()
+          onInteractOutside?.(event)
+        }}
+        onPointerDownOutside={(event) => {
+          event.preventDefault()
+          onPointerDownOutside?.(event)
+        }}
         {...props}
       >
         {children}
@@ -75,7 +102,7 @@ function DialogContent({
             className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{closeLabel}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
