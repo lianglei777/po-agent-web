@@ -59,7 +59,7 @@ export function WorkspaceTopBar({
 
   return (
     <>
-      <header className="flex h-9 flex-none items-stretch border-b border-line-strong bg-panel pr-12">
+      <header className="flex h-9 flex-none items-stretch border-b border-line-subtle bg-canvas pr-12">
 
         {/* Left session sidebar toggle */}
         <TopBarIconButton

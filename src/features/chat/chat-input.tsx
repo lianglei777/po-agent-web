@@ -178,10 +178,10 @@ export function ChatInput({
         ) : null}
 
         <div
-          className={`overflow-hidden rounded-lg border bg-elevated transition-[border-color,background-color] duration-[var(--motion-standard)] ${
+          className={`overflow-hidden rounded-[14px] border bg-panel shadow-[var(--shadow-composer)] transition-[border-color,background-color,box-shadow] duration-[var(--motion-standard)] ${
             running
               ? "border-warning"
-              : "border-line-strong"
+              : "border-line-subtle"
           }`}
         >
           {running && agentPhase ? (
