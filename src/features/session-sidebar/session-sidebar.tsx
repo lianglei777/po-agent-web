@@ -216,7 +216,7 @@ export function SessionSidebar({
               variant="outline"
             >
               {refreshed ? (
-                <Check className="text-green-600" />
+                <Check className="text-success" />
               ) : (
                 <RefreshCw />
               )}

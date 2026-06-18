@@ -12,7 +12,7 @@ export function FilePanel({ file }: { file: OpenFile | null }) {
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col">
-      <div className="flex h-9 flex-none items-center border-b border-line bg-panel px-3 text-[11px] text-muted">
+      <div className="flex h-9 flex-none items-center border-b border-line-strong bg-panel px-3 text-[11px] text-muted">
         <span className="truncate" title={file?.path}>
           {file?.name ?? t.files.files}
         </span>
@@ -29,7 +29,7 @@ function EmptyFile() {
     <div className="grid flex-1 place-items-center p-6">
       <Card className="border-0 bg-transparent text-center shadow-none">
         <CardContent className="px-6 py-8">
-          <div className="mx-auto mb-3 grid size-10 place-items-center rounded-lg border border-border bg-card text-muted-foreground">
+          <div className="mx-auto mb-3 grid size-10 place-items-center rounded-lg border border-line-subtle bg-card text-muted-foreground">
             <FileText className="size-5" />
           </div>
           <p className="m-0 text-xs text-muted-foreground">

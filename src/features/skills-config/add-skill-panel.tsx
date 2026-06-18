@@ -101,7 +101,7 @@ export function AddSkillPanel({
           <input
             aria-label={t.skills.searchSkillsMarket}
             autoFocus
-            className="h-10 w-full rounded-lg border border-line bg-panel pl-9 pr-9 outline-none focus:border-muted focus:ring-2 focus:ring-ring/20"
+            className="h-10 w-full rounded-md border border-line-subtle bg-panel pr-9 pl-9 outline-none focus:border-ring focus:ring-2 focus:ring-ring/35"
             onChange={(event) => {
               const value = event.target.value;
               setQuery(value);
@@ -121,7 +121,7 @@ export function AddSkillPanel({
 
         <div
           aria-label={t.skills.installationScope}
-          className="mt-3 inline-flex rounded-lg border border-line bg-panel p-1"
+          className="mt-3 inline-flex rounded-lg border border-line-subtle bg-panel p-1"
           role="radiogroup"
         >
           {(["project", "global"] as const).map((value) => (
@@ -146,7 +146,7 @@ export function AddSkillPanel({
           </p>
         ) : null}
         {success ? (
-          <p className="mt-3 flex items-start gap-2 rounded-lg border border-line bg-hover px-3 py-2 text-sm">
+          <p className="mt-3 flex items-start gap-2 rounded-lg border border-success/30 bg-success/8 px-3 py-2 text-sm text-success">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
             {success}
           </p>
@@ -154,13 +154,13 @@ export function AddSkillPanel({
 
         <div className="mt-4 space-y-2">
           {!searching && query.trim() && results.length === 0 && !error ? (
-            <p className="rounded-lg border border-dashed border-line p-8 text-center text-sm text-muted">
+            <p className="rounded-lg border border-dashed border-line-subtle p-8 text-center text-sm text-muted">
               {t.skills.noMatchingSkills}
             </p>
           ) : null}
           {results.map((skill) => (
             <article
-              className="flex items-start gap-3 rounded-xl border border-line bg-panel p-4"
+              className="flex items-start gap-3 border-b border-line-subtle bg-panel p-4 last:border-b-0"
               key={skill.id}
             >
               <div className="min-w-0 flex-1">

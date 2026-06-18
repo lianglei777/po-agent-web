@@ -37,13 +37,15 @@ export function SkillsConfigDialog({
     <Dialog open>
       <DialogContent
         aria-describedby="skills-config-description"
-        className="h-[78vh] w-[min(860px,calc(100vw-32px))] max-w-none grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-[10px] border-line bg-canvas p-0 shadow-2xl sm:max-w-none"
+        className="h-[78vh] w-[min(860px,calc(100vw-32px))] max-w-none grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-lg border-line-strong bg-canvas p-0 sm:max-w-none"
         showCloseButton={false}
       >
-        <header className="flex min-h-[49px] shrink-0 items-center gap-3 border-b border-line bg-panel px-[18px] py-3">
+        <header className="flex min-h-[49px] shrink-0 items-center gap-3 border-b border-line-strong bg-panel px-[18px] py-3">
           <Sparkles className="size-4" />
           <div className="min-w-0 flex-1">
-            <DialogTitle className="text-base">{t.skills.title}</DialogTitle>
+            <DialogTitle className="text-display text-xl">
+              {t.skills.title}
+            </DialogTitle>
             <DialogDescription
               className="truncate text-xs"
               id="skills-config-description"
@@ -73,7 +75,7 @@ export function SkillsConfigDialog({
         </header>
 
         <div className="flex min-h-0">
-          <aside className="flex min-h-0 w-[210px] shrink-0 flex-col border-r border-line bg-panel">
+          <aside className="flex min-h-0 w-[210px] shrink-0 flex-col border-r border-line-strong bg-panel">
             <div className="p-2">
               <Button
                 aria-pressed={adding}

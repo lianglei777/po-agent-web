@@ -8,11 +8,11 @@ import {
 
 const LEVEL_COLORS: Record<ThinkingLevel, string> = {
   off: "var(--text-dim)",
-  minimal: "#6b7280",
-  low: "#60a5fa",
-  medium: "#a78bfa",
-  high: "#f472b6",
-  xhigh: "#fb923c",
+  minimal: "var(--text-muted)",
+  low: "var(--text-muted)",
+  medium: "var(--text-muted)",
+  high: "var(--text)",
+  xhigh: "var(--text)",
 };
 
 const btnBase: React.CSSProperties = {
@@ -21,7 +21,8 @@ const btnBase: React.CSSProperties = {
   border: "none",
   cursor: "pointer",
   fontWeight: 400,
-  transition: "background 0.1s, color 0.1s",
+  transition:
+    "background var(--motion-fast), color var(--motion-fast)",
   whiteSpace: "nowrap",
   background: "var(--bg-panel)",
   color: "var(--text-dim)",
@@ -29,13 +30,13 @@ const btnBase: React.CSSProperties = {
 
 const btnActive: React.CSSProperties = {
   background: "var(--accent)",
-  color: "#fff",
+  color: "var(--primary-foreground)",
   fontWeight: 600,
 };
 
 const btnActiveDisabled: React.CSSProperties = {
-  background: "#ef4444",
-  color: "#fff",
+  background: "var(--destructive)",
+  color: "var(--destructive-foreground)",
   fontWeight: 600,
 };
 
@@ -114,7 +115,7 @@ export default function ThinkingLevelMapEditor({ value, onChange }: Props) {
             </div>
 
             {/* Default / Disabled buttons */}
-            <div className="flex shrink-0 overflow-hidden rounded-[5px] border border-line">
+            <div className="flex shrink-0 overflow-hidden rounded-md border border-line-subtle">
               <button
                 onClick={() => setLevel(level, "__omit__")}
                 style={{
@@ -140,7 +141,7 @@ export default function ThinkingLevelMapEditor({ value, onChange }: Props) {
 
             {/* Custom button + input */}
             <div
-              className="flex overflow-hidden rounded-[5px] transition-[border-color] duration-100"
+              className="flex overflow-hidden rounded-md transition-[border-color] duration-[var(--motion-fast)]"
               style={{
                 border:
                   state === "string"
@@ -167,7 +168,7 @@ export default function ThinkingLevelMapEditor({ value, onChange }: Props) {
                 }}
                 placeholder={level}
                 maxLength={10}
-                className="border-none font-ui-mono text-[11px] transition-[background,color] duration-100 outline-none"
+                className="border-none font-ui-mono text-[11px] transition-[background,color] duration-[var(--motion-fast)] outline-none"
                 style={{
                   width: "12ch",
                   background: state === "string" ? "var(--bg)" : "var(--bg-panel)",

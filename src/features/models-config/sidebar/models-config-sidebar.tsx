@@ -69,7 +69,7 @@ export function ModelsConfigSidebar({
   }
 
   return (
-    <aside className="flex w-[210px] shrink-0 flex-col border-r border-line bg-panel">
+    <aside className="flex w-[210px] shrink-0 flex-col border-r border-line-strong bg-panel">
       <div className="flex-1 overflow-y-auto px-1.5 py-2">
         
         {apiKeyProviders
@@ -96,7 +96,7 @@ export function ModelsConfigSidebar({
         {/* {(oauthProviders.length > 0 ||
           apiKeyProviders.some((provider) => provider.configured)) &&
           providers.length > 0 && (
-            <div className="mx-2 my-1 border-t border-line" />
+            <div className="mx-2 my-1 border-t border-line-subtle" />
           )} */}
 
         {providers.map(([providerName, provider]) => {
@@ -149,7 +149,7 @@ export function ModelsConfigSidebar({
                   </NavButton>
                 ))}
             <button
-              className="w-full rounded-[5px] py-1 pr-2 pl-[26px] text-left text-[11px] text-dim hover:bg-hover"
+              className="w-full rounded-md py-1 pr-2 pl-[26px] text-left text-[11px] text-dim hover:bg-hover"
               type="button"
               onClick={() => onAddModel(providerName)}
             >
@@ -159,11 +159,11 @@ export function ModelsConfigSidebar({
           );
         })}
       </div>
-      <div className="border-t border-line px-1.5 py-2">
+      <div className="border-t border-line-strong px-1.5 py-2">
         <button
           type="button"
           onClick={onAddProvider}
-          className="w-full rounded-[5px] border border-dashed border-line bg-transparent py-1.5 text-[12px] text-muted hover:border-accent hover:text-accent"
+          className="w-full rounded-md border border-dashed border-line-subtle bg-transparent py-1.5 text-[12px] text-muted hover:border-line-strong hover:text-primary"
         >
           + {t.models.addProvider}
         </button>
@@ -191,7 +191,7 @@ function ProviderNavRow({
 }) {
   return (
     <div
-      className="flex items-center rounded-[5px] hover:bg-hover"
+      className="flex items-center rounded-md hover:bg-hover"
       style={{ background: selected ? "var(--bg-selected)" : undefined }}
     >
       <button
@@ -199,12 +199,12 @@ function ProviderNavRow({
         aria-label={toggleLabel}
         aria-expanded={!collapsed}
         onClick={onToggle}
-        className="flex h-[26px] w-[22px] shrink-0 items-center justify-center rounded-[5px] text-dim hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+        className="flex h-[26px] w-[22px] shrink-0 items-center justify-center rounded-md text-dim hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
       >
         <ChevronRight
           size={13}
           aria-hidden="true"
-          className={`transition-transform duration-150 ${
+          className={`transition-transform duration-[var(--motion-fast)] ${
             collapsed ? "" : "rotate-90"
           }`}
         />
@@ -213,7 +213,7 @@ function ProviderNavRow({
         type="button"
         ref={itemRef}
         onClick={onClick}
-        className="flex min-w-0 flex-1 items-center gap-[7px] rounded-[5px] py-[5px] pr-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+        className="flex min-w-0 flex-1 items-center gap-[7px] rounded-md py-[5px] pr-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
       >
         <ServerIcon />
         <span className="truncate font-ui-mono text-[12px] text-primary">
@@ -252,7 +252,7 @@ function NavButton({
       type="button"
       ref={itemRef}
       onClick={onClick}
-      className={`flex w-full items-center gap-[7px] rounded-[5px] py-[5px] pr-2 text-left hover:bg-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${
+      className={`flex w-full items-center gap-[7px] rounded-md py-[5px] pr-2 text-left hover:bg-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${
         inset ? "pl-[26px]" : "pl-2"
       }`}
       style={{ background: selected ? "var(--bg-selected)" : undefined }}

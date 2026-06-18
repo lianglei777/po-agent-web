@@ -43,10 +43,10 @@ export function ModelsConfigDialog({
   return (
     <>
       <ModalOverlay label={t.models.configuration}>
-        <div className="flex h-[78vh] w-[min(860px,calc(100vw-32px))] flex-col overflow-hidden rounded-[10px] border border-line bg-canvas shadow-2xl">
-          <header className="flex shrink-0 items-center justify-between border-b border-line px-[18px] py-3">
+        <div className="flex h-[78vh] w-[min(860px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-line-strong bg-canvas shadow-[var(--shadow-floating)]">
+          <header className="flex shrink-0 items-center justify-between border-b border-line-strong px-[18px] py-3">
             <div className="flex items-baseline gap-2.5">
-              <span className="text-[15px] font-bold text-primary">
+              <span className="text-display text-xl text-primary">
                 {t.models.title}
               </span>
               <code className="font-ui-mono text-[11px] text-muted">
@@ -79,7 +79,7 @@ export function ModelsConfigDialog({
               />
               <main className="flex-1 overflow-y-auto p-5">
                 {modelConfig.loadError ? (
-                  <p className="text-[13px] text-red-400">
+                  <p className="text-[13px] text-destructive">
                     {modelConfig.loadError}
                   </p>
                 ) : (
@@ -89,9 +89,9 @@ export function ModelsConfigDialog({
             </div>
           )}
 
-          <footer className="flex shrink-0 items-center justify-end gap-2.5 border-t border-line px-[18px] py-2.5">
+          <footer className="flex shrink-0 items-center justify-end gap-2.5 border-t border-line-strong px-[18px] py-2.5">
             {modelConfig.saveError && (
-              <span className="flex-1 text-[12px] text-red-400">
+              <span className="flex-1 text-[12px] text-destructive">
                 {modelConfig.saveError}
               </span>
             )}
@@ -126,7 +126,10 @@ export function ModelsConfigDialog({
           </footer>
         </div>
       </ModalOverlay>
-      <Dialog open={confirmingDiscard}>
+      <Dialog
+        open={confirmingDiscard}
+        onOpenChange={(open) => !open && setConfirmingDiscard(false)}
+      >
         <DialogContent
           className="z-[1201] sm:max-w-[420px]"
           closeLabel={t.common.close}

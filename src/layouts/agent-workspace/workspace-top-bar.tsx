@@ -141,7 +141,7 @@ export function WorkspaceTopBar({
 
       {topPanel ? (
         <section
-          className="absolute top-9 left-0 z-500 max-h-[45vh] min-h-24 w-full overflow-auto border-b border-line bg-panel p-3 text-xs text-muted shadow-[0_6px_20px_rgba(0,0,0,0.1)]"
+          className="absolute top-9 left-0 z-500 max-h-[45vh] min-h-24 w-full overflow-auto border-b border-line-strong bg-elevated p-3 text-xs text-muted shadow-[var(--shadow-floating)]"
           data-testid="top-panel"
         >
           {topPanel === "branches" ? (
@@ -254,7 +254,7 @@ function TopBarIconButton({
         <Button
           aria-label={label}
           aria-pressed={pressed}
-          className="rounded-none border-r border-line"
+          className="rounded-none border-r border-line-subtle"
           onClick={onClick}
           size="icon"
           type="button"

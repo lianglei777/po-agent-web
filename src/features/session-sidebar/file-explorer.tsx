@@ -85,7 +85,7 @@ export function FileExplorer({
 
   return (
     <section className={`flex min-h-0 flex-col ${open ? "flex-1" : "flex-none"}`}>
-      <div className="flex h-8 flex-none items-center border-t border-line px-2">
+      <div className="flex h-8 flex-none items-center border-t border-line-strong px-2">
         <Button
           aria-expanded={open}
           className="min-w-0 flex-1 justify-start px-1.5 text-[11px] font-semibold uppercase"
@@ -95,7 +95,7 @@ export function FileExplorer({
           variant="ghost"
         >
           <ChevronDown
-            className={`size-3 transition-transform ${open ? "" : "-rotate-90"}`}
+            className={`size-3 transition-transform duration-[var(--motion-standard)] ${open ? "" : "-rotate-90"}`}
           />
           {t.files.explorer}
         </Button>
@@ -190,7 +190,7 @@ function FileNodes({
     return (
       <div key={path}>
         <div
-          className="group flex h-6 cursor-pointer items-center rounded px-1 text-[11px] hover:bg-hover"
+          className="group flex h-6 cursor-pointer items-center rounded-sm px-1 text-[11px] hover:bg-hover"
           onClick={() =>
             entry.isDir
               ? void onToggle(path)
@@ -201,7 +201,7 @@ function FileNodes({
         >
           {entry.isDir ? (
             <ChevronDown
-              className={`mr-1 size-3 flex-none transition-transform ${
+              className={`mr-1 size-3 flex-none transition-transform duration-[var(--motion-standard)] ${
                 isExpanded ? "" : "-rotate-90"
               }`}
             />

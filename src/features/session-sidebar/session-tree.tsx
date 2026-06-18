@@ -72,7 +72,7 @@ function SessionTreeItem({
         session={node.session}
       />
       {!collapsed && node.children.length ? (
-        <div className="ml-3 border-l border-line/80">
+        <div className="ml-3 border-l border-line-subtle">
           {node.children.map((child) => (
             <SessionTreeItem
               depth={depth + 1}
@@ -184,7 +184,7 @@ function SessionRow({
   if (confirming) {
     return (
       <div
-        className={`flex h-[54px] items-center gap-1 border-l-2 border-destructive bg-destructive/8 px-2 ${
+        className={`mx-1 flex h-[54px] items-center gap-1 rounded-md border border-destructive/35 bg-destructive/8 px-2 ${
           busy ? "opacity-50" : ""
         }`}
       >
@@ -215,10 +215,10 @@ function SessionRow({
 
   return (
     <div
-      className={`group flex h-[54px] cursor-pointer items-center border-l-2 pr-1 transition-colors ${
+      className={`group mx-1 flex h-[54px] cursor-pointer items-center rounded-md border pr-1 transition-colors duration-[var(--motion-fast)] ${
         selected
-          ? "border-accent bg-selected"
-          : "border-transparent hover:bg-hover"
+          ? "border-line-strong bg-selected"
+          : "border-transparent hover:border-line-subtle hover:bg-hover"
       }`}
       onClick={() => onSelect(session)}
       style={{ paddingLeft: `${4 + depth * 12}px` }}

@@ -26,7 +26,7 @@ export function SkillDetail({
           <button
             aria-checked={enabled}
             aria-label={t.skills.allowModelInvocation}
-            className={`relative mt-1 h-6 w-11 shrink-0 rounded-full border outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 ${
+            className={`relative mt-1 h-6 w-11 shrink-0 rounded-full border outline-none transition-colors duration-[var(--motion-fast)] focus-visible:ring-2 focus-visible:ring-ring/40 ${
               enabled
                 ? "border-accent bg-accent"
                 : "border-line bg-selected"
@@ -37,7 +37,7 @@ export function SkillDetail({
             type="button"
           >
             <span
-              className={`absolute top-0.5 size-4.5 rounded-full bg-panel shadow-sm transition-transform ${
+              className={`absolute top-0.5 size-4.5 rounded-full bg-panel transition-transform duration-[var(--motion-standard)] ${
                 enabled ? "translate-x-5" : "translate-x-0.5"
               }`}
             />
@@ -47,8 +47,8 @@ export function SkillDetail({
           </button>
         </div>
 
-        <div className="mt-6 rounded-xl border border-line bg-panel">
-          <div className="border-b border-line p-4">
+        <div className="mt-6 rounded-lg border border-line-subtle bg-panel">
+          <div className="border-b border-line-subtle p-4">
             <h3 className="text-sm font-medium">
               {t.skills.modelInvocation}
             </h3>

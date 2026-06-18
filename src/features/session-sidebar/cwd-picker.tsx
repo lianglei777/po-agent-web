@@ -84,7 +84,7 @@ export function CwdPicker({
       </Button>
 
       {open ? (
-        <div className="absolute top-full right-0 left-0 z-100 mt-1 rounded-lg border border-line bg-popover p-1.5 shadow-lg">
+        <div className="absolute top-full right-0 left-0 z-100 mt-1 rounded-lg border border-line-strong bg-popover p-1.5 shadow-[var(--shadow-floating)]">
           {recentCwds.map((recent) => (
             <Button
               className="h-8 w-full justify-start px-2 text-[11px]"
@@ -100,7 +100,9 @@ export function CwdPicker({
               <span className="truncate">{shortenCwd(recent, home)}</span>
             </Button>
           ))}
-          {recentCwds.length ? <div className="my-1 border-t border-line" /> : null}
+          {recentCwds.length ? (
+            <div className="my-1 border-t border-line-subtle" />
+          ) : null}
           {custom ? (
             <div className="space-y-1.5 p-1">
               <Input
