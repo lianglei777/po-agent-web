@@ -58,5 +58,7 @@ skills-lock.json*
 .claude/*
 
 # superpowers
+.superpowers/*
 docs/superpowers/*
+
 
