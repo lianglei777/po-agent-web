@@ -75,6 +75,8 @@
   --destructive-foreground: #ffffff;
   --success: #346b4d;
   --warning: #815b18;
+  --disabled-surface: #efefed;
+  --disabled-text: #777772;
   --input: var(--border);
   --ring: #73736e;
   --radius: 0.875rem;
@@ -125,6 +127,8 @@ html.dark {
   --destructive-foreground: #ffffff;
   --success: #78b28f;
   --warning: #d2a65a;
+  --disabled-surface: #202020;
+  --disabled-text: #858580;
   --input: var(--border);
   --ring: #a6a6a0;
   --user-bg: #2b2b2b;

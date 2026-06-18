@@ -5,7 +5,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={mergeClasses(
-        "rounded-2xl border border-border bg-card text-card-foreground shadow-[var(--shadow-soft)]",
+        "rounded-lg border border-line-subtle bg-card text-card-foreground",
         className,
       )}
       data-slot="card"

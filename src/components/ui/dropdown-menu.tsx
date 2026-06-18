@@ -31,7 +31,7 @@ function DropdownMenuContent({
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         className={mergeClasses(
-          "z-[1000] min-w-44 overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-[var(--shadow-soft)]",
+          "z-[1000] min-w-44 overflow-hidden rounded-lg border border-line-strong bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
           className,
         )}
         data-slot="dropdown-menu-content"
@@ -52,7 +52,7 @@ function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={mergeClasses(
-        "relative flex cursor-default items-center gap-2 rounded-lg px-2 py-1.5 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)]",
         inset && "pl-8",
         className,
       )}
@@ -105,7 +105,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       checked={checked}
       className={mergeClasses(
-        "relative flex cursor-default items-center gap-2 rounded-lg py-1.5 pr-2 pl-8 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-8 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)]",
         className,
       )}
       data-slot="dropdown-menu-checkbox-item"
@@ -140,7 +140,7 @@ function DropdownMenuRadioItem({
   return (
     <DropdownMenuPrimitive.RadioItem
       className={mergeClasses(
-        "relative flex cursor-default items-center gap-2 rounded-lg py-1.5 pr-2 pl-8 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-8 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)]",
         className,
       )}
       data-slot="dropdown-menu-radio-item"
@@ -173,7 +173,7 @@ function DropdownMenuSubTrigger({
   return (
     <DropdownMenuPrimitive.SubTrigger
       className={mergeClasses(
-        "flex cursor-default items-center gap-2 rounded-lg px-2 py-1.5 text-xs outline-none select-none focus:bg-hover data-[state=open]:bg-hover",
+        "flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-xs outline-none select-none focus:bg-hover data-[state=open]:bg-hover",
         inset && "pl-8",
         className,
       )}
@@ -193,7 +193,7 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       className={mergeClasses(
-        "z-[1000] min-w-40 overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-[var(--shadow-soft)]",
+        "z-[1000] min-w-40 overflow-hidden rounded-lg border border-line-strong bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
         className,
       )}
       data-slot="dropdown-menu-sub-content"

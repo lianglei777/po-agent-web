@@ -18,7 +18,7 @@ function AccordionItem({
   return (
     <AccordionPrimitive.Item
       className={mergeClasses(
-        "overflow-hidden rounded-xl border border-border bg-card shadow-sm",
+        "overflow-hidden rounded-lg border border-line-subtle bg-card",
         className,
       )}
       data-slot="accordion-item"
@@ -36,14 +36,14 @@ function AccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={mergeClasses(
-          "flex min-h-9 flex-1 cursor-pointer items-center gap-2 px-3 py-2 text-left font-ui-mono text-[11px] text-muted-foreground outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&[data-state=open]>svg]:rotate-180",
+          "flex min-h-9 flex-1 cursor-pointer items-center gap-2 px-3 py-2 text-left font-ui-mono text-[11px] text-muted-foreground outline-none transition-colors duration-[var(--motion-fast)] hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&[data-state=open]>svg]:rotate-180",
           className,
         )}
         data-slot="accordion-trigger"
         {...props}
       >
         {children}
-        <ChevronDown className="ml-auto size-3.5 shrink-0 transition-transform duration-200" />
+        <ChevronDown className="ml-auto size-3.5 shrink-0 transition-transform duration-[var(--motion-standard)]" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   );
@@ -62,7 +62,7 @@ function AccordionContent({
     >
       <div
         className={mergeClasses(
-          "border-t border-border px-3 py-2.5 font-ui-mono text-[11px] leading-[1.65] whitespace-pre-wrap text-muted-foreground",
+          "border-t border-line-subtle px-3 py-2.5 font-ui-mono text-[11px] leading-[1.65] whitespace-pre-wrap text-muted-foreground",
           className,
         )}
       >

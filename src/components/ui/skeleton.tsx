@@ -6,7 +6,10 @@ function Skeleton({
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={mergeClasses("animate-pulse rounded-md bg-hover", className)}
+      className={mergeClasses(
+        "rounded-md bg-hover motion-safe:animate-pulse",
+        className,
+      )}
       data-slot="skeleton"
       {...props}
     />

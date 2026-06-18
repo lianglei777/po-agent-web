@@ -77,7 +77,7 @@ export function ResizeHandle({
       aria-valuemin={Math.round(min)}
       aria-valuenow={Math.round(value)}
       className={mergeClasses(
-        "group relative z-20 hidden w-px flex-none cursor-col-resize bg-line outline-none before:absolute before:inset-y-0 before:-left-1 before:w-[9px] hover:bg-accent focus-visible:bg-accent min-[641px]:block",
+        "group relative z-20 hidden w-px flex-none cursor-col-resize bg-line-strong outline-none before:absolute before:inset-y-0 before:-left-1 before:w-[9px] hover:bg-line-emphasis focus-visible:bg-line-emphasis min-[641px]:block",
         className,
       )}
       data-dragging={dragging || undefined}
