@@ -6,6 +6,15 @@ import {
   type ApiKeyProvider,
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SectionTitle, inputStyle } from "../shared/form-ui";
 
 interface Props {
@@ -17,6 +26,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
   const [apiKey, setApiKey] = useState("");
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedOk, setSavedOk] = useState(false);
   const { t } = useI18n();
@@ -44,6 +54,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
     try {
       await removeApiKey(provider.id);
       await onRefresh();
+      setConfirmingRemove(false);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t.models.failedToRemove);
     } finally {
@@ -61,7 +72,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
             className="h-[7px] w-[7px] rounded-full"
             style={{
               background: provider.configured
-                ? "#4ade80"
+                ? "var(--success)"
                 : "var(--border)",
             }}
           />
@@ -69,7 +80,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
             className="text-[11px]"
             style={{
               color: provider.configured
-                ? "#4ade80"
+                ? "var(--success)"
                 : "var(--text-dim)",
             }}
           >
@@ -110,13 +121,13 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
           className="flex items-center gap-1 rounded-[5px] px-3 py-1.5 text-[12px] font-semibold text-white"
           style={{
             background: savedOk
-              ? "#16a34a"
+              ? "var(--success)"
               : apiKey.trim()
                 ? "var(--accent)"
                 : "var(--bg-panel)",
             color:
               apiKey.trim() || savedOk
-                ? "#fff"
+                ? "var(--primary-foreground)"
                 : "var(--text-dim)",
             cursor:
               saving || savedOk || !apiKey.trim()
@@ -131,28 +142,69 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
       </div>
 
       {error && (
-        <p className="text-[12px]" style={{ color: "#f87171" }}>
+        <p className="text-[12px] text-destructive">
           {error}
         </p>
       )}
 
       {/* Disconnect button */}
       {provider.configured && (
-        <button
-          onClick={handleRemove}
+        <Button
+          onClick={() => setConfirmingRemove(true)}
           disabled={removing}
-          className="self-start cursor-pointer rounded-[5px] border px-3 py-1.5 text-[12px]"
-          style={{
-            borderColor: "rgba(239,68,68,0.3)",
-            color: "#ef4444",
-            background: "none",
-            cursor: removing ? "not-allowed" : "pointer",
-          }}
+          className="self-start"
+          size="sm"
           type="button"
+          variant="destructive"
         >
           {removing ? t.models.removing : t.models.disconnect}
-        </button>
+        </Button>
       )}
+
+      <Dialog
+        open={confirmingRemove}
+        onOpenChange={(open) => !open && setConfirmingRemove(false)}
+      >
+        <DialogContent
+          className="z-[1101] sm:max-w-[420px]"
+          closeLabel={t.common.close}
+          overlayClassName="z-[1100]"
+        >
+          <DialogHeader>
+            <DialogTitle>{t.models.removeApiKeyTitle}</DialogTitle>
+            <DialogDescription>
+              {t.models.removeApiKeyDescription.replace(
+                "{provider}",
+                provider.name,
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {error ? (
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <Button
+              autoFocus
+              disabled={removing}
+              onClick={() => setConfirmingRemove(false)}
+              type="button"
+              variant="outline"
+            >
+              {t.common.cancel}
+            </Button>
+            <Button
+              disabled={removing}
+              onClick={() => void handleRemove()}
+              type="button"
+              variant="destructive"
+            >
+              {removing ? t.models.removing : t.models.removeApiKeyAction}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

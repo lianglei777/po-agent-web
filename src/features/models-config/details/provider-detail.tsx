@@ -7,6 +7,15 @@ import {
   type ProviderEntry,
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SectionTitle, Field, inputStyle } from "../shared/form-ui";
 import { CompatEditor } from "./compat-editor";
 import { changeEntryApi } from "./compat-editor-state";
@@ -47,6 +56,7 @@ export default function ProviderDetail({
   onAcceptDiscoveredModels,
 }: Props) {
   const [editingName, setEditingName] = useState(name);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { t } = useI18n();
 
   const canRename = editingName !== name && editingName.trim().length > 0;
@@ -56,19 +66,53 @@ export default function ProviderDetail({
       {/* Header */}
       <div className="flex items-center justify-between">
         <SectionTitle>{t.models.provider}</SectionTitle>
-        <button
-          onClick={() => onDelete(name)}
-          className="cursor-pointer rounded border px-2 py-[3px] text-[11px]"
-          style={{
-            borderColor: "color-mix(in srgb, var(--destructive) 30%, transparent)",
-            color: "var(--destructive)",
-            background: "none",
-          }}
+        <Button
+          onClick={() => setConfirmingDelete(true)}
+          size="sm"
           type="button"
+          variant="destructive"
         >
           {t.common.delete}
-        </button>
+        </Button>
       </div>
+
+      <Dialog
+        open={confirmingDelete}
+        onOpenChange={(open) => !open && setConfirmingDelete(false)}
+      >
+        <DialogContent
+          className="z-[1101] sm:max-w-[420px]"
+          closeLabel={t.common.close}
+          overlayClassName="z-[1100]"
+        >
+          <DialogHeader>
+            <DialogTitle>{t.models.deleteProviderTitle}</DialogTitle>
+            <DialogDescription>
+              {t.models.deleteProviderDescription.replace("{provider}", name)}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              autoFocus
+              onClick={() => setConfirmingDelete(false)}
+              type="button"
+              variant="outline"
+            >
+              {t.common.cancel}
+            </Button>
+            <Button
+              onClick={() => {
+                setConfirmingDelete(false);
+                onDelete(name);
+              }}
+              type="button"
+              variant="destructive"
+            >
+              {t.models.deleteProviderAction}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Provider name */}
       <Field label={t.models.providerName}>

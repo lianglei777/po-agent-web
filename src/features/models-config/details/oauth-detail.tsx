@@ -3,6 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { logoutOAuth, submitOAuthInput } from "../api/models-config-api";
 import { useI18n } from "@/i18n/use-i18n";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SectionTitle } from "../shared/form-ui";
 import type {
   OAuthLoginState,
@@ -18,6 +27,8 @@ export default function OAuthDetail({
   const [state, setState] = useState<OAuthLoginState>({ phase: "idle" });
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState<boolean | null>(null);
+  const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   const sourceRef = useRef<EventSource | null>(null);
   const { t } = useI18n();
 
@@ -103,16 +114,21 @@ export default function OAuthDetail({
   }
 
   async function disconnect() {
+    if (disconnecting) return;
+    setDisconnecting(true);
     try {
       await logoutOAuth(provider.id);
       setConnected(false);
       setState({ phase: "idle" });
+      setConfirmingDisconnect(false);
     } catch (error) {
       setState({
         phase: "error",
         message:
           error instanceof Error ? error.message : t.models.failedToDisconnect,
       });
+    } finally {
+      setDisconnecting(false);
     }
   }
 
@@ -153,16 +169,64 @@ export default function OAuthDetail({
             >
               {t.models.login}
             </button>
-            <button
+            <Button
               type="button"
-              onClick={disconnect}
-              className="rounded-[5px] border border-red-400/30 px-3 py-1.5 text-[12px] text-red-500"
+              onClick={() => setConfirmingDisconnect(true)}
+              size="sm"
+              variant="destructive"
             >
               {t.models.disconnect}
-            </button>
+            </Button>
           </>
         )}
       </div>
+
+      <Dialog
+        open={confirmingDisconnect}
+        onOpenChange={(open) => !open && setConfirmingDisconnect(false)}
+      >
+        <DialogContent
+          className="z-[1101] sm:max-w-[420px]"
+          closeLabel={t.common.close}
+          overlayClassName="z-[1100]"
+        >
+          <DialogHeader>
+            <DialogTitle>{t.models.disconnectOAuthTitle}</DialogTitle>
+            <DialogDescription>
+              {t.models.disconnectOAuthDescription.replace(
+                "{provider}",
+                provider.name,
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {state.phase === "error" ? (
+            <p className="text-sm text-destructive" role="alert">
+              {state.message}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <Button
+              autoFocus
+              disabled={disconnecting}
+              onClick={() => setConfirmingDisconnect(false)}
+              type="button"
+              variant="outline"
+            >
+              {t.common.cancel}
+            </Button>
+            <Button
+              disabled={disconnecting}
+              onClick={() => void disconnect()}
+              type="button"
+              variant="destructive"
+            >
+              {disconnecting
+                ? t.models.removing
+                : t.models.disconnectOAuthAction}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -253,13 +317,13 @@ function OAuthState({
   }
   if (state.phase === "success") {
     return (
-      <p className="text-[13px] text-green-400">
+      <p className="text-[13px] text-success">
         {t.models.connectedSuccessfully}
       </p>
     );
   }
   return (
-    <p className={`text-[13px] ${state.phase === "error" ? "text-red-400" : "text-muted"}`}>
+    <p className={`text-[13px] ${state.phase === "error" ? "text-destructive" : "text-muted"}`}>
       {state.message}
     </p>
   );

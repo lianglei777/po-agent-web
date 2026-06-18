@@ -272,6 +272,7 @@ export default function ModelDetail({
           </DialogHeader>
           <DialogFooter>
             <Button
+              autoFocus
               type="button"
               variant="outline"
               onClick={() => setConfirmingDelete(false)}
@@ -286,7 +287,7 @@ export default function ModelDetail({
                 onDelete();
               }}
             >
-              {t.models.remove}
+              {t.models.removeModelAction}
             </Button>
           </DialogFooter>
         </DialogContent>
