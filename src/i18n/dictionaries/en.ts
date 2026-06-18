@@ -99,6 +99,7 @@ export const en = {
     },
   },
   sessions: {
+    title: "Sessions",
     new: "New",
     refreshSessions: "Refresh sessions",
     loadingSessions: "Loading sessions",

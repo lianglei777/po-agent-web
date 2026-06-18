@@ -176,12 +176,26 @@ export function SessionSidebar({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center gap-1.5 px-2.5 pt-3 pb-2.5">
-        <div className="min-w-0 flex-1 overflow-hidden font-ui-mono text-[15px] font-semibold whitespace-nowrap text-primary">
+      <div className="px-2.5 pt-3 pb-2">
+        <span className="font-ui-mono text-xs font-semibold tracking-[0.025em] text-dim">
           Po Agent Web
-        </div>
+        </span>
+      </div>
+
+      <CwdPicker
+        cwd={selectedCwd}
+        home={home}
+        onChange={onCwdChange}
+        recentCwds={recentCwds}
+      />
+
+      <Separator />
+
+      <div className="flex items-center gap-1.5 px-2.5 pt-2 pb-1.5">
+        <span className="flex-1 text-xs font-semibold text-muted">
+          {t.sessions.title}
+        </span>
         <Button
-          className="w-[65px]"
           disabled={!selectedCwd}
           onClick={() =>
             selectedCwd && onNewSession(crypto.randomUUID(), selectedCwd)
@@ -211,15 +225,6 @@ export function SessionSidebar({
           <TooltipContent>{t.sessions.refreshSessions}</TooltipContent>
         </Tooltip>
       </div>
-
-      <CwdPicker
-        cwd={selectedCwd}
-        home={home}
-        onChange={onCwdChange}
-        recentCwds={recentCwds}
-      />
-
-      <Separator />
       <ScrollArea
         className={selectedCwd ? "min-h-20 flex-1" : "min-h-20 flex-[1_1_100%]"}
       >

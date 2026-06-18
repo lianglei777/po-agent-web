@@ -101,6 +101,7 @@ export const zh = {
     },
   },
   sessions: {
+    title: "会话",
     new: "新建",
     refreshSessions: "刷新会话",
     loadingSessions: "加载会话中",
