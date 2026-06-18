@@ -35,9 +35,13 @@ Focused productivity tools: Linear, Vercel dashboard, Notion. The relevant quali
 3. **The agent is a tool, not a character.** No personality avatars, no confetti, no cheerleading copy.
 4. **Respect system conventions.** Honor `prefers-color-scheme`, support reduced motion, and keep keyboard paths obvious.
 5. **Monochrome first.** Color is used sparingly for status, errors, and selection. The palette should feel like a well-tuned code editor, not a brand campaign.
+6. **Stable workflows over novelty.** Preserve the workspace layout, information architecture, and established operation paths unless a correctness issue requires change.
+7. **Explicit destructive actions.** Important deletion, credential removal, and disconnect operations require confirmation with concrete action language.
+8. **Dialogs close deliberately.** Dialogs remain open on backdrop clicks and Escape; users leave through visible close, cancel, save, or confirmation actions.
 
 ## Accessibility & Inclusion
 
 - Target WCAG 2.1 AA for contrast and focus visibility.
 - Keep keyboard navigation and visible focus states intact across panels, dialogs, and tooltips.
 - Support reduced motion: disable or replace non-essential animations when `prefers-reduced-motion: reduce` is set.
+- Never discard unsaved configuration changes without an explicit confirmation.
