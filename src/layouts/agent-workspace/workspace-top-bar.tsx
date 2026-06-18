@@ -24,6 +24,7 @@ export type TopPanel = "branches" | "system" | null;
 type WorkspaceTopBarProps = {
   dark: boolean;
   sessionIsActive: boolean;
+  sessionTitle: string | null;
   sidebarOpen: boolean;
   topPanel: TopPanel;
   onToggleSidebar: () => void;
@@ -40,6 +41,7 @@ type WorkspaceTopBarProps = {
 export function WorkspaceTopBar({
   dark,
   sessionIsActive,
+  sessionTitle,
   sidebarOpen,
   topPanel,
   onToggleSidebar,
@@ -57,7 +59,7 @@ export function WorkspaceTopBar({
 
   return (
     <>
-      <header className="flex h-9 flex-none items-stretch border-b border-line bg-panel pr-12">
+      <header className="flex h-9 flex-none items-stretch border-b border-line-strong bg-panel pr-12">
 
         {/* Left session sidebar toggle */}
         <TopBarIconButton
@@ -94,6 +96,12 @@ export function WorkspaceTopBar({
           </span>
           <span className="sr-only">{t.common.language}</span>
         </TopBarIconButton>
+
+        {sessionTitle ? (
+          <div className="text-display flex min-w-0 items-center truncate border-l border-line-subtle px-3 text-xl text-primary">
+            {sessionTitle}
+          </div>
+        ) : null}
 
         {/* {sessionIsActive ? (
           <>

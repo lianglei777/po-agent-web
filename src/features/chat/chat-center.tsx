@@ -258,7 +258,7 @@ function Welcome({
         <div className="font-ui-mono text-xs font-semibold tracking-wide text-muted">
           Po Agent Web
         </div>
-        <h1 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-primary max-[640px]:text-2xl">
+        <h1 className="text-display mt-4 text-3xl text-primary max-[640px]:text-2xl">
           {t.chat.welcome.title}
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
@@ -267,7 +267,7 @@ function Welcome({
         <div className="mt-7 grid grid-cols-2 gap-2 text-left max-[560px]:grid-cols-1">
           {starterPrompts.map((prompt) => (
             <Button
-              className="h-auto min-h-12 justify-start whitespace-normal rounded-lg px-3 py-2.5 text-left text-xs leading-5"
+              className="h-auto min-h-12 justify-start whitespace-normal px-3 py-2.5 text-left text-xs leading-5"
               key={prompt}
               onClick={() => onSelectPrompt(prompt)}
               type="button"

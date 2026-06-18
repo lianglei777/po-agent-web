@@ -94,9 +94,9 @@ export function MessageList({
         return (
           <article
             className={cn(
-              "group relative mb-8 scroll-mt-4 rounded-lg px-2 py-1 transition-[background-color,box-shadow,outline-color] duration-150 -mx-2",
+              "group relative mb-8 scroll-mt-4 px-2 py-1 transition-[background-color,outline-color] duration-[var(--motion-fast)] -mx-2",
               highlighted &&
-                "bg-[var(--bg-subtle)] outline outline-1 outline-[var(--border)] shadow-[0_0_0_3px_rgba(23,23,23,0.035)]",
+                "bg-subtle outline outline-1 outline-line-strong",
             )}
             data-message-role={message.role}
             key={entryId ?? `${message.role}-${index}-${message.timestamp ?? 0}`}
@@ -133,9 +133,9 @@ export function MessageList({
       {streamingMessage ? (
         <article
           className={cn(
-            "relative mb-8 rounded-lg px-2 py-1 transition-[background-color,box-shadow,outline-color] duration-150 -mx-2",
+            "relative mb-8 px-2 py-1 transition-[background-color,outline-color] duration-[var(--motion-fast)] -mx-2",
             highlightedMessageId === "streaming-assistant" &&
-              "bg-[var(--bg-subtle)] outline outline-1 outline-[var(--border)] shadow-[0_0_0_3px_rgba(23,23,23,0.035)]",
+              "bg-subtle outline outline-1 outline-line-strong",
           )}
           data-message-role="assistant"
           data-streaming="true"
@@ -185,7 +185,7 @@ function UserMessageView({
       : message.content;
   return (
     <div className="flex flex-col items-end">
-      <div className="max-w-[76%] rounded-2xl border border-line bg-[var(--user-bg)] px-3.5 py-2.5 text-sm leading-[1.65] break-words whitespace-pre-wrap shadow-[0_1px_1px_rgba(0,0,0,0.025)] max-[640px]:max-w-[90%]">
+      <div className="max-w-[76%] rounded-lg border border-line-subtle bg-[var(--user-bg)] px-3.5 py-2.5 text-sm leading-[1.65] break-words whitespace-pre-wrap max-[640px]:max-w-[90%]">
         <div className="flex flex-wrap gap-2">
 
           {/* image content */}
@@ -328,7 +328,7 @@ function AssistantMessageView({
                   <summary className="cursor-pointer text-xs font-medium text-muted hover:text-primary">
                     {t.chat.error.technicalDetails}
                   </summary>
-                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border border-line bg-[var(--tool-bg)] p-2 font-ui-mono text-[11px] text-muted">
+                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border border-line-subtle bg-[var(--tool-bg)] p-2 font-ui-mono text-[11px] text-muted">
                     {error.technicalMessage}
                   </pre>
                   <Button
@@ -394,7 +394,7 @@ function AssistantMessageView({
         return (
           <Accordion className="my-1.5" collapsible key={block.toolCallId} type="single">
             <AccordionItem
-              className={result?.isError ? "border-destructive/40" : "border-green-600/25"}
+              className={result?.isError ? "border-destructive/40" : "border-success/35"}
               value={block.toolCallId}
             >
               <AccordionTrigger>
@@ -470,7 +470,7 @@ function failureSummary(
 
 function Markdown({ text }: { text: string }) {
   return (
-    <div className="text-sm leading-[1.7] text-primary [&_a]:text-accent [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-line [&_blockquote]:pl-3 [&_code]:font-ui-mono [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-3 [&_table]:w-full [&_td]:border [&_td]:border-line [&_td]:p-2 [&_th]:border [&_th]:border-line [&_th]:p-2 [&_ul]:my-3 [&_ul]:pl-6">
+    <div className="text-sm leading-[1.7] text-primary [&_a]:text-accent [&_a]:underline [&_blockquote]:border-l [&_blockquote]:border-line-subtle [&_blockquote]:pl-3 [&_code]:font-ui-mono [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-3 [&_table]:w-full [&_td]:border [&_td]:border-line-subtle [&_td]:p-2 [&_th]:border [&_th]:border-line-subtle [&_th]:p-2 [&_ul]:my-3 [&_ul]:pl-6">
       <ReactMarkdown
         components={{
           code({ className, children, ...props }) {
@@ -503,8 +503,8 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
     typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark");
   return (
-    <div className="my-3 overflow-hidden rounded-lg border border-line bg-[var(--tool-bg)]">
-      <div className="flex h-8 items-center border-b border-line px-3 text-[10px] text-muted">
+    <div className="my-3 overflow-hidden rounded-lg border border-line-subtle bg-[var(--tool-bg)]">
+      <div className="flex h-8 items-center border-b border-line-subtle px-3 text-[10px] text-muted">
         <span>{language}</span>
         <Button
           className="ml-auto h-6 px-2 text-[10px]"

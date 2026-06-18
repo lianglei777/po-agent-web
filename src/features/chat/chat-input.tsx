@@ -145,7 +145,7 @@ export function ChatInput({
 
   return (
     <div
-      className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-[linear-gradient(transparent,var(--bg)_26%)] px-4 pt-14 pb-2 max-[640px]:right-0 max-[640px]:px-2 max-[640px]:pb-2"
+      className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-canvas px-4 pt-3 pb-2 max-[640px]:right-0 max-[640px]:px-2 max-[640px]:pb-2"
       ref={rootRef}
     >
       <div className="pointer-events-auto mx-auto max-w-[820px]">
@@ -162,7 +162,7 @@ export function ChatInput({
         ) : null}
 
         {actionError ? (
-          <div className="mb-2 flex items-center gap-2 rounded-lg border border-destructive/25 bg-card px-3 py-2 text-xs text-destructive shadow-sm">
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-destructive/25 bg-elevated px-3 py-2 text-xs text-destructive">
             <span className="min-w-0 flex-1">{actionError}</span>
             <Button
               aria-label={t.chat.input.dismissError}
@@ -178,20 +178,20 @@ export function ChatInput({
         ) : null}
 
         <div
-          className={`overflow-hidden rounded-[20px] border bg-card shadow-[var(--shadow-composer)] transition-[border-color,box-shadow] ${
+          className={`overflow-hidden rounded-lg border bg-elevated transition-[border-color,background-color] duration-[var(--motion-standard)] ${
             running
-              ? "border-text-muted/40 shadow-[var(--shadow-composer-active)]"
-              : "border-border"
+              ? "border-warning"
+              : "border-line-strong"
           }`}
         >
           {running && agentPhase ? (
             <div
               aria-live="polite"
-              className="flex items-center gap-2 border-b border-line/60 px-4 py-2 text-[11px] text-muted"
+              className="flex items-center gap-2 border-b border-line-subtle px-4 py-2 text-[11px] text-warning"
             >
               <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-text-muted/50" />
-                <span className="relative inline-flex size-2 rounded-full bg-text-muted" />
+                <span className="absolute inline-flex size-full rounded-full bg-warning/35 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-2 rounded-full bg-warning" />
               </span>
               <span className="truncate">{agentPhase}</span>
             </div>
@@ -201,7 +201,7 @@ export function ChatInput({
             <div className="flex gap-2 overflow-x-auto px-4 pt-3">
               {images.map((image) => (
                 <div
-                  className="relative size-16 flex-none overflow-hidden rounded-lg border border-line bg-panel"
+                  className="relative size-16 flex-none overflow-hidden rounded-lg border border-line-subtle bg-panel"
                   key={image.id}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -354,7 +354,7 @@ export function ChatInput({
               // send button
               <Button
                 aria-label={t.chat.input.sendMessage}
-                className="h-9 min-w-24 rounded-lg px-4 text-xs max-[480px]:min-w-9 max-[480px]:px-0"
+                className="h-9 min-w-24 px-4 text-xs max-[480px]:min-w-9 max-[480px]:px-0"
                 disabled={!canSubmit}
                 onClick={() => void submit()}
                 size="sm"
@@ -368,7 +368,7 @@ export function ChatInput({
             )}
           </div>
 
-          <div className="flex min-h-9 items-center gap-1 border-t border-line/55 bg-[var(--bg-subtle)] px-2.5 text-[11px] text-muted">
+          <div className="flex min-h-9 items-center gap-1 border-t border-line-subtle bg-subtle px-2.5 text-[11px] text-muted">
             <div className="flex items-center gap-1 max-[700px]:hidden">
               {/* thinking */}
               <CompactSelect
@@ -453,9 +453,9 @@ function InlineStatus({
   return (
     <div
       aria-live="polite"
-      className={`mb-2 rounded-lg border px-3 py-2 text-xs shadow-sm ${
+      className={`mb-2 rounded-lg border px-3 py-2 text-xs ${
         tone === "warning"
-          ? "border-text-muted/25 bg-[var(--bg-subtle)] text-muted"
+          ? "border-warning/40 bg-warning/8 text-warning"
           : "border-destructive/25 bg-destructive/8 text-destructive"
       }`}
     >

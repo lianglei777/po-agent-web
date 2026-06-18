@@ -35,6 +35,7 @@ import {
 import { ModelsConfigDialog } from "@/features/models-config";
 import { SessionSidebar } from "@/features/session-sidebar/session-sidebar";
 import { loadSessions } from "@/features/session-sidebar/api";
+import { getSessionTitle } from "@/features/session-sidebar/session-utils";
 import type { SessionInfo } from "@/features/session-sidebar/types";
 import { SkillsConfigDialog } from "@/features/skills-config/skills-config-dialog";
 import { useI18n } from "@/i18n/use-i18n";
@@ -400,6 +401,13 @@ export function AgentWorkspace({
             onToggleTheme={toggleTheme}
             onToggleTopPanel={toggleTopPanel}
             sessionIsActive={sessionIsActive}
+            sessionTitle={
+              selectedSession
+                ? getSessionTitle(selectedSession)
+                : draftSession
+                  ? t.sessions.draft
+                  : null
+            }
             sidebarOpen={sidebarOpen}
             stats={sessionStats}
             systemPrompt={systemPrompt}

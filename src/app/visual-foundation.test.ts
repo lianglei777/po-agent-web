@@ -5,6 +5,22 @@ import { describe, expect, test } from "vitest";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const css = readFileSync(`${root}/src/app/globals.css`, "utf8");
 const layout = readFileSync(`${root}/src/app/layout.tsx`, "utf8");
+const chatCenter = readFileSync(
+  `${root}/src/features/chat/chat-center.tsx`,
+  "utf8",
+);
+const chatInput = readFileSync(
+  `${root}/src/features/chat/chat-input.tsx`,
+  "utf8",
+);
+const messageView = readFileSync(
+  `${root}/src/features/chat/message-view.tsx`,
+  "utf8",
+);
+const topBar = readFileSync(
+  `${root}/src/layouts/agent-workspace/workspace-top-bar.tsx`,
+  "utf8",
+);
 
 describe("visual foundation contract", () => {
   test("defines the approved light and dark semantic tokens", () => {
@@ -30,5 +46,14 @@ describe("visual foundation contract", () => {
     expect(css).toContain("--motion-standard: 200ms");
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain("animation-duration: 0.01ms");
+  });
+
+  test("applies the visual foundation to the chat sample", () => {
+    expect(chatCenter).toContain("text-display");
+    expect(topBar).toContain("text-display");
+    expect(chatInput).not.toContain("rounded-[20px]");
+    expect(chatInput).not.toContain("linear-gradient");
+    expect(chatInput).toContain("rounded-lg");
+    expect(messageView).toContain("border-line-subtle");
   });
 });
