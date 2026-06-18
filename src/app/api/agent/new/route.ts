@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   return handleRoute(async () =>
-    container.agentService.createAndPrompt(
+    container.agentService.create(
       parseCreateAgent(await readJson(request)),
     ),
   );

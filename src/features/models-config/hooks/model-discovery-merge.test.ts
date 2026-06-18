@@ -16,11 +16,13 @@ describe("mergeDiscoveredModels", () => {
       {
         source: "remote",
         confidence: "medium",
+        verification: "unverified",
         model: { id: "existing", name: "Existing" },
       },
       {
         source: "defaulted",
         confidence: "low",
+        verification: "unverified",
         model: {
           id: "new-model",
           reasoning: true,
@@ -64,6 +66,7 @@ describe("mergeDiscoveredModels", () => {
         {
           source: "remote",
           confidence: "medium",
+          verification: "unverified",
           model: { id: "existing" },
         },
       ]),

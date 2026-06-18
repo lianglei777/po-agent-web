@@ -58,6 +58,7 @@ export interface AssistantMessage {
   model: string;
   stopReason?: string;
   errorMessage?: string;
+  failure?: AgentFailure;
   timestamp?: number;
   usage?: TokenUsage;
 }
@@ -114,3 +115,4 @@ export type AgentMessage =
   | BranchSummaryMessage
   | CustomMessage
   | BashExecutionMessage;
+import type { AgentFailure } from "./agent-failure";

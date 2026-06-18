@@ -3,7 +3,7 @@ import {
   handleRoute,
   readJson,
 } from "@/server/transport/http/api-response";
-import { asObject } from "@/server/transport/http/validators";
+import { parseModelsConfig } from "@/server/transport/http/validators";
 
 export const runtime = "nodejs";
 
@@ -14,7 +14,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   return handleRoute(async () => {
     await container.modelService.writeConfig(
-      asObject(await readJson(request), "config"),
+      parseModelsConfig(await readJson(request)),
     );
     return { success: true };
   });

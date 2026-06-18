@@ -2,21 +2,24 @@ import { describe, expect, it } from "vitest";
 import {
   parseAgentCommand,
   parseCreateAgent,
+  parseModelsConfig,
   parseSkillInstall,
 } from "./validators";
 
 describe("agent HTTP validation", () => {
-  it("accepts an image-only new session", () => {
+  it("accepts runtime creation without an initial prompt", () => {
     expect(
       parseCreateAgent({
         cwd: "C:\\work",
-        message: "",
-        images: [{ type: "image", data: "abc", mimeType: "image/png" }],
+        provider: "provider",
+        modelId: "model",
       }),
-    ).toMatchObject({
+    ).toEqual({
       cwd: "C:\\work",
-      message: "",
-      images: [{ data: "abc", mimeType: "image/png" }],
+      provider: "provider",
+      modelId: "model",
+      thinkingLevel: undefined,
+      toolNames: undefined,
     });
   });
 
@@ -45,5 +48,36 @@ describe("agent HTTP validation", () => {
       scope: "project",
       cwd: "C:\\work",
     });
+  });
+
+  it("sanitizes protocol-specific model compatibility fields", () => {
+    expect(
+      parseModelsConfig({
+        providers: {
+          custom: {
+            api: "openai-responses",
+            compat: {
+              sendSessionIdHeader: false,
+              supportsDeveloperRole: false,
+            },
+          },
+        },
+      }),
+    ).toEqual({
+      providers: {
+        custom: {
+          api: "openai-responses",
+          compat: { sendSessionIdHeader: false },
+        },
+      },
+    });
+  });
+
+  it("rejects unsupported model API protocols", () => {
+    expect(() =>
+      parseModelsConfig({
+        providers: { custom: { api: "future-api" } },
+      }),
+    ).toThrow("Unsupported API protocol: future-api");
   });
 });

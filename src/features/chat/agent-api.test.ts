@@ -4,7 +4,7 @@ import { createAgent, sendCommand } from "./agent-api";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("agent API adapter", () => {
-  it("sends the lazy new-session payload including images", async () => {
+  it("creates a configured runtime without sending the initial prompt", async () => {
     const fetchMock = vi.fn(
       async (_input: string | URL | Request, _init?: RequestInit) =>
         {
@@ -16,8 +16,6 @@ describe("agent API adapter", () => {
     vi.stubGlobal("fetch", fetchMock);
     await createAgent({
       cwd: "C:\\work",
-      message: "",
-      images: [{ type: "image", data: "abc", mimeType: "image/png" }],
       provider: "provider",
       modelId: "model",
       thinkingLevel: "high",
@@ -25,13 +23,14 @@ describe("agent API adapter", () => {
     });
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
       cwd: "C:\\work",
-      message: "",
-      images: [{ data: "abc", mimeType: "image/png" }],
       provider: "provider",
       modelId: "model",
       thinkingLevel: "high",
       toolNames: ["read"],
     });
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).not.toHaveProperty(
+      "message",
+    );
   });
 
   it.each([

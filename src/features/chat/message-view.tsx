@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   Check,
   Copy,
   GitBranch,
@@ -31,8 +32,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/use-i18n";
+import { assistantErrorDetails } from "./assistant-error";
 import type {
   AgentMessage,
+  AgentFailure,
   AssistantMessage,
   ToolResultMessage,
   UserMessage,
@@ -277,6 +281,9 @@ function AssistantMessageView({
 }) {
 
   const [copied, setCopied] = useState(false);
+  const [errorCopied, setErrorCopied] = useState(false);
+  const { t } = useI18n();
+  const error = assistantErrorDetails(message);
   const text = message.content
     .filter((block) => block.type === "text")
     .map((block) => block.text)
@@ -299,6 +306,52 @@ function AssistantMessageView({
         {streaming ? <StreamingSpeed message={message} /> : null}
       </div>
 
+      {error ? (
+        <div
+          className="my-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm"
+          role="alert"
+        >
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-destructive">
+                {failureSummary(error.code, error.summary, t)}
+              </div>
+              <div className="mt-1 text-xs text-muted">
+                {message.provider && message.model
+                  ? `${message.provider}:${message.model} · `
+                  : ""}
+                {t.chat.error.code}: {error.code}
+              </div>
+              {error.technicalMessage ? (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-medium text-muted hover:text-primary">
+                    {t.chat.error.technicalDetails}
+                  </summary>
+                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border border-line bg-[var(--tool-bg)] p-2 font-ui-mono text-[11px] text-muted">
+                    {error.technicalMessage}
+                  </pre>
+                  <Button
+                    className="mt-2 h-7 px-2 text-[10px]"
+                    onClick={() =>
+                      void copyText(error.technicalMessage ?? "").then(() => {
+                        setErrorCopied(true);
+                        window.setTimeout(() => setErrorCopied(false), 1500);
+                      })
+                    }
+                    size="sm"
+                    variant="outline"
+                  >
+                    {errorCopied
+                      ? t.chat.error.copied
+                      : t.chat.error.copyDetails}
+                  </Button>
+                </details>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Assistant reply content */}
       {message.content.map((block, index) => {
@@ -392,6 +445,27 @@ function AssistantMessageView({
       ) : null}
     </div>
   );
+}
+
+function failureSummary(
+  code: AgentFailure["code"],
+  fallback: string,
+  t: ReturnType<typeof useI18n>["t"],
+) {
+  switch (code) {
+    case "MODEL_AUTH_FAILED":
+      return t.chat.error.authFailed;
+    case "MODEL_RATE_LIMITED":
+      return t.chat.error.rateLimited;
+    case "MODEL_PROTOCOL_ERROR":
+      return t.chat.error.protocolError;
+    case "MODEL_TIMEOUT":
+      return t.chat.error.timeout;
+    case "MODEL_UNAVAILABLE":
+      return t.chat.error.unavailable;
+    default:
+      return fallback || t.chat.error.requestFailed;
+  }
 }
 
 function Markdown({ text }: { text: string }) {

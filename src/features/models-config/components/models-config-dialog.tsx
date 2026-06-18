@@ -10,8 +10,14 @@ import OAuthDetail from "../details/oauth-detail";
 import ProviderDetail from "../details/provider-detail";
 import { useModelsConfig } from "../hooks/use-models-config";
 
-export function ModelsConfigDialog({ onClose }: { onClose: () => void }) {
-  const modelConfig = useModelsConfig();
+export function ModelsConfigDialog({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved?: () => void;
+}) {
+  const modelConfig = useModelsConfig(onSaved);
   const { t } = useI18n();
 
   return (

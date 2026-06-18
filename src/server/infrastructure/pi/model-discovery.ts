@@ -144,6 +144,7 @@ function fromCatalogModel(
   return compactSuggestion({
     source,
     confidence,
+    verification: "unverified",
     model: {
       id: model.id,
       name: remoteModel?.name ?? model.name,
@@ -166,6 +167,7 @@ function fromRemoteModel(
   return compactSuggestion({
     source: "defaulted",
     confidence: "low",
+    verification: "unverified",
     model: {
       id: remoteModel.id,
       name: remoteModel.name ?? remoteModel.id,

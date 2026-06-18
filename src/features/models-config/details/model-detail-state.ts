@@ -13,7 +13,13 @@ const CONFIGURED_THINKING_LEVELS: ConfiguredThinkingLevel[] = [
 ];
 
 export function shouldDisplaySourceBadge(source?: ModelDiscoverySource) {
-  return source !== undefined;
+  return source !== undefined && source !== "inferred";
+}
+
+export function shouldLockDiscoveredCapabilities(
+  source?: ModelDiscoverySource,
+) {
+  return source === "catalog";
 }
 
 export function getSupportedConfiguredThinkingLevels(

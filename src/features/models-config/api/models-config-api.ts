@@ -7,6 +7,7 @@ import type {
   ModelTestResult,
   OAuthProvider,
 } from "../types";
+import { sanitizeModelsConfig } from "@/contracts/model-compat";
 
 interface ApiErrorResponse {
   error?: {
@@ -80,7 +81,9 @@ export function saveModelsConfig(config: ModelsJson) {
   return requestJson<{ success: true }>("/api/models-config", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(config),
+    body: JSON.stringify(
+      sanitizeModelsConfig(config as Record<string, unknown>),
+    ),
   });
 }
 

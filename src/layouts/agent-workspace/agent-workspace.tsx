@@ -76,6 +76,7 @@ export function AgentWorkspace({
   const [newSessionCwd, setNewSessionCwd] = useState<string | null>(null);
   const [draftSession, setDraftSession] = useState<DraftSession | null>(null);
   const [chatInstanceKey, setChatInstanceKey] = useState(0);
+  const [modelsRevision, setModelsRevision] = useState(0);
   const [openFile, setOpenFile] = useState<OpenFile | null>(null);
   const [initialSessionId, setInitialSessionId] = useState<
     string | null | undefined
@@ -407,6 +408,7 @@ export function AgentWorkspace({
 
           <ChatCenter
             key={chatInstanceKey}
+            modelsRevision={modelsRevision}
             newSessionCwd={newSessionCwd}
             onAgentEnd={handleAgentEnd}
             onBranchDataChange={handleBranchDataChange}
@@ -486,7 +488,10 @@ export function AgentWorkspace({
 
         {/* Model Config  dialog*/}
         {modelsOpen ? (
-          <ModelsConfigDialog onClose={() => setModelsOpen(false)} />
+          <ModelsConfigDialog
+            onClose={() => setModelsOpen(false)}
+            onSaved={() => setModelsRevision((current) => current + 1)}
+          />
         ) : null}
         {skillsOpen && activeCwd ? (
           <SkillsConfigDialog

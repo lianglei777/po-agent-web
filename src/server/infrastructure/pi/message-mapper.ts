@@ -4,6 +4,7 @@ import type {
   ImageContent,
   TextContent,
 } from "@/server/domain/message";
+import { mapAgentFailure } from "./agent-failure-mapper";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -102,6 +103,8 @@ export function mapPiMessage(value: unknown): AgentMessage {
           },
         }
       : undefined;
+    const errorMessage =
+      typeof value.errorMessage === "string" ? value.errorMessage : undefined;
     return {
       role: "assistant",
       content,
@@ -109,8 +112,16 @@ export function mapPiMessage(value: unknown): AgentMessage {
       model: typeof value.model === "string" ? value.model : "",
       stopReason:
         typeof value.stopReason === "string" ? value.stopReason : undefined,
-      errorMessage:
-        typeof value.errorMessage === "string" ? value.errorMessage : undefined,
+      errorMessage,
+      failure:
+        value.stopReason === "error" || errorMessage
+          ? mapAgentFailure({
+              errorMessage,
+              provider:
+                typeof value.provider === "string" ? value.provider : undefined,
+              model: typeof value.model === "string" ? value.model : undefined,
+            })
+          : undefined,
       timestamp,
       usage,
     };

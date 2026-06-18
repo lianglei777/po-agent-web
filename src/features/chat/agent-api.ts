@@ -39,8 +39,6 @@ export function loadModels() {
 
 export function createAgent(input: {
   cwd: string;
-  message: string;
-  images?: Array<{ type: "image"; data: string; mimeType: string }>;
   provider?: string;
   modelId?: string;
   thinkingLevel?: ThinkingLevel;

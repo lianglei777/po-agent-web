@@ -3,6 +3,7 @@ import {
   discoverModelsConfig,
   loadModelsConfigData,
   normalizeModelsConfig,
+  saveModelsConfig,
 } from "./models-config-api";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -101,6 +102,38 @@ describe("models config client contract", () => {
           model: { id: "remote-model" },
         },
       ],
+    });
+  });
+
+  it("removes cross-protocol compatibility fields before saving", async () => {
+    const fetchMock = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        expect(String(input)).toBe("/api/models-config");
+        expect(init?.body).toBe(
+          JSON.stringify({
+            providers: {
+              custom: {
+                api: "openai-responses",
+                compat: { sendSessionIdHeader: false },
+              },
+            },
+          }),
+        );
+        return Response.json({ success: true });
+      },
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await saveModelsConfig({
+      providers: {
+        custom: {
+          api: "openai-responses",
+          compat: {
+            sendSessionIdHeader: false,
+            supportsDeveloperRole: false,
+          },
+        },
+      },
     });
   });
 });

@@ -54,6 +54,7 @@ export type ChatSession = { id: string; cwd: string };
 export type ChatControllerOptions = {
   session: ChatSession | null;
   newSessionCwd: string | null;
+  modelsRevision: number;
   onAgentEnd?: () => void;
   onSessionCreated?: (sessionId: string) => void;
   onSessionForked?: (sessionId: string) => void;
@@ -71,6 +72,7 @@ export function useChatController(options: ChatControllerOptions) {
   const {
     session,
     newSessionCwd,
+    modelsRevision,
     onAgentEnd,
     onSessionCreated,
     onSessionForked,
@@ -230,6 +232,13 @@ export function useChatController(options: ChatControllerOptions) {
           runningRef.current = true;
           dispatchStream({ type: "start" });
           break;
+        case "agent_error":
+          setRunning(false);
+          runningRef.current = false;
+          setStopping(false);
+          setRunningTools([]);
+          dispatchStream({ type: "end" });
+          break;
         case "message_start":
         case "message_update":
           dispatchStream({ type: "update", message: event.message });
@@ -279,15 +288,31 @@ export function useChatController(options: ChatControllerOptions) {
   );
 
   const connectSse = useCallback(
-    (id: string) => {
+    (
+      id: string,
+      onConnected?: () => void,
+      onInitialError?: () => void,
+    ) => {
       closeSource();
+      let connected = false;
       const source = new EventSource(
         `/api/agent/${encodeURIComponent(id)}/events`,
       );
       sourceRef.current = source;
       source.addEventListener("agent", (message) => {
         try {
-          handleEvent(JSON.parse((message as MessageEvent).data) as AgentEvent);
+          const event = JSON.parse(
+            (message as MessageEvent).data,
+          ) as AgentEvent;
+          if (
+            !connected &&
+            event.type === "connected" &&
+            event.sessionId === id
+          ) {
+            connected = true;
+            onConnected?.();
+          }
+          handleEvent(event);
         } catch {
           // Ignore a malformed event and keep the stream alive.
         }
@@ -297,6 +322,7 @@ export function useChatController(options: ChatControllerOptions) {
       };
       source.onerror = () => {
         source.close();
+        if (!connected) onInitialError?.();
         if (!runningRef.current) return;
         const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current, 10_000);
         reconnectAttemptRef.current += 1;
@@ -313,21 +339,27 @@ export function useChatController(options: ChatControllerOptions) {
   }, [connectSse]);
 
   useEffect(() => {
+    let active = true;
     const timer = window.setTimeout(async () => {
       try {
         const modelData = await loadModels();
+        if (!active) return;
         setModels(modelData.models);
         setModelKey(
           (current) => resolveLoadedModelState(current, modelData).modelKey,
         );
       } catch (cause) {
+        if (!active) return;
         setActionError(
           cause instanceof Error ? cause.message : "Unable to load models",
         );
       }
     }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [modelsRevision]);
 
   useEffect(() => {
     if (!session) return;
@@ -540,8 +572,6 @@ export function useChatController(options: ChatControllerOptions) {
         const selected = currentModel;
         const created = await createAgent({
           cwd: target.cwd,
-          message: text,
-          images: imageInputs.length ? imageInputs : undefined,
           provider: selected?.provider,
           modelId: selected?.id,
           thinkingLevel:
@@ -549,7 +579,34 @@ export function useChatController(options: ChatControllerOptions) {
           toolNames: [...TOOL_PRESETS[toolPreset]],
         });
         sessionIdRef.current = created.sessionId;
-        connectSse(created.sessionId);
+        await new Promise<void>((resolve, reject) => {
+          let settled = false;
+          const timeout = window.setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            closeSource();
+            reject(new Error(t.chat.input.eventStreamFailed));
+          }, 10_000);
+          const finish = (callback: () => void) => {
+            if (settled) return;
+            settled = true;
+            window.clearTimeout(timeout);
+            callback();
+          };
+          connectSse(
+            created.sessionId,
+            () => finish(resolve),
+            () =>
+              finish(() =>
+                reject(new Error(t.chat.input.eventStreamFailed)),
+              ),
+          );
+        });
+        await sendCommand(created.sessionId, {
+          type: "prompt",
+          message: text,
+          images: imageInputs.length ? imageInputs : undefined,
+        });
         onSessionCreated?.(created.sessionId);
       } else {
         if (mode === "prompt") {
@@ -579,6 +636,7 @@ export function useChatController(options: ChatControllerOptions) {
         setRunning(false);
         runningRef.current = false;
         dispatchStream({ type: "reset" });
+        closeSource();
       }
       setMessages((current) =>
         current.map((message) =>

@@ -8,6 +8,8 @@ import {
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
 import { SectionTitle, Field, inputStyle } from "../shared/form-ui";
+import { CompatEditor } from "./compat-editor";
+import { changeEntryApi } from "./compat-editor-state";
 
 interface Props {
   name: string;
@@ -107,10 +109,10 @@ export default function ProviderDetail({
       </Field>
 
       {/* AI API 协议 */}
-      <Field label={t.models.api}>
+      <Field label={t.models.apiProtocol}>
         <select
           value={provider.api ?? ""}
-          onChange={(e) => onChange({ ...provider, api: e.target.value })}
+          onChange={(e) => onChange(changeEntryApi(provider, e.target.value))}
           required
           style={{
             ...inputStyle,
@@ -124,6 +126,12 @@ export default function ProviderDetail({
           ))}
         </select>
       </Field>
+
+      <CompatEditor
+        api={provider.api}
+        compat={provider.compat}
+        onChange={(compat) => onChange({ ...provider, compat })}
+      />
 
       <ModelDiscoveryPanel
         providerName={name}
@@ -206,8 +214,13 @@ function ModelDiscoveryPanel({
                     <span className="min-w-0 flex-1 truncate font-ui-mono text-[11px] text-primary">
                       {suggestion.model.id}
                     </span>
+                    {suggestion.source !== "inferred" && (
+                      <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
+                        {sourceLabel(suggestion, t)}
+                      </span>
+                    )}
                     <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
-                      {sourceLabel(suggestion, t)}
+                      {t.models.unverified}
                     </span>
                   </div>
                 ))}

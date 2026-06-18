@@ -26,7 +26,7 @@ type DiscoveryState =
   | (ModelDiscoveryResult & { phase: "result"; providerName: string })
   | { phase: "error"; providerName: string; message: string };
 
-export function useModelsConfig() {
+export function useModelsConfig(onSaved?: () => void) {
   const { t } = useI18n();
   const [config, setConfig] = useState<ModelsJson>(EMPTY_CONFIG);
   const [oauthProviders, setOauthProviders] = useState<OAuthProvider[]>([]);
@@ -240,6 +240,7 @@ export function useModelsConfig() {
     setSaveError(null);
     try {
       await saveModelsConfig(config);
+      onSaved?.();
       setSavedOk(true);
       window.setTimeout(() => setSavedOk(false), 2_000);
     } catch (error) {
@@ -247,7 +248,7 @@ export function useModelsConfig() {
     } finally {
       setSaving(false);
     }
-  }, [config, t.models.failedToSave]);
+  }, [config, onSaved, t.models.failedToSave]);
 
   const refreshApiKeyProvider = useCallback(
     async (providerId: string) => {

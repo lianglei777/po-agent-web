@@ -28,6 +28,7 @@ import {
 export function ChatCenter({
   session,
   newSessionCwd,
+  modelsRevision,
   onAgentEnd,
   onSessionCreated,
   onSessionForked,
@@ -38,6 +39,7 @@ export function ChatCenter({
 }: {
   session: ChatSession | null;
   newSessionCwd: string | null;
+  modelsRevision: number;
   onAgentEnd?: () => void;
   onSessionCreated?: (sessionId: string) => void;
   onSessionForked?: (sessionId: string) => void;
@@ -53,6 +55,7 @@ export function ChatCenter({
   const controller = useChatController({
     session,
     newSessionCwd,
+    modelsRevision,
     onAgentEnd,
     onSessionCreated,
     onSessionForked,

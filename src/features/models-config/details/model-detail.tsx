@@ -1,7 +1,17 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { testModelConfig } from "../api/models-config-api";
+import { getEffectiveApi } from "@/contracts/model-compat";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   API_OPTIONS,
   type ConfiguredThinkingLevel,
@@ -9,6 +19,7 @@ import {
   type ModelDiscoverySource,
   type ModelsJson,
   type ModelTestState,
+  type ModelDiagnostic,
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
 import { SectionTitle, Field, inputStyle } from "../shared/form-ui";
@@ -17,7 +28,13 @@ import {
   getSourceTone,
   getSupportedConfiguredThinkingLevels,
   shouldDisplaySourceBadge,
+  shouldLockDiscoveredCapabilities,
 } from "./model-detail-state";
+import { CompatEditor } from "./compat-editor";
+import {
+  applyModelDiagnosticPatch,
+  changeEntryApi,
+} from "./compat-editor-state";
 
 interface Props {
   providerName: string;
@@ -37,38 +54,62 @@ export default function ModelDetail({
   const [testState, setTestState] = useState<ModelTestState>({ phase: "idle" });
   const [testedConfig, setTestedConfig] = useState("");
   const [copied, setCopied] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { t } = useI18n();
   const currentConfig = JSON.stringify({ providerName, config, model });
-  const visibleTestState: ModelTestState =
-    testedConfig === currentConfig ? testState : { phase: "idle" };
+  const visibleTestState = useMemo<ModelTestState>(
+    () =>
+      testedConfig === currentConfig
+        ? testState
+        : testedConfig
+          ? { phase: "stale" }
+          : { phase: "idle" },
+    [currentConfig, testState, testedConfig],
+  );
+  const provider = config.providers?.[providerName];
+  const effectiveApi = getEffectiveApi(provider?.api, model.api);
   const source = model.provenance?.source;
   const hasImageInput = model.input?.includes("image") ?? false;
-  const sourceIsKnown = source === "catalog" || source === "inferred";
+  const capabilitiesLocked = shouldLockDiscoveredCapabilities(source);
   const supportedThinkingLevels = getSupportedConfiguredThinkingLevels(model);
   const defaultThinkingLevel = getDefaultThinkingOnLevel(model);
 
-  const handleTest = useCallback(async () => {
-    if (!model.id.trim() || visibleTestState.phase === "testing") return;
-    setTestedConfig(currentConfig);
+  const runTest = useCallback(async (
+    testConfig: ModelsJson,
+    testModel: ModelEntry,
+  ) => {
+    if (!testModel.id.trim()) return;
+    const fingerprint = JSON.stringify({
+      providerName,
+      config: testConfig,
+      model: testModel,
+    });
+    setTestedConfig(fingerprint);
     setTestState({ phase: "testing" });
     try {
       const result = await testModelConfig({
         provider: providerName,
-        modelId: model.id.trim(),
-        config,
+        modelId: testModel.id.trim(),
+        config: testConfig,
         timeoutMs: 15_000,
       });
       if (!result.ok) {
         setTestState({
           phase: "error",
-          message: result.error ?? t.models.modelTestFailed,
+          message:
+            result.diagnostic?.summary ??
+            result.error ??
+            t.models.modelTestFailed,
           latencyMs: result.latencyMs,
+          diagnostic: result.diagnostic,
+          checkedAt: result.verification.checkedAt,
         });
       } else {
         setTestState({
           phase: "success",
           latencyMs: result.latencyMs,
           responseText: result.responseText,
+          checkedAt: result.verification.checkedAt,
         });
       }
     } catch (e) {
@@ -79,12 +120,47 @@ export default function ModelDetail({
     }
   }, [
     providerName,
-    config,
-    model,
-    currentConfig,
-    visibleTestState.phase,
     t.models.modelTestFailed,
     t.models.unknownError,
+  ]);
+
+  const handleTest = useCallback(async () => {
+    if (!model.id.trim() || visibleTestState.phase === "testing") return;
+    await runTest(config, model);
+  }, [config, model, runTest, visibleTestState.phase]);
+
+  const applySuggestionAndRetest = useCallback(async () => {
+    const diagnostic =
+      visibleTestState.phase === "error"
+        ? visibleTestState.diagnostic
+        : undefined;
+    const patch = diagnostic?.suggestedPatch;
+    if (!patch) return;
+    const nextModel = applyModelDiagnosticPatch(model, effectiveApi, patch);
+    if (nextModel === model) return;
+    const nextConfig: ModelsJson = {
+      ...config,
+      providers: {
+        ...(config.providers ?? {}),
+        [providerName]: {
+          ...provider,
+          models: (provider?.models ?? []).map((candidate) =>
+            candidate === model ? nextModel : candidate,
+          ),
+        },
+      },
+    };
+    onChange(nextModel);
+    await runTest(nextConfig, nextModel);
+  }, [
+    config,
+    effectiveApi,
+    model,
+    onChange,
+    provider,
+    providerName,
+    runTest,
+    visibleTestState,
   ]);
 
   const copyModelId = useCallback(async () => {
@@ -100,6 +176,8 @@ export default function ModelDetail({
 
   if (visibleTestState.phase === "testing") {
     testSummary = t.models.testingConnection;
+  } else if (visibleTestState.phase === "stale") {
+    testSummary = t.models.stale;
   } else if (visibleTestState.phase === "success") {
     testSummary = `${t.models.connected} | ${visibleTestState.latencyMs ?? "?"}ms${
       visibleTestState.responseText ? ` | ${visibleTestState.responseText}` : ""
@@ -163,7 +241,7 @@ export default function ModelDetail({
                 : t.models.test}
           </button>
           <button
-            onClick={onDelete}
+            onClick={() => setConfirmingDelete(true)}
             className="cursor-pointer rounded border px-2 py-[3px] text-[11px]"
             style={{
               borderColor: "color-mix(in srgb, var(--destructive) 30%, transparent)",
@@ -176,6 +254,54 @@ export default function ModelDetail({
           </button>
         </div>
       </div>
+
+      <Dialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
+        <DialogContent
+          className="z-[1101] sm:max-w-[420px]"
+          overlayClassName="z-[1100]"
+        >
+          <DialogHeader>
+            <DialogTitle>{t.models.removeModelTitle}</DialogTitle>
+            <DialogDescription>
+              {t.models.removeModelDescription.replace(
+                "{model}",
+                model.name || model.id,
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmingDelete(false)}
+            >
+              {t.common.cancel}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                setConfirmingDelete(false);
+                onDelete();
+              }}
+            >
+              {t.models.remove}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <p className="text-[11px] leading-4 text-dim">
+        {t.models.realRequestCostNotice}
+      </p>
+
+      {visibleTestState.phase === "error" &&
+        visibleTestState.diagnostic && (
+          <DiagnosticPanel
+            diagnostic={visibleTestState.diagnostic}
+            onApplyAndRetest={() => void applySuggestionAndRetest()}
+          />
+        )}
 
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2.5">
         <Field label={t.models.id}>
@@ -220,7 +346,7 @@ export default function ModelDetail({
         <div className="grid grid-cols-2 gap-2.5">
           <CapabilityToggle
             checked={hasImageInput}
-            disabled={sourceIsKnown}
+            disabled={capabilitiesLocked}
             label={t.models.imageInput}
             onChange={(checked) =>
               onChange({
@@ -233,7 +359,7 @@ export default function ModelDetail({
           />
           <CapabilityToggle
             checked={!!model.reasoning}
-            disabled={sourceIsKnown}
+            disabled={capabilitiesLocked}
             label={t.models.reasoningThinking}
             onChange={(checked) =>
               onChange({
@@ -258,10 +384,7 @@ export default function ModelDetail({
           <select
             value={model.api ?? ""}
             onChange={(e) =>
-              onChange({
-                ...model,
-                api: e.target.value || undefined,
-              })
+              onChange(changeEntryApi(model, e.target.value || undefined))
             }
             style={{
               ...inputStyle,
@@ -279,6 +402,13 @@ export default function ModelDetail({
             {t.models.apiProtocolDescription}
           </p>
         </Field>
+
+        <CompatEditor
+          api={effectiveApi}
+          compat={model.compat}
+          inheritedCompat={provider?.compat}
+          onChange={(compat) => onChange({ ...model, compat })}
+        />
 
         {model.reasoning && supportedThinkingLevels.length > 0 && (
           <Field label={t.models.thinkingOnDefault}>
@@ -306,6 +436,69 @@ export default function ModelDetail({
         )}
       </section>
     </div>
+  );
+}
+
+function DiagnosticPanel({
+  diagnostic,
+  onApplyAndRetest,
+}: {
+  diagnostic: ModelDiagnostic;
+  onApplyAndRetest: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <section
+      aria-live="polite"
+      className="rounded-lg border p-3"
+      style={{
+        borderColor: "rgba(220,38,38,0.25)",
+        background: "rgba(220,38,38,0.06)",
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-ui-mono text-[11px] text-destructive">
+            {diagnostic.code}
+          </div>
+          <p className="mt-1 text-[12px] leading-5 text-primary">
+            {diagnostic.summary}
+          </p>
+        </div>
+        {diagnostic.suggestedPatch && (
+          <button
+            type="button"
+            onClick={onApplyAndRetest}
+            className="shrink-0 rounded border border-line bg-panel px-2.5 py-1.5 text-[11px] text-primary hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t.models.applySuggestionAndRetest}
+          </button>
+        )}
+      </div>
+      {diagnostic.suggestedPatch && (
+        <div className="mt-2 rounded border border-line bg-panel p-2">
+          <div className="text-[11px] font-medium text-muted">
+            {t.models.suggestedChange}
+          </div>
+          <pre className="mt-1 overflow-x-auto font-ui-mono text-[11px] leading-4 text-primary">
+            {JSON.stringify(diagnostic.suggestedPatch.changes, null, 2)}
+          </pre>
+          <p className="mt-1 text-[11px] leading-4 text-dim">
+            {diagnostic.suggestedPatch.reason}
+          </p>
+        </div>
+      )}
+      {diagnostic.technicalMessage && (
+        <details className="mt-2">
+          <summary className="cursor-pointer text-[11px] text-muted">
+            {t.models.diagnosticDetails}
+          </summary>
+          <pre className="mt-1 max-h-36 overflow-auto whitespace-pre-wrap break-words rounded border border-line bg-panel p-2 font-ui-mono text-[11px] leading-4 text-muted">
+            {diagnostic.technicalMessage}
+          </pre>
+        </details>
+      )}
+    </section>
   );
 }
 

@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type {
   AgentCommand,
-  ImageInput,
   ThinkingLevel,
 } from "@/server/domain/agent-command";
 import { AppError } from "@/server/domain/app-error";
@@ -16,8 +15,6 @@ import type { SessionRepository } from "@/server/ports/session-repository";
 
 export interface CreateAgentRequest {
   cwd: string;
-  message: string;
-  images?: ImageInput[];
   provider?: string;
   modelId?: string;
   thinkingLevel?: ThinkingLevel;
@@ -32,7 +29,7 @@ export class AgentService {
     private readonly roots: WorkspaceRootProvider,
   ) {}
 
-  async createAndPrompt(
+  async create(
     input: CreateAgentRequest,
   ): Promise<{ sessionId: string }> {
     this.roots.addRoot(input.cwd);
@@ -59,11 +56,6 @@ export class AgentService {
     if (input.toolNames) {
       await runtime.execute({ type: "set_tools", toolNames: input.toolNames });
     }
-    this.runInBackground(runtime, {
-      type: "prompt",
-      message: input.message,
-      images: input.images,
-    });
     return { sessionId: runtime.sessionId };
   }
 

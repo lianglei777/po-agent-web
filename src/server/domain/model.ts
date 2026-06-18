@@ -1,4 +1,5 @@
 import type { ThinkingLevel } from "./agent-command";
+import type { ModelDiagnostic } from "./model-diagnostic";
 
 export interface ModelInfo {
   id: string;
@@ -35,6 +36,7 @@ export type ModelDiscoveryConfidence = "high" | "medium" | "low";
 export interface ModelDiscoverySuggestion {
   source: ModelDiscoverySource;
   confidence: ModelDiscoveryConfidence;
+  verification: "unverified";
   model: {
     id: string;
     name?: string;
@@ -65,5 +67,12 @@ export interface TestModelResult {
   status?: number;
   responseText?: string;
   error?: string;
+  verification: {
+    status: "verified" | "failed";
+    scenario: "basic-chat";
+    checkedAt: string;
+    latencyMs: number;
+  };
+  diagnostic?: ModelDiagnostic;
 }
 

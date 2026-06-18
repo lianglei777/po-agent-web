@@ -43,9 +43,11 @@ export type AssistantMessage = {
   content: Array<TextContent | ImageContent | ThinkingContent | ToolCallContent>;
   provider: string;
   model: string;
+  stopReason?: string;
   timestamp?: number;
   usage?: TokenUsage;
   errorMessage?: string;
+  failure?: AgentFailure;
 };
 export type ToolResultMessage = {
   role: "toolResult";
@@ -117,9 +119,26 @@ export type ModelInfo = {
   thinkingLevelMap?: Record<string, string | null>;
 };
 
+export type AgentFailure = {
+  code:
+    | "MODEL_REQUEST_FAILED"
+    | "MODEL_AUTH_FAILED"
+    | "MODEL_RATE_LIMITED"
+    | "MODEL_PROTOCOL_ERROR"
+    | "MODEL_TIMEOUT"
+    | "MODEL_UNAVAILABLE"
+    | "UNKNOWN_AGENT_ERROR";
+  message: string;
+  technicalMessage?: string;
+  provider?: string;
+  model?: string;
+  retryable: boolean;
+};
+
 export type AgentEvent =
   | { type: "connected"; sessionId: string }
   | { type: "agent_start" | "agent_end" }
+  | { type: "agent_error"; error: AgentFailure }
   | {
       type: "message_start" | "message_update";
       message: Partial<AssistantMessage>;

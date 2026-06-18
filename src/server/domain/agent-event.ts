@@ -1,9 +1,11 @@
+import type { AgentFailure } from "./agent-failure";
 import type { AgentMessage, AssistantMessage } from "./message";
 
 export type AgentEvent =
   | { type: "connected"; sessionId: string }
   | { type: "agent_start" }
   | { type: "agent_end" }
+  | { type: "agent_error"; error: AgentFailure }
   | { type: "message_start"; message: Partial<AssistantMessage> }
   | { type: "message_update"; message: Partial<AssistantMessage> }
   | { type: "message_end"; message: AgentMessage }

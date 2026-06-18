@@ -26,6 +26,8 @@ import {
   buildModelDiscoverySuggestions,
   fetchOpenAICompatibleModels,
 } from "./model-discovery";
+import { evaluateModelTestMessages } from "./model-test-result";
+import { mapModelDiagnostic } from "./model-diagnostic-mapper";
 
 export class PiModelProvider implements ModelProvider {
   private readonly auth = AuthStorage.create(
@@ -100,6 +102,8 @@ export class PiModelProvider implements ModelProvider {
       | Awaited<ReturnType<typeof createAgentSession>>["session"]
       | undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    let modelApi: string | undefined;
+    let modelCompat: Record<string, unknown> | undefined;
     try {
       if (input.config) {
         await fs.writeFile(configPath, JSON.stringify(input.config));
@@ -107,8 +111,16 @@ export class PiModelProvider implements ModelProvider {
       const registry = ModelRegistry.create(this.auth, configPath);
       const model = registry.find(input.provider, input.modelId);
       if (!model) {
-        return { ok: false, error: "Model not found in test configuration" };
+        return failedTestResult(
+          started,
+          input,
+          undefined,
+          undefined,
+          "Model not found in test configuration",
+        );
       }
+      modelApi = model.api;
+      modelCompat = model.compat as Record<string, unknown> | undefined;
       ({ session } = await createAgentSession({
         cwd: directory,
         sessionManager: SessionManager.inMemory(directory),
@@ -126,20 +138,72 @@ export class PiModelProvider implements ModelProvider {
           }, timeoutMs);
         }),
       ]);
-      const responseText = session.getLastAssistantText();
-      return { ok: true, latencyMs: Date.now() - started, responseText };
-    } catch (error) {
+      const evaluation = evaluateModelTestMessages(session.messages);
+      const latencyMs = Date.now() - started;
+      if (!evaluation.ok) {
+        return failedTestResult(
+          started,
+          input,
+          modelApi,
+          modelCompat,
+          evaluation.error,
+          latencyMs,
+        );
+      }
       return {
-        ok: false,
-        latencyMs: Date.now() - started,
-        error: error instanceof Error ? error.message : String(error),
+        ...evaluation,
+        latencyMs,
+        verification: {
+          status: "verified",
+          scenario: "basic-chat",
+          checkedAt: new Date().toISOString(),
+          latencyMs,
+        },
       };
+    } catch (error) {
+      return failedTestResult(
+        started,
+        input,
+        modelApi,
+        modelCompat,
+        error instanceof Error ? error.message : String(error),
+      );
     } finally {
       if (timeout) clearTimeout(timeout);
       session?.dispose();
       await fs.rm(directory, { recursive: true, force: true });
     }
   }
+}
+
+function failedTestResult(
+  started: number,
+  input: TestModelInput,
+  api: string | undefined,
+  compat: Record<string, unknown> | undefined,
+  error: string,
+  measuredLatency?: number,
+): TestModelResult {
+  const latencyMs = measuredLatency ?? Date.now() - started;
+  const diagnostic = mapModelDiagnostic({
+    api,
+    compat,
+    errorMessage: error,
+    provider: input.provider,
+    model: input.modelId,
+  });
+  return {
+    ok: false,
+    error: diagnostic.summary,
+    latencyMs,
+    verification: {
+      status: "failed",
+      scenario: "basic-chat",
+      checkedAt: new Date().toISOString(),
+      latencyMs,
+    },
+    diagnostic,
+  };
 }
 
 function modelRequestKey(provider: string, modelId: string) {

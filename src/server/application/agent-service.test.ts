@@ -5,6 +5,38 @@ import { InMemoryAgentRegistry } from "@/server/infrastructure/runtime/in-memory
 import { AgentService } from "./agent-service";
 
 describe("AgentService", () => {
+  it("creates and configures a runtime without starting a prompt", async () => {
+    const commands: unknown[] = [];
+    const execute = async <T,>(command: unknown) => {
+      commands.push(command);
+      return undefined as T;
+    };
+    const runtime = runtimeStub({ execute });
+    const registry = new InMemoryAgentRegistry();
+    const service = new AgentService(
+      {} as SessionRepository,
+      registry,
+      { create: vi.fn(async () => runtime) },
+      { listRoots: async () => [], addRoot: vi.fn() },
+    );
+
+    await expect(
+      service.create({
+        cwd: "C:\\work",
+        provider: "provider",
+        modelId: "model",
+        thinkingLevel: "high",
+        toolNames: ["read"],
+      }),
+    ).resolves.toEqual({ sessionId: "created" });
+
+    expect(commands).toEqual([
+      { type: "set_model", provider: "provider", modelId: "model" },
+      { type: "set_thinking_level", level: "high" },
+      { type: "set_tools", toolNames: ["read"] },
+    ]);
+  });
+
   it("destroys the original runtime after a successful fork", async () => {
     const destroy = vi.fn();
     const runtime: AgentRuntime = {
@@ -53,3 +85,28 @@ describe("AgentService", () => {
     expect(registry.get("original")).toBeUndefined();
   });
 });
+
+function runtimeStub(
+  overrides: Partial<AgentRuntime> = {},
+): AgentRuntime {
+  return {
+    sessionId: "created",
+    sessionFile: "created.jsonl",
+    isAlive: () => true,
+    execute: async <T,>() => undefined as T,
+    getState: async () => ({
+      sessionId: "created",
+      sessionFile: "created.jsonl",
+      isStreaming: false,
+      isCompacting: false,
+      autoCompactionEnabled: true,
+      autoRetryEnabled: true,
+      contextUsage: null,
+      systemPrompt: "",
+      thinkingLevel: "off",
+    }),
+    subscribe: () => () => {},
+    destroy: () => {},
+    ...overrides,
+  };
+}

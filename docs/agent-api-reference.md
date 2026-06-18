@@ -120,7 +120,7 @@ Content-Type: text/event-stream; charset=utf-8
 
 | Method | Path | 用途 |
 | --- | --- | --- |
-| `POST` | `/api/agent/new` | 创建 Agent Runtime 并发送首条 Prompt |
+| `POST` | `/api/agent/new` | 创建并配置 Agent Runtime |
 | `GET` | `/api/agent/:id` | 获取 Runtime Snapshot |
 | `POST` | `/api/agent/:id` | 执行统一 Agent Command |
 | `GET` | `/api/agent/:id/events` | 订阅 Agent SSE 事件 |
@@ -255,10 +255,33 @@ interface AssistantMessage {
   model: string;
   stopReason?: string;
   errorMessage?: string;
+  failure?: AgentFailure;
   timestamp?: number;
   usage?: TokenUsage;
 }
 ```
+
+模型调用失败时，`failure` 提供稳定、可供 UI 使用的错误分类：
+
+```ts
+interface AgentFailure {
+  code:
+    | "MODEL_REQUEST_FAILED"
+    | "MODEL_AUTH_FAILED"
+    | "MODEL_RATE_LIMITED"
+    | "MODEL_PROTOCOL_ERROR"
+    | "MODEL_TIMEOUT"
+    | "MODEL_UNAVAILABLE"
+    | "UNKNOWN_AGENT_ERROR";
+  message: string;
+  technicalMessage?: string;
+  provider?: string;
+  model?: string;
+  retryable: boolean;
+}
+```
+
+`technicalMessage` 已进行基础凭证脱敏，但客户端仍不应将其自动发送到外部服务。
 
 `AssistantContent` 支持：
 
@@ -559,13 +582,13 @@ Query：
 
 推荐调用流程：
 
-1. 建立或准备 SSE 事件处理。
-2. 调用 `POST /api/agent/new` 创建 Session。
-3. 使用返回的 `sessionId` 订阅 `/api/agent/:id/events`。
-4. 通过 `POST /api/agent/:id` 发送后续命令。
+1. 调用 `POST /api/agent/new` 创建并配置 Runtime。
+2. 使用返回的 `sessionId` 订阅 `/api/agent/:id/events`。
+3. 收到 `connected` 事件后，通过 `POST /api/agent/:id` 发送首条 `prompt`。
+4. 继续通过 `POST /api/agent/:id` 发送后续命令。
 5. 页面恢复时先查询 `GET /api/agent/:id`。
 
-### 6.1 创建 Agent 并发送首条 Prompt
+### 6.1 创建并配置 Agent Runtime
 
 ```http
 POST /api/agent/new
@@ -577,8 +600,6 @@ Content-Type: application/json
 ```ts
 interface CreateAgentRequest {
   cwd: string;
-  message: string;
-  images?: ImageInput[];
   provider?: string;
   modelId?: string;
   thinkingLevel?: ThinkingLevel;
@@ -591,7 +612,6 @@ interface CreateAgentRequest {
 ```json
 {
   "cwd": "C:\\workspace\\project",
-  "message": "分析当前项目结构",
   "provider": "new-api",
   "modelId": "qwen3-coder-next",
   "thinkingLevel": "medium",
@@ -601,10 +621,10 @@ interface CreateAgentRequest {
 
 规则：
 
-- `cwd` 和 `message` 必需且不能为空。
+- `cwd` 必需且不能为空。
 - 只有同时提供 `provider` 和 `modelId` 才会设置模型。
 - `toolNames: []` 表示禁用所有工具。
-- Prompt 在后台运行，HTTP 请求不等待模型完成。
+- 此接口不会启动 Prompt。客户端必须先建立 SSE，再通过统一 command endpoint 发送首条 `prompt`。
 
 成功响应：
 
@@ -912,6 +932,7 @@ data: {"type":"connected","sessionId":"019e..."}
 type AgentEvent =
   | { type: "agent_start" }
   | { type: "agent_end" }
+  | { type: "agent_error"; error: AgentFailure }
   | { type: "message_start"; message: Partial<AssistantMessage> }
   | { type: "message_update"; message: Partial<AssistantMessage> }
   | { type: "message_end"; message: AgentMessage }
@@ -939,6 +960,8 @@ type AgentEvent =
       errorMessage?: string;
     };
 ```
+
+`agent_error` 在模型调用失败时紧随错误 `message_end` 发出。客户端应结束运行状态并显示结构化错误；错误 assistant 消息仍会持久化到 Session，供刷新后诊断。
 
 Transport 订阅失败时还可能发送：
 
@@ -1128,6 +1151,7 @@ Content-Type: application/json
     {
       "source": "inferred",
       "confidence": "medium",
+      "verification": "unverified",
       "model": {
         "id": "gpt-4.1",
         "name": "GPT 4.1",
@@ -1159,6 +1183,9 @@ Content-Type: application/json
 | `defaulted` | 远程发现模型 ID 后，使用保守默认参数 |
 
 `remoteError` 只表示远程发现失败；如果内置目录仍能给出建议，响应仍可包含 `models`。
+
+`verification` 当前固定为 `unverified`。Discover 只发现候选模型和补齐目录元数据，
+不代表 API Key、请求协议或消息格式已经通过真实模型请求验证。
 
 ### 7.6 测试模型配置
 
@@ -1195,7 +1222,13 @@ Content-Type: application/json
 {
   "ok": true,
   "latencyMs": 1234,
-  "responseText": "OK"
+  "responseText": "OK",
+  "verification": {
+    "status": "verified",
+    "scenario": "basic-chat",
+    "checkedAt": "2026-06-18T10:00:00.000Z",
+    "latencyMs": 1234
+  }
 }
 ```
 
@@ -1205,11 +1238,29 @@ Content-Type: application/json
 {
   "ok": false,
   "latencyMs": 15001,
-  "error": "Model test timed out"
+  "error": "The model request timed out.",
+  "verification": {
+    "status": "failed",
+    "scenario": "basic-chat",
+    "checkedAt": "2026-06-18T10:00:00.000Z",
+    "latencyMs": 15001
+  },
+  "diagnostic": {
+    "code": "MODEL_TIMEOUT",
+    "summary": "The model request timed out.",
+    "technicalMessage": "Model test timed out",
+    "provider": "new-api",
+    "model": "qwen3-coder-next",
+    "retryable": true
+  }
 }
 ```
 
-测试使用临时目录、临时 Model Registry、内存 Session、禁用自动重试，并在结束后销毁。
+协议错误可能额外返回 `diagnostic.suggestedPatch`。补丁只会包含当前生效 API
+协议允许的 compat 字段，默认作用于当前 Model；客户端应先展示变更内容，由用户确认后
+应用并重新测试，不能静默修改配置。
+
+测试使用临时目录、临时 Model Registry、内存 Session、禁用自动重试，并在结束后销毁。只有收到非错误 assistant 且包含文本输出时才返回 `ok: true`；`stopReason: "error"`、空输出或缺少 assistant 响应均返回 `ok: false`。
 测试会发起一次真实模型请求，可能产生费用。
 
 ## 8. Auth API

@@ -46,6 +46,7 @@ describe("buildModelDiscoverySuggestions", () => {
         {
           source: "inferred",
           confidence: "medium",
+          verification: "unverified",
           model: {
             id: "gpt-4.1",
             name: "GPT 4.1",
@@ -60,6 +61,7 @@ describe("buildModelDiscoverySuggestions", () => {
         {
           source: "defaulted",
           confidence: "low",
+          verification: "unverified",
           model: {
             id: "provider-new-model",
             name: "provider-new-model",
@@ -108,6 +110,7 @@ describe("buildModelDiscoverySuggestions", () => {
       {
         source: "catalog",
         confidence: "high",
+        verification: "unverified",
         model: {
           id: "gpt-4.1",
           name: "GPT 4.1",
@@ -121,5 +124,52 @@ describe("buildModelDiscoverySuggestions", () => {
       },
     ]);
     expect(result.remoteError).toBe("unauthorized");
+  });
+
+  it("preserves catalog compatibility without inferring settings from model ids", async () => {
+    const result = await buildModelDiscoverySuggestions(
+      {
+        providerName: "custom-openai",
+        provider: {
+          api: "openai-completions",
+          baseUrl: "https://api.example.com/v1",
+        },
+      },
+      {
+        fetchModels: vi.fn().mockResolvedValue([{ id: "deepseek-v4-pro" }]),
+        catalogModels: [
+          {
+            id: "deepseek-v4-pro",
+            name: "DeepSeek V4 Pro",
+            api: "openai-completions",
+            provider: "catalog-provider",
+            baseUrl: "https://api.example.com/v1",
+            reasoning: true,
+            input: ["text"],
+            cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+            contextWindow: 1_000_000,
+            maxTokens: 384_000,
+            compat: {
+              requiresReasoningContentOnAssistantMessages: true,
+              thinkingFormat: "deepseek",
+            },
+          },
+        ],
+      },
+    );
+
+    expect(result.models[0]).toMatchObject({
+      verification: "unverified",
+      model: {
+        id: "deepseek-v4-pro",
+        compat: {
+      requiresReasoningContentOnAssistantMessages: true,
+      thinkingFormat: "deepseek",
+        },
+      },
+    });
+    expect(result.models[0]?.model.compat).not.toHaveProperty(
+      "supportsDeveloperRole",
+    );
   });
 });

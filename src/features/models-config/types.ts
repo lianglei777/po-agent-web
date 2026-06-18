@@ -1,9 +1,9 @@
-export const API_OPTIONS = [
-  "openai-completions",
-  "openai-responses",
-  "anthropic-messages",
-  "google-generative-ai",
-] as const;
+import {
+  MODEL_API_PROTOCOLS,
+  type ModelApiProtocol,
+} from "@/contracts/model-compat";
+
+export const API_OPTIONS = MODEL_API_PROTOCOLS;
 
 export const THINKING_LEVELS = [
   "off",
@@ -14,7 +14,7 @@ export const THINKING_LEVELS = [
   "xhigh",
 ] as const;
 
-export type ApiOption = (typeof API_OPTIONS)[number];
+export type ApiOption = ModelApiProtocol;
 export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 export type ConfiguredThinkingLevel = Exclude<ThinkingLevel, "off">;
 
@@ -89,6 +89,7 @@ export type ModelDiscoveryConfidence = "high" | "medium" | "low";
 export interface ModelDiscoverySuggestion {
   source: ModelDiscoverySource;
   confidence: ModelDiscoveryConfidence;
+  verification: "unverified";
   model: ModelEntry;
 }
 
@@ -128,8 +129,20 @@ export type OAuthLoginState =
 export type ModelTestState =
   | { phase: "idle" }
   | { phase: "testing" }
-  | { phase: "success"; latencyMs?: number; responseText?: string }
-  | { phase: "error"; message: string; latencyMs?: number };
+  | { phase: "stale" }
+  | {
+      phase: "success";
+      latencyMs?: number;
+      responseText?: string;
+      checkedAt?: string;
+    }
+  | {
+      phase: "error";
+      message: string;
+      latencyMs?: number;
+      diagnostic?: ModelDiagnostic;
+      checkedAt?: string;
+    };
 
 export type Selection =
   | { type: "provider"; name: string }
@@ -168,4 +181,28 @@ export interface ModelTestResult {
   latencyMs?: number;
   responseText?: string;
   error?: string;
+  verification: {
+    status: "verified" | "failed";
+    scenario: "basic-chat";
+    checkedAt: string;
+    latencyMs: number;
+  };
+  diagnostic?: ModelDiagnostic;
+}
+
+export interface ModelDiagnosticPatch {
+  scope: "provider" | "model";
+  api: string;
+  changes: Record<string, unknown>;
+  reason: string;
+}
+
+export interface ModelDiagnostic {
+  code: string;
+  summary: string;
+  technicalMessage?: string;
+  provider?: string;
+  model?: string;
+  retryable: boolean;
+  suggestedPatch?: ModelDiagnosticPatch;
 }

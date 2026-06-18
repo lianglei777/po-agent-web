@@ -11,6 +11,7 @@ import type {
   DiscoverModelsInput,
   TestModelInput,
 } from "@/server/domain/model";
+import { sanitizeModelsConfig } from "@/contracts/model-compat";
 
 type JsonObject = Record<string, unknown>;
 
@@ -53,11 +54,8 @@ export function requiredBoolean(
 
 export function parseCreateAgent(value: unknown): CreateAgentRequest {
   const object = asObject(value);
-  const images = parseImages(object.images);
   return {
     cwd: requiredString(object, "cwd"),
-    message: messageOrImages(object, images),
-    images,
     provider: optionalString(object, "provider"),
     modelId: optionalString(object, "modelId"),
     thinkingLevel:
@@ -145,6 +143,16 @@ export function parseModelDiscovery(value: unknown): DiscoverModelsInput {
       headers: parseStringRecord(provider.headers, "headers"),
     },
   };
+}
+
+export function parseModelsConfig(value: unknown): Record<string, unknown> {
+  try {
+    return sanitizeModelsConfig(asObject(value, "config"), {
+      strictApi: true,
+    });
+  } catch (error) {
+    invalid(error instanceof Error ? error.message : "Invalid model config");
+  }
 }
 
 export function parseSkillInstall(value: unknown): InstallSkillInput {

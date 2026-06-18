@@ -3,12 +3,20 @@ import {
   getDefaultThinkingOnLevel,
   getSupportedConfiguredThinkingLevels,
   shouldDisplaySourceBadge,
+  shouldLockDiscoveredCapabilities,
 } from "./model-detail-state";
 
 describe("model detail display state", () => {
   it("hides the source badge when no source is known", () => {
     expect(shouldDisplaySourceBadge(undefined)).toBe(false);
     expect(shouldDisplaySourceBadge("catalog")).toBe(true);
+  });
+
+  it("hides inferred badges and keeps inferred capabilities editable", () => {
+    expect(shouldDisplaySourceBadge("inferred")).toBe(false);
+    expect(shouldLockDiscoveredCapabilities("catalog")).toBe(true);
+    expect(shouldLockDiscoveredCapabilities("inferred")).toBe(false);
+    expect(shouldLockDiscoveredCapabilities("defaulted")).toBe(false);
   });
 
   it("derives supported configured thinking levels from the map", () => {

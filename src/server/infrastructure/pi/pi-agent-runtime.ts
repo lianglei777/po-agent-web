@@ -166,8 +166,7 @@ export class PiAgentRuntime implements AgentRuntime {
   subscribe(listener: (event: AgentEvent) => void): () => void {
     this.assertAlive();
     return this.session.subscribe((event) => {
-      const mapped = mapEvent(event);
-      if (mapped) listener(mapped);
+      for (const mapped of mapEvents(event)) listener(mapped);
     });
   }
 
@@ -196,7 +195,23 @@ function mapImages(images?: ImageInput[]) {
   }));
 }
 
-export function mapEvent(event: AgentSessionEvent): AgentEvent | null {
+export function mapEvents(event: AgentSessionEvent): AgentEvent[] {
+  const mapped = mapEvent(event);
+  if (!mapped) return [];
+  if (
+    mapped.type === "message_end" &&
+    mapped.message.role === "assistant" &&
+    mapped.message.failure
+  ) {
+    return [
+      mapped,
+      { type: "agent_error", error: mapped.message.failure },
+    ];
+  }
+  return [mapped];
+}
+
+function mapEvent(event: AgentSessionEvent): AgentEvent | null {
   switch (event.type) {
     case "agent_start":
       return { type: "agent_start" };
