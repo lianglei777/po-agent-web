@@ -57,7 +57,7 @@
   --border: var(--border-subtle);
   --text: #151816;
   --text-muted: #53605b;
-  --text-dim: #76817c;
+  --text-dim: #66716c;
   --accent: #17624b;
   --accent-hover: #104d3a;
   --background: var(--bg);
@@ -105,7 +105,7 @@ html.dark {
   --border: var(--border-subtle);
   --text: #eef1ed;
   --text-muted: #a8b0aa;
-  --text-dim: #747d77;
+  --text-dim: #7b857f;
   --accent: #8bc7b0;
   --accent-hover: #a2d7c3;
   --background: var(--bg);

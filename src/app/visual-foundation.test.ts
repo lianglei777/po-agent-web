@@ -38,6 +38,7 @@ describe("visual foundation contract", () => {
     expect(css).toContain("--bg-selected: #e2e9e5");
     expect(css).toContain("--text: #151816");
     expect(css).toContain("--text-muted: #53605b");
+    expect(css).toContain("--text-dim: #66716c");
     expect(css).toContain("--border-subtle: #d8ddda");
     expect(css).toContain("--border-strong: #aab3ae");
     expect(css).toContain("--accent: #17624b");
@@ -49,6 +50,7 @@ describe("visual foundation contract", () => {
     expect(css).toContain("--bg-selected: #26312c");
     expect(css).toContain("--text: #eef1ed");
     expect(css).toContain("--text-muted: #a8b0aa");
+    expect(css).toContain("--text-dim: #7b857f");
     expect(css).toContain("--border-subtle: #2d332f");
     expect(css).toContain("--border-strong: #57625c");
     expect(css).toContain("--accent: #8bc7b0");
