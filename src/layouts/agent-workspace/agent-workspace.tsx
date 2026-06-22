@@ -295,7 +295,7 @@ export function AgentWorkspace({
 
           {/* sidebar content  */}
           <aside
-            className={`fixed inset-y-0 left-0 z-200 w-[min(280px,85vw)] flex-none overflow-hidden border-r border-line-subtle bg-canvas shadow-[var(--shadow-floating)] transition-transform duration-[var(--motion-slow)] min-[641px]:relative min-[641px]:inset-auto min-[641px]:shadow-none min-[641px]:transition-[width,border-width] ${resizingPanel === "sidebar" ? "min-[641px]:duration-0" : "min-[641px]:duration-[var(--motion-standard)]"} ${sidebarOpen
+            className={`fixed inset-y-0 left-0 z-200 w-[min(280px,85vw)] flex-none overflow-hidden border-r border-line-subtle bg-panel shadow-[var(--shadow-floating)] transition-transform duration-[var(--motion-slow)] min-[641px]:relative min-[641px]:inset-auto min-[641px]:shadow-none min-[641px]:transition-[width,border-width] ${resizingPanel === "sidebar" ? "min-[641px]:duration-0" : "min-[641px]:duration-[var(--motion-standard)]"} ${sidebarOpen
                 ? "translate-x-0 min-[641px]:w-[var(--panel-width)] min-[641px]:border-r-0"
                 : "-translate-x-full min-[641px]:w-0 min-[641px]:translate-x-0 min-[641px]:border-r-0"
               }`}
@@ -412,7 +412,7 @@ export function AgentWorkspace({
           ) : null}
 
           <aside
-            className={`flex-none overflow-hidden bg-canvas transition-[width] ${resizingPanel === "filePanel" ? "duration-0" : "duration-[var(--motion-standard)]"} ${filePanelOpen
+            className={`flex-none overflow-hidden bg-panel transition-[width] ${resizingPanel === "filePanel" ? "duration-0" : "duration-[var(--motion-standard)]"} ${filePanelOpen
               ? "w-full min-[641px]:w-[var(--panel-width)]"
               : "hidden w-0 min-w-0 min-[641px]:block"
               }`}

@@ -75,9 +75,10 @@ describe("visual foundation contract", () => {
     expect(messageView).toContain("border-line-subtle");
   });
 
-  test("uses one continuous canvas with locally elevated controls", () => {
-    expect(agentWorkspace).toContain("border-line-subtle bg-canvas");
-    expect(topBar).toContain("border-line-strong bg-canvas");
+  test("uses a quiet canvas with distinct panel surfaces", () => {
+    expect(agentWorkspace).toContain("bg-panel");
+    expect(agentWorkspace).toContain("bg-canvas");
+    expect(topBar).toContain("border-line-subtle bg-panel");
     expect(chatInput).not.toContain("rounded-[14px]");
     expect(chatInput).not.toContain("shadow-[var(--shadow-composer)]");
   });

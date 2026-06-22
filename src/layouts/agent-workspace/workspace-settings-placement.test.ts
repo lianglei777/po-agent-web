@@ -51,7 +51,14 @@ describe("workspace settings placement", () => {
     );
 
     expect(filePanelSource).toContain("PanelRightClose");
-    expect(filePanelSource).toContain("bg-canvas");
-    expect(filePanelSource).not.toContain("bg-panel");
+    expect(filePanelSource).toContain("bg-panel");
+  });
+
+  it("uses panel surfaces for side regions and a quiet canvas for chat", () => {
+    expect(workspaceSource).toContain("bg-panel");
+    expect(workspaceSource).toContain("bg-canvas");
+    expect(topBarSource).toContain("bg-panel");
+    expect(topBarSource).toContain("border-line-subtle");
+    expect(filePanelSource).toContain("bg-panel");
   });
 });

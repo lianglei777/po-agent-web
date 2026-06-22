@@ -68,7 +68,7 @@ export function WorkspaceTopBar({
 
   return (
     <>
-      <header className="flex h-9 flex-none items-stretch border-b border-line-strong bg-canvas">
+      <header className="flex h-10 flex-none items-stretch border-b border-line-subtle bg-panel">
 
         {/* Left session sidebar toggle */}
         <TopBarIconButton
@@ -159,7 +159,7 @@ export function WorkspaceTopBar({
 
       {topPanel ? (
         <section
-          className="absolute top-9 left-0 z-500 max-h-[45vh] min-h-24 w-full overflow-auto border-b border-line-strong bg-elevated p-3 text-xs text-muted shadow-[var(--shadow-floating)]"
+          className="absolute top-10 left-0 z-500 max-h-[45vh] min-h-24 w-full overflow-auto border-b border-line-strong bg-elevated p-3 text-xs text-muted shadow-[var(--shadow-floating)]"
           data-testid="top-panel"
         >
           {topPanel === "branches" ? (
@@ -280,7 +280,7 @@ function TopBarIconButton({
         borderSide === "left"
           ? "border-l border-line-subtle"
           : "border-r border-line-subtle"
-      }`}
+      } ${pressed ? "bg-selected text-primary" : "text-muted"}`}
       disabled={disabled}
       onClick={onClick}
       size="icon"
@@ -295,7 +295,7 @@ function TopBarIconButton({
     <Tooltip>
       <TooltipTrigger asChild>
         {disabled ? (
-          <span className="inline-flex h-9">{button}</span>
+          <span className="inline-flex h-10">{button}</span>
         ) : (
           button
         )}

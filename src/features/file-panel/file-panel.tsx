@@ -24,7 +24,7 @@ export function FilePanel({
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col">
-      <div className="flex h-9 flex-none items-stretch border-b border-line-strong bg-canvas text-[11px] text-muted">
+      <div className="flex h-10 flex-none items-stretch border-b border-line-subtle bg-panel text-[11px] text-muted">
         <span
           className="flex min-w-0 flex-1 items-center truncate px-3"
           title={file?.path}
