@@ -66,6 +66,11 @@ export function ChatInput({
   toolPreset,
   isCompacting,
   compactError,
+  compactResult,
+  compactNotice,
+  canCompact,
+  setCompactResult,
+  setCompactNotice,
   actionError,
   retryInfo,
   agentPhase,
@@ -99,6 +104,11 @@ export function ChatInput({
   toolPreset: ToolPreset;
   isCompacting: boolean;
   compactError: string;
+  compactResult: { tokensBefore: number; summary: string } | null;
+  compactNotice: string;
+  canCompact: boolean;
+  setCompactResult: (value: { tokensBefore: number; summary: string } | null) => void;
+  setCompactNotice: (value: string) => void;
   actionError: string;
   retryInfo: {
     attempt: number;
@@ -157,8 +167,42 @@ export function ChatInput({
           </InlineStatus>
         ) : null}
 
+        {isCompacting ? (
+          <InlineStatus tone="warning">
+            <span className="flex items-center gap-2">
+              <span className="relative flex size-2 shrink-0">
+                <span className="absolute inline-flex size-full rounded-full bg-warning/35 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-2 rounded-full bg-warning" />
+              </span>
+              {t.chat.input.compacting}
+            </span>
+          </InlineStatus>
+        ) : null}
+
         {compactError ? (
           <InlineStatus tone="error">{compactError}</InlineStatus>
+        ) : null}
+
+        {compactResult ? (
+          <InlineStatus
+            dismissLabel={t.chat.input.dismissNotice}
+            onDismiss={() => setCompactResult(null)}
+            tone="success"
+          >
+            {t.chat.input.compactSuccess} ·{" "}
+            {compactResult.tokensBefore.toLocaleString()}{" "}
+            {t.chat.message.tokens}
+          </InlineStatus>
+        ) : null}
+
+        {compactNotice ? (
+          <InlineStatus
+            dismissLabel={t.chat.input.dismissNotice}
+            onDismiss={() => setCompactNotice("")}
+            tone="info"
+          >
+            {compactNotice}
+          </InlineStatus>
         ) : null}
 
         {actionError ? (
@@ -397,17 +441,23 @@ export function ChatInput({
               {/* compact */}
               <Button
                 className="h-7 gap-1.5 px-2 text-[11px]"
-                disabled={running}
+                disabled={running || (!canCompact && !isCompacting)}
                 onClick={() => void compact()}
                 size="sm"
-                title={t.chat.input.compactContext}
+                title={
+                  !canCompact && !isCompacting
+                    ? t.chat.input.alreadyCompacted
+                    : t.chat.input.compactContext
+                }
                 type="button"
                 variant="ghost"
               >
                 <Minimize2 className="size-3.5" />
                 {isCompacting
                   ? t.chat.input.abortCompact
-                  : t.chat.input.compact}
+                  : !canCompact
+                    ? t.chat.input.compacted
+                    : t.chat.input.compact}
               </Button>
             </div>
 
@@ -415,6 +465,7 @@ export function ChatInput({
             <div className="min-[701px]:hidden">
               <SettingsMenu
                 isCompacting={isCompacting}
+                canCompact={canCompact}
                 onCompact={compact}
                 onThinkingChange={changeThinkingMode}
                 onToolsChange={changeTools}
@@ -444,20 +495,38 @@ export function ChatInput({
 function InlineStatus({
   children,
   tone,
+  onDismiss,
+  dismissLabel,
 }: {
   children: React.ReactNode;
-  tone: "warning" | "error";
+  tone: "warning" | "error" | "success" | "info";
+  onDismiss?: () => void;
+  dismissLabel?: string;
 }) {
+  const toneClasses: Record<typeof tone, string> = {
+    warning: "border-warning/40 bg-warning/8 text-warning",
+    error: "border-destructive/25 bg-destructive/8 text-destructive",
+    success: "border-success/40 bg-success/8 text-success",
+    info: "border-line-strong bg-subtle text-muted",
+  };
   return (
     <div
       aria-live="polite"
-      className={`mb-2 rounded-lg border px-3 py-2 text-xs ${
-        tone === "warning"
-          ? "border-warning/40 bg-warning/8 text-warning"
-          : "border-destructive/25 bg-destructive/8 text-destructive"
-      }`}
+      className={`mb-2 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${toneClasses[tone]}`}
     >
-      {children}
+      <span className="min-w-0 flex-1">{children}</span>
+      {onDismiss ? (
+        <Button
+          aria-label={dismissLabel}
+          className="size-6 shrink-0"
+          onClick={onDismiss}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <X className="size-3.5" />
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -505,6 +574,7 @@ function SettingsMenu({
   thinkingOptions,
   toolPreset,
   isCompacting,
+  canCompact,
   running,
   onThinkingChange,
   onToolsChange,
@@ -514,6 +584,7 @@ function SettingsMenu({
   thinkingOptions: Array<{ label: string; value: ThinkingMode }>;
   toolPreset: ToolPreset;
   isCompacting: boolean;
+  canCompact: boolean;
   running: boolean;
   onThinkingChange: (value: ThinkingMode) => Promise<void>;
   onToolsChange: (value: ToolPreset) => Promise<void>;
@@ -587,13 +658,15 @@ function SettingsMenu({
 
         {/* prompt compact */}
         <DropdownMenuItem
-          disabled={running}
+          disabled={running || (!canCompact && !isCompacting)}
           onSelect={() => void onCompact()}
         >
           <Minimize2 className="size-3.5" />
           {isCompacting
             ? t.chat.input.abortCompact
-            : t.chat.input.compactContext}
+            : !canCompact
+              ? t.chat.input.compacted
+              : t.chat.input.compactContext}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

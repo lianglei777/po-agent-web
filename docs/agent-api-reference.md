@@ -91,7 +91,7 @@ Content-Type: text/event-stream; charset=utf-8
 | `FILE_TOO_LARGE` | 413 | 文本或图片超过预览限制 |
 | `MODEL_NOT_FOUND` | 404 | 模型不存在 |
 | `UNSUPPORTED_COMMAND` | 400 | Agent Command 类型不受支持 |
-| `COMPACTION_NOT_AVAILABLE` | 由调用场景决定 | 当前不能执行 Compaction |
+| `COMPACTION_NOT_AVAILABLE` | 409 | 当前不能执行 Compaction（如上下文已压缩且无新消息） |
 | `OAUTH_PROVIDER_NOT_FOUND` | 404 | OAuth Provider 不存在 |
 | `PENDING_INPUT_NOT_FOUND` | 404 | OAuth Pending Input Token 不存在或 Provider 不匹配 |
 | `SKILL_INSTALL_FAILED` | 500 | Skill CLI 安装失败 |

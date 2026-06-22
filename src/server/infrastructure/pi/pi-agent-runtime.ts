@@ -112,7 +112,22 @@ export class PiAgentRuntime implements AgentRuntime {
         }
         return undefined as T;
       case "compact":
-        return (await this.session.compact(command.customInstructions)) as T;
+        try {
+          return (await this.session.compact(command.customInstructions)) as T;
+        } catch (cause) {
+          // Pi SDK 在上下文已压缩且无新消息时抛出 "Already compacted"
+          if (
+            cause instanceof Error &&
+            /already compacted/i.test(cause.message)
+          ) {
+            throw new AppError(
+              "COMPACTION_NOT_AVAILABLE",
+              "Context already compacted",
+              409,
+            );
+          }
+          throw cause;
+        }
       case "set_auto_compaction":
         this.session.setAutoCompactionEnabled(command.enabled);
         return undefined as T;

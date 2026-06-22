@@ -57,12 +57,19 @@ export type ToolResultMessage = {
   isError?: boolean;
   timestamp?: number;
 };
+export type CompactionSummaryMessage = {
+  role: "compactionSummary";
+  summary: string;
+  tokensBefore: number;
+  timestamp?: number;
+};
 export type AgentMessage =
   | UserMessage
   | AssistantMessage
   | ToolResultMessage
+  | CompactionSummaryMessage
   | {
-      role: "custom" | "compactionSummary" | "branchSummary" | "bashExecution";
+      role: "custom" | "branchSummary" | "bashExecution";
       [key: string]: unknown;
     };
 

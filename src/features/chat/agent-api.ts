@@ -6,13 +6,26 @@ import type {
   ThinkingLevel,
 } from "./agent-types";
 
-type ApiError = { error?: { message?: string } };
+type ApiError = { error?: { code?: string; message?: string } };
+
+/** 携带后端错误码的请求异常，便于前端按 code 分支处理 */
+export class ApiRequestError extends Error {
+  readonly code: string | undefined;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.code = code;
+  }
+}
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
   const data = (await response.json()) as T & ApiError;
   if (!response.ok) {
-    throw new Error(data.error?.message ?? `Request failed (${response.status})`);
+    throw new ApiRequestError(
+      data.error?.message ?? `Request failed (${response.status})`,
+      data.error?.code,
+    );
   }
   return data;
 }

@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import {
+  ApiRequestError,
   createAgent,
   loadModels,
   loadRuntime,
@@ -102,6 +103,11 @@ export function useChatController(options: ChatControllerOptions) {
   } | null>(null);
   const [isCompacting, setIsCompacting] = useState(false);
   const [compactError, setCompactError] = useState("");
+  const [compactResult, setCompactResult] = useState<{
+    tokensBefore: number;
+    summary: string;
+  } | null>(null);
+  const [compactNotice, setCompactNotice] = useState("");
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [modelKey, setModelKey] = useState("");
   const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevel>("auto");
@@ -140,6 +146,25 @@ export function useChatController(options: ChatControllerOptions) {
   );
   const stats = useMemo(() => sessionStats(messages), [messages]);
   const agentPhase = phaseLabel(runningTools, running);
+  // canCompact 从 messages 派生：最后一次 compactionSummary 之后无新对话消息时不可再次压缩。
+  // compactionSummary 在 messages 数组开头，其后紧跟 compact 前保留的旧消息（timestamp 较小），
+  // compact 后的新消息 timestamp 大于 compactionSummary 的 timestamp。
+  const canCompact = useMemo(() => {
+    if (running || isCompacting) return false;
+    const lastCompactionIndex = messages.findLastIndex(
+      (m) => m.role === "compactionSummary",
+    );
+    if (lastCompactionIndex === -1) return true;
+    const compactionTime =
+      messages[lastCompactionIndex].timestamp ?? 0;
+    return messages
+      .slice(lastCompactionIndex + 1)
+      .some(
+        (m) =>
+          (m.role === "user" || m.role === "assistant") &&
+          (m.timestamp ?? 0) > compactionTime,
+      );
+  }, [messages, running, isCompacting]);
 
   const syncRuntimeState = useCallback(
     (state?: {
@@ -277,7 +302,9 @@ export function useChatController(options: ChatControllerOptions) {
         case "auto_compaction_end":
           setIsCompacting(false);
           if (event.errorMessage) setCompactError(event.errorMessage);
-          else if (!event.aborted) void reloadHistory();
+          else if (!event.aborted) {
+            void reloadHistory();
+          }
           break;
         case "agent_end":
           void handleAgentEnd();
@@ -404,6 +431,20 @@ export function useChatController(options: ChatControllerOptions) {
   useEffect(() => {
     onSessionStatsChange?.(stats);
   }, [onSessionStatsChange, stats]);
+
+  // compact 成功反馈自动消失
+  useEffect(() => {
+    if (!compactResult) return;
+    const timer = window.setTimeout(() => setCompactResult(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [compactResult]);
+
+  // compact info 提示自动消失
+  useEffect(() => {
+    if (!compactNotice) return;
+    const timer = window.setTimeout(() => setCompactNotice(""), 6000);
+    return () => window.clearTimeout(timer);
+  }, [compactNotice]);
 
   const changeLeaf = useCallback(
     async (leafId: string) => {
@@ -727,14 +768,47 @@ export function useChatController(options: ChatControllerOptions) {
     const id = sessionIdRef.current;
     if (!id) return;
     setCompactError("");
-    setIsCompacting(true);
+    const aborting = isCompacting;
+    // 仅在发起压缩时设置 loading 状态；abort 路径 isCompacting 已为 true
+    if (!aborting) {
+      setIsCompacting(true);
+    }
     try {
-      await sendCommand(id, {
-        type: isCompacting ? "abort_compaction" : "compact",
-      });
+      if (aborting) {
+        await sendCommand(id, { type: "abort_compaction" });
+        setIsCompacting(false);
+        return;
+      }
+      const result = await sendCommand<{
+        summary?: string;
+        tokensBefore?: number;
+        firstKeptEntryId?: string;
+      }>(id, { type: "compact" });
+      setIsCompacting(false);
+      if (result.tokensBefore != null) {
+        setCompactResult({
+          tokensBefore: result.tokensBefore,
+          summary: result.summary ?? "",
+        });
+        // 刷新消息列表，使 compactionSummary 出现在末尾，
+        // canCompact 会通过 useMemo 自动派生为 false
+        void reloadHistory();
+      }
     } catch (cause) {
       setIsCompacting(false);
-      setCompactError(cause instanceof Error ? cause.message : "Compact failed");
+      const code = cause instanceof ApiRequestError ? cause.code : undefined;
+      const message =
+        cause instanceof Error ? cause.message : "Compact failed";
+      if (
+        !aborting &&
+        (code === "COMPACTION_NOT_AVAILABLE" ||
+          /already compacted/i.test(message))
+      ) {
+        // 上下文已压缩且无新消息，显示 info 提示而非红色错误
+        setCompactNotice(t.chat.input.alreadyCompacted);
+      } else {
+        setCompactError(message);
+      }
     }
   }
 
@@ -797,6 +871,11 @@ export function useChatController(options: ChatControllerOptions) {
     retryInfo,
     isCompacting,
     compactError,
+    compactResult,
+    compactNotice,
+    canCompact,
+    setCompactResult,
+    setCompactNotice,
     models,
     modelKey,
     currentModel,
