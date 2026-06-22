@@ -117,7 +117,7 @@ Neutral first. Accent color is reserved for primary actions, focus, selection, a
 - Unsaved model configuration requires a discard confirmation.
 - The safe action receives default focus in destructive confirmations.
 - Provider deletion, model removal, API key removal, and OAuth disconnect require confirmation.
-- Session deletion remains the existing inline confirmation.
+- Session deletion uses the standard destructive confirmation Dialog and names the session being deleted.
 - Dangerous buttons use specific verbs rather than a generic “Confirm”.
 
 ## Motion

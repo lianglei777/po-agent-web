@@ -8,6 +8,14 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n/use-i18n";
 import { deleteSession, renameSession } from "./api";
@@ -181,129 +189,144 @@ function SessionRow({
     );
   }
 
-  if (confirming) {
-    return (
-      <div
-        className={`mx-1 flex h-[44px] items-center gap-1 rounded-md border border-destructive/35 bg-destructive/8 px-2 ${
-          busy ? "opacity-50" : ""
-        }`}
-      >
-        <span className="min-w-0 flex-1 truncate text-[11px]">
-          {t.sessions.deleteQuestionPrefix} &ldquo;{title.slice(0, 22)}&rdquo;?
-        </span>
-        <Button
-          disabled={busy}
-          onClick={remove}
-          size="sm"
-          type="button"
-          variant="destructive"
-        >
-          {t.common.delete}
-        </Button>
-        <Button
-          disabled={busy}
-          onClick={() => setConfirming(false)}
-          size="sm"
-          type="button"
-          variant="ghost"
-        >
-          {t.common.cancel}
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className={`group relative mx-1 flex h-[44px] cursor-pointer items-center rounded-md border pr-1 transition-colors duration-[var(--motion-fast)] focus-within:border-line-strong focus-within:bg-selected ${
-        selected
-          ? "border-line-strong bg-selected"
-          : hasChildren && !collapsed
-            ? "border-transparent hover:border-line-subtle hover:bg-hover"
-            : "border-transparent border-b border-b-line-subtle/60 hover:border-line-subtle hover:border-b-line-subtle hover:bg-hover"
-      }`}
-      onClick={() => onSelect(session)}
-      style={{ paddingLeft: `${4 + depth * 12}px` }}
-      title={title}
-    >
-      {selected ? (
-        <span
-          aria-hidden
-          className="ml-1 size-1.5 flex-none rounded-full bg-accent text-accent"
-        />
-      ) : null}
-      {hasChildren ? (
-        <Button
-          aria-label={
-            collapsed
-              ? t.sessions.expandForks
-              : t.sessions.collapseForks
-          }
-          className="size-6"
-          onClick={(event) => {
-            event.stopPropagation();
-            onToggle();
-          }}
-          size="icon-sm"
-          type="button"
-          variant="ghost"
-        >
-          <ChevronDown
-            className={`size-3 transition-transform ${collapsed ? "-rotate-90" : ""}`}
+    <>
+      <div
+        className={`group relative mx-1 flex h-[44px] cursor-pointer items-center rounded-md border pr-1 transition-colors duration-[var(--motion-fast)] focus-within:border-line-strong focus-within:bg-selected ${
+          selected
+            ? "border-line-strong bg-selected"
+            : hasChildren && !collapsed
+              ? "border-transparent hover:border-line-subtle hover:bg-hover"
+              : "border-transparent border-b border-b-line-subtle/60 hover:border-line-subtle hover:border-b-line-subtle hover:bg-hover"
+        }`}
+        onClick={() => onSelect(session)}
+        style={{ paddingLeft: `${4 + depth * 12}px` }}
+        title={title}
+      >
+        {selected ? (
+          <span
+            aria-hidden
+            className="ml-1 size-1.5 flex-none rounded-full bg-accent text-accent"
           />
-        </Button>
-      ) : depth ? (
-        <GitFork className="mx-1.5 size-3 flex-none text-dim" />
-      ) : (
-        <span className="w-6 flex-none" />
-      )}
-      <div className="min-w-0 flex-1">
-        <div
-          className={`truncate text-xs ${selected ? "font-semibold text-primary" : "font-medium text-primary"}`}
-        >
-          {title}
-        </div>
-        <div className="mt-0.5 truncate text-[11px] tabular-nums text-dim">
-          {isDraft
-            ? t.sessions.draftHint
-            : `${formatRelativeTime(session.modified, undefined, locale)} · ${session.messageCount} ${t.sessions.msgs}`}
-        </div>
-        {error ? (
-          <div className="truncate text-[11px] text-destructive">{error}</div>
         ) : null}
-      </div>
-      {isDraft ? null : (
-        <div className="hidden items-center group-hover:flex group-focus-within:flex">
+        {hasChildren ? (
           <Button
-            aria-label={`${t.sessions.rename} ${title}`}
-            className="size-7 hover:text-accent"
+            aria-label={
+              collapsed
+                ? t.sessions.expandForks
+                : t.sessions.collapseForks
+            }
+            className="size-6"
             onClick={(event) => {
               event.stopPropagation();
-              setEditing(true);
-              setError("");
+              onToggle();
             }}
             size="icon-sm"
             type="button"
             variant="ghost"
           >
-            <Pencil className="size-3.5" />
+            <ChevronDown
+              className={`size-3 transition-transform ${collapsed ? "-rotate-90" : ""}`}
+            />
           </Button>
-          <Button
-            aria-label={`${t.common.delete} ${title}`}
-            className="size-7 hover:text-destructive"
-            onClick={(event) => {
-              event.stopPropagation();
-              setConfirming(true);
-              setError("");
-            }}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
+        ) : depth ? (
+          <GitFork className="mx-1.5 size-3 flex-none text-dim" />
+        ) : (
+          <span className="w-6 flex-none" />
+        )}
+        <div className="min-w-0 flex-1">
+          <div
+            className={`truncate text-xs ${selected ? "font-semibold text-primary" : "font-medium text-primary"}`}
           >
-            <Trash2 className="size-3.5" />
-          </Button>
+            {title}
+          </div>
+          <div className="mt-0.5 truncate text-[11px] tabular-nums text-dim">
+            {isDraft
+              ? t.sessions.draftHint
+              : `${formatRelativeTime(session.modified, undefined, locale)} · ${session.messageCount} ${t.sessions.msgs}`}
+          </div>
+          {error && !confirming ? (
+            <div className="truncate text-[11px] text-destructive">{error}</div>
+          ) : null}
         </div>
-      )}
-    </div>
+        {isDraft ? null : (
+          <div className="flex flex-none items-center opacity-0 pointer-events-none transition-opacity duration-[var(--motion-fast)] group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
+            <Button
+              aria-label={`${t.sessions.rename} ${title}`}
+              className="size-7 hover:text-accent"
+              onClick={(event) => {
+                event.stopPropagation();
+                setEditing(true);
+                setError("");
+              }}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+            <Button
+              aria-label={`${t.common.delete} ${title}`}
+              className="size-7 hover:text-destructive"
+              onClick={(event) => {
+                event.stopPropagation();
+                setConfirming(true);
+                setError("");
+              }}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open && !busy) setConfirming(false);
+        }}
+        open={confirming}
+      >
+        <DialogContent
+          className="sm:max-w-[420px]"
+          showCloseButton={false}
+        >
+          <DialogHeader>
+            <DialogTitle>{t.sessions.deleteSessionTitle}</DialogTitle>
+            <DialogDescription>
+              {t.sessions.deleteSessionDescription.replace("{session}", title)}
+            </DialogDescription>
+          </DialogHeader>
+          {error ? (
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <Button
+              autoFocus
+              disabled={busy}
+              onClick={() => setConfirming(false)}
+              type="button"
+              variant="outline"
+            >
+              {t.common.cancel}
+            </Button>
+            <Button
+              disabled={busy}
+              onClick={() => void remove()}
+              type="button"
+              variant="destructive"
+            >
+              {busy
+                ? t.sessions.deletingSession
+                : t.sessions.deleteSessionAction}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
