@@ -1,0 +1,197 @@
+import type {
+  AgentMessage,
+  AssistantMessage,
+  CompactionSummaryMessage,
+  ImageContent,
+  TextContent,
+  ThinkingContent,
+  ToolCallContent,
+  ToolResultMessage,
+  UserMessage,
+} from "./agent-types";
+
+type AssistantContent =
+  | TextContent
+  | ImageContent
+  | ThinkingContent
+  | ToolCallContent;
+
+export type UserPresentationItem = {
+  kind: "user";
+  entryId?: string;
+  message: UserMessage;
+  originalIndex: number;
+};
+
+export type AssistantTurnPresentationItem = {
+  kind: "assistantTurn";
+  entryIds: string[];
+  messages: AssistantMessage[];
+  originalIndexes: number[];
+  streaming: boolean;
+};
+
+export type CompactionPresentationItem = {
+  kind: "compactionSummary";
+  entryId?: string;
+  message: CompactionSummaryMessage;
+  originalIndex: number;
+};
+
+export type MessagePresentationItem =
+  | UserPresentationItem
+  | CompactionPresentationItem
+  | AssistantTurnPresentationItem;
+
+export type AssistantTurnBlock = {
+  block: AssistantContent;
+  message: AssistantMessage;
+  messageIndex: number;
+};
+
+export type FinalAssistantTurnBlock = AssistantTurnBlock & {
+  block: TextContent | ImageContent;
+};
+
+export type ExecutionProcessState = {
+  completedCount: number;
+  errorCount: number;
+  runningCount: number;
+  state: "completed" | "running";
+  stepCount: number;
+};
+
+export function buildMessagePresentation(
+  messages: AgentMessage[],
+  entryIds: string[],
+  streamingMessage?: Partial<AssistantMessage> | null,
+): MessagePresentationItem[] {
+  const items: MessagePresentationItem[] = [];
+  let activeTurn: AssistantTurnPresentationItem | null = null;
+
+  messages.forEach((message, index) => {
+    const entryId = entryIds[index];
+    if (message.role === "user") {
+      activeTurn = null;
+      items.push({
+        kind: "user",
+        entryId,
+        message,
+        originalIndex: index,
+      });
+      return;
+    }
+    if (message.role === "compactionSummary") {
+      activeTurn = null;
+      items.push({
+        kind: "compactionSummary",
+        entryId,
+        message,
+        originalIndex: index,
+      });
+      return;
+    }
+    if (message.role !== "assistant") return;
+
+    if (!activeTurn) {
+      activeTurn = {
+        kind: "assistantTurn",
+        entryIds: [],
+        messages: [],
+        originalIndexes: [],
+        streaming: false,
+      };
+      items.push(activeTurn);
+    }
+    activeTurn.messages.push(message);
+    activeTurn.originalIndexes.push(index);
+    if (entryId) activeTurn.entryIds.push(entryId);
+  });
+
+  if (streamingMessage) {
+    const normalized = completeAssistantMessage(streamingMessage);
+    const last = items.at(-1);
+    const turn =
+      last?.kind === "assistantTurn"
+        ? last
+        : {
+            kind: "assistantTurn" as const,
+            entryIds: [],
+            messages: [],
+            originalIndexes: [],
+            streaming: false,
+          };
+    if (last !== turn) items.push(turn);
+    turn.messages.push(normalized);
+    turn.originalIndexes.push(messages.length);
+    turn.streaming = true;
+  }
+
+  return items;
+}
+
+export function partitionAssistantTurn(turn: AssistantTurnPresentationItem) {
+  const process: AssistantTurnBlock[] = [];
+  const final: FinalAssistantTurnBlock[] = [];
+
+  turn.messages.forEach((message, messageIndex) => {
+    const intermediate = message.stopReason === "toolUse";
+    message.content.forEach((block) => {
+      if (
+        intermediate ||
+        block.type === "thinking" ||
+        block.type === "toolCall"
+      ) {
+        process.push({ block, message, messageIndex });
+      } else {
+        final.push({ block, message, messageIndex });
+      }
+    });
+  });
+
+  return { final, process };
+}
+
+export function executionProcessStatus(
+  process: AssistantTurnBlock[],
+  results: Map<string, ToolResultMessage>,
+  streaming: boolean,
+): ExecutionProcessState {
+  let errorCount = 0;
+  let runningCount = 0;
+
+  for (const step of process) {
+    if (step.block.type !== "toolCall") continue;
+    const result = results.get(step.block.toolCallId);
+    if (result?.isError) errorCount += 1;
+    else if (!result) runningCount += 1;
+  }
+
+  if (streaming && runningCount === 0 && process.length > 0) {
+    runningCount = 1;
+  }
+
+  const completedCount = Math.max(
+    0,
+    process.length - errorCount - runningCount,
+  );
+  return {
+    completedCount,
+    errorCount,
+    runningCount,
+    state: runningCount > 0 ? "running" : "completed",
+    stepCount: process.length,
+  };
+}
+
+function completeAssistantMessage(
+  message: Partial<AssistantMessage>,
+): AssistantMessage {
+  return {
+    ...message,
+    role: "assistant",
+    content: message.content ?? [],
+    provider: message.provider ?? "",
+    model: message.model ?? "",
+  };
+}

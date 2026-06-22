@@ -109,6 +109,14 @@ Every interactive component must account for default, hover, focus-visible, acti
 
 Neutral first. Accent color is reserved for primary actions, focus, selection, and live agent state; it is never decorative.
 
+## Chat execution process
+
+- Consecutive assistant thinking and tool activity from one user request is presented as one execution process with one model label.
+- The execution process is open while running, collapses when the assistant turn completes, and remains open only when the assistant turn itself fails. A recoverable tool failure stays local to its step and does not mark the whole process as failed.
+- Final answer content stays outside the execution process and remains directly readable.
+- Tool rows reserve stable columns for the command summary, textual status, and disclosure control so long commands cannot move or hide status.
+- Process rows use visible separators and right-to-down disclosure arrows; inherited markdown or code whitespace styles must not change the row layout.
+
 ## Dialog safety
 
 - Backdrop clicks never close Dialogs.

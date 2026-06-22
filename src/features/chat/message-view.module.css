@@ -1,0 +1,45 @@
+.stepList > * + * {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.stepSummary {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 56px 14px;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+}
+
+.stepSummary::-webkit-details-marker {
+  display: none;
+}
+
+.stepSummary:hover {
+  background: var(--bg-hover);
+}
+
+.stepSummary:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+
+.stepStatus {
+  width: 56px;
+  justify-self: end;
+  justify-content: center;
+}
+
+.stepChevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-dim);
+  transform: rotate(0deg);
+  transition: transform var(--motion-standard);
+}
+
+.stepDetails[open] > .stepSummary .stepChevron {
+  transform: rotate(90deg);
+}

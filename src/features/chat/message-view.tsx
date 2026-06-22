@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Check,
+  ChevronRight,
   Copy,
   GitBranch,
   GitFork,
+  Minimize2,
   MoreHorizontal,
   PencilLine,
 } from "lucide-react";
@@ -38,10 +40,21 @@ import type {
   AgentMessage,
   AgentFailure,
   AssistantMessage,
+  CompactionSummaryMessage,
+  ImageContent,
+  TextContent,
   ToolResultMessage,
   UserMessage,
 } from "./agent-types";
 import { toolResults } from "./chat-logic";
+import {
+  buildMessagePresentation,
+  executionProcessStatus,
+  partitionAssistantTurn,
+  type AssistantTurnBlock,
+  type AssistantTurnPresentationItem,
+} from "./message-presentation";
+import styles from "./message-view.module.css";
 
 export function MessageList({
   messages,
@@ -67,48 +80,44 @@ export function MessageList({
   onEdit: (targetId: string, text: string) => void;
 }) {
   const results = useMemo(() => toolResults(messages), [messages]);
-  const visible = messages
-    .map((message, index) => ({ message, index }))
-    .filter(
-      (
-        item,
-      ): item is {
-        message: UserMessage | AssistantMessage;
-        index: number;
-      } => item.message.role === "user" || item.message.role === "assistant",
-    );
+  const presentation = useMemo(
+    () => buildMessagePresentation(messages, entryIds, streamingMessage),
+    [entryIds, messages, streamingMessage],
+  );
   return (
     <>
-      {visible.map(({ message, index }, visibleIndex) => {
-        const previous = index > 0 ? messages[index - 1] : null;
-        const entryId = entryIds[index];
-        const previousEntryId = index > 0 ? entryIds[index - 1] : undefined;
-        const minimapId =
-          entryId ??
-          (message.role === "user" ? message.clientId : undefined) ??
-          `${message.role}-${message.timestamp ?? "untimed"}-${index}`;
-        const isLastUser =
-          message.role === "user" &&
-          !visible.slice(visibleIndex + 1).some((item) => item.message.role === "user");
-        const highlighted = highlightedMessageId === minimapId;
-        return (
-          <article
-            className={cn(
-              "group relative mb-8 scroll-mt-4 px-2 py-1 transition-[background-color,outline-color] duration-[var(--motion-fast)] -mx-2",
-              highlighted &&
-                "bg-subtle outline outline-1 outline-line-strong",
-            )}
-            data-message-role={message.role}
-            key={entryId ?? `${message.role}-${index}-${message.timestamp ?? 0}`}
-            ref={(element) => {
-              onMessageElement?.(minimapId, element);
-              if (isLastUser) lastUserRef.current = element;
-            }}
-          >
-            {message.role === "user" ? (
+      {presentation.map((item, presentationIndex) => {
+        if (item.kind === "user") {
+          const { entryId, message, originalIndex } = item;
+          const previous =
+            originalIndex > 0 ? messages[originalIndex - 1] : null;
+          const previousEntryId =
+            originalIndex > 0 ? entryIds[originalIndex - 1] : undefined;
+          const minimapId =
+            entryId ??
+            message.clientId ??
+            `user-${message.timestamp ?? "untimed"}-${originalIndex}`;
+          const isLastUser = !presentation
+            .slice(presentationIndex + 1)
+            .some((candidate) => candidate.kind === "user");
+          const highlighted = highlightedMessageId === minimapId;
+          return (
+            <article
+              className={cn(
+                "group relative mb-8 scroll-mt-4 px-2 py-1 transition-[background-color,outline-color] duration-[var(--motion-fast)] -mx-2",
+                highlighted &&
+                  "bg-subtle outline outline-1 outline-line-strong",
+              )}
+              data-message-role="user"
+              key={entryId ?? minimapId}
+              ref={(element) => {
+                onMessageElement?.(minimapId, element);
+                if (isLastUser) lastUserRef.current = element;
+              }}
+            >
               <UserMessageView
                 canEdit={previous?.role === "assistant" && Boolean(previousEntryId)}
-                canFork={Boolean(entryId) && visibleIndex > 0}
+                canFork={Boolean(entryId) && presentationIndex > 0}
                 entryId={entryId}
                 forking={forkingEntryId === entryId}
                 message={message}
@@ -119,43 +128,79 @@ export function MessageList({
                 onFork={() => entryId && onFork(entryId)}
                 running={running}
               />
-            ) : (
-              <AssistantMessageView
-                message={message}
-                results={results}
-              />
+            </article>
+          );
+        }
+
+        if (item.kind === "compactionSummary") {
+          return (
+            <article
+              className="mb-5 px-2"
+              data-message-role="compactionSummary"
+              key={item.entryId ?? `summary-${item.originalIndex}`}
+            >
+              <CompactionSummaryView message={item.message} />
+            </article>
+          );
+        }
+
+        const minimapIds = [
+          ...item.entryIds,
+          ...(item.streaming ? ["streaming-assistant"] : []),
+        ];
+        const minimapId =
+          minimapIds[0] ??
+          `assistant-${item.messages[0]?.timestamp ?? "untimed"}-${presentationIndex}`;
+        const highlighted =
+          highlightedMessageId !== null &&
+          highlightedMessageId !== undefined &&
+          minimapIds.includes(highlightedMessageId);
+        return (
+          <article
+            className={cn(
+              "group relative mb-8 scroll-mt-4 px-2 py-1 transition-[background-color,outline-color] duration-[var(--motion-fast)] -mx-2",
+              highlighted &&
+                "bg-subtle outline outline-1 outline-line-strong",
             )}
+            data-message-role="assistant"
+            data-streaming={item.streaming || undefined}
+            key={minimapId}
+            ref={(element) => {
+              for (const id of minimapIds) {
+                onMessageElement?.(id, element);
+              }
+            }}
+          >
+            <AssistantTurnView results={results} turn={item} />
           </article>
         );
       })}
-
-      {/* Streaming assistant output */}
-      {streamingMessage ? (
-        <article
-          className={cn(
-            "relative mb-8 px-2 py-1 transition-[background-color,outline-color] duration-[var(--motion-fast)] -mx-2",
-            highlightedMessageId === "streaming-assistant" &&
-              "bg-subtle outline outline-1 outline-line-strong",
-          )}
-          data-message-role="assistant"
-          data-streaming="true"
-          ref={(element) => {
-            onMessageElement?.("streaming-assistant", element);
-          }}
-        >
-          <AssistantMessageView
-            message={{
-              role: "assistant",
-              content: streamingMessage.content ?? [],
-              provider: streamingMessage.provider ?? "",
-              model: streamingMessage.model ?? "",
-            }}
-            results={results}
-            streaming
-          />
-        </article>
-      ) : null}
     </>
+  );
+}
+
+function CompactionSummaryView({
+  message,
+}: {
+  message: CompactionSummaryMessage;
+}) {
+  const { t } = useI18n();
+  return (
+    <details className="group/summary rounded-lg border border-line-subtle bg-subtle">
+      <summary className="grid min-h-9 cursor-pointer list-none grid-cols-[14px_minmax(0,1fr)_auto_14px] items-center gap-2 px-3 py-2 text-[11px] text-muted outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+        <Minimize2 className="size-3.5" />
+        <span className="min-w-0 truncate font-medium text-primary">
+          {t.chat.message.compactionSummary}
+        </span>
+        <span className="text-dim">
+          {message.tokensBefore.toLocaleString()} {t.chat.message.tokens}
+        </span>
+        <ChevronRight className="size-3.5 text-dim transition-transform duration-[var(--motion-standard)] group-open/summary:rotate-90" />
+      </summary>
+      <div className="border-t border-line-subtle px-3 py-2 font-sans whitespace-normal">
+        <Markdown text={message.summary} />
+      </div>
+    </details>
   );
 }
 
@@ -271,45 +316,76 @@ function UserMessageView({
   );
 }
 
-function AssistantMessageView({
-  message,
+function AssistantTurnView({
+  turn,
   results,
-  streaming = false,
 }: {
-  message: AssistantMessage;
+  turn: AssistantTurnPresentationItem;
   results: Map<string, ToolResultMessage>;
-  streaming?: boolean;
 }) {
-
   const [copied, setCopied] = useState(false);
   const [errorCopied, setErrorCopied] = useState(false);
   const { t } = useI18n();
-  const error = assistantErrorDetails(message);
-  const text = message.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
+  const { final, process } = useMemo(
+    () => partitionAssistantTurn(turn),
+    [turn],
+  );
+  const status = useMemo(
+    () => executionProcessStatus(process, results, turn.streaming),
+    [process, results, turn.streaming],
+  );
+  const latestMessage = turn.messages.at(-1);
+  const identityMessage =
+    [...turn.messages]
+      .reverse()
+      .find((candidate) => candidate.provider || candidate.model) ??
+    latestMessage;
+  const errorMessage = turn.messages.find(
+    (candidate) => assistantErrorDetails(candidate) !== null,
+  );
+  const error = errorMessage ? assistantErrorDetails(errorMessage) : null;
+  const text = final
+    .filter(
+      (
+        item,
+      ): item is AssistantTurnBlock & { block: TextContent } =>
+        item.block.type === "text",
+    )
+    .map((item) => item.block.text)
     .join("\n\n");
+  const usage = aggregateUsage(turn.messages);
 
   return (
     <div>
       <div
         className="mb-2 text-[11px] font-medium text-dim"
         title={
-          message.provider && message.model
-            ? `${message.provider}:${message.model}`
+          identityMessage?.provider && identityMessage.model
+            ? `${identityMessage.provider}:${identityMessage.model}`
             : undefined
         }
       >
-        {/* provider: model */}
-        {message.provider && message.model ? message.model : "Pi Agent"}
-        
-        {/* Token throughput */}
-        {streaming ? <StreamingSpeed message={message} /> : null}
+        {identityMessage?.provider && identityMessage.model
+          ? identityMessage.model
+          : "Pi Agent"}
+        {turn.streaming && latestMessage ? (
+          <StreamingSpeed message={latestMessage} />
+        ) : null}
       </div>
+
+      {process.length ? (
+        <ExecutionProcess
+          assistantError={Boolean(error)}
+          process={process}
+          results={results}
+          status={status}
+          streaming={turn.streaming}
+        />
+      ) : null}
 
       {error ? (
         <div
-          className="my-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm"
+          className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm"
           role="alert"
         >
           <div className="flex items-start gap-2">
@@ -319,8 +395,8 @@ function AssistantMessageView({
                 {failureSummary(error.code, error.summary, t)}
               </div>
               <div className="mt-1 text-xs text-muted">
-                {message.provider && message.model
-                  ? `${message.provider}:${message.model} · `
+                {errorMessage?.provider && errorMessage.model
+                  ? `${errorMessage.provider}:${errorMessage.model} · `
                   : ""}
                 {t.chat.error.code}: {error.code}
               </div>
@@ -354,78 +430,23 @@ function AssistantMessageView({
         </div>
       ) : null}
 
-      {/* Assistant reply content */}
-      {message.content.map((block, index) => {
-        // Render text returned by the model as Markdown
-        if (block.type === "text") {
-          return <Markdown key={index} text={block.text} />;
-        }
+      {final.length ? (
+        <div className={process.length || error ? "mt-3" : undefined}>
+          {final.map(({ block }, index) => (
+            <FinalAssistantBlock block={block} key={index} />
+          ))}
+        </div>
+      ) : null}
 
-        // Thinking content
-        if (block.type === "thinking") {
-          return (
-            <Accordion className="my-1.5" collapsible key={index} type="single">
-              <AccordionItem value="thinking">
-                <AccordionTrigger>{t.chat.message.thinking}</AccordionTrigger>
-                <AccordionContent>{block.thinking}</AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          );
-        }
-
-        // Image
-        if (block.type === "image") {
-          return (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              alt={t.chat.message.assistantImage}
-              className="my-2 max-h-80 max-w-full rounded-lg object-contain"
-              key={index}
-              src={
-                block.source.url ??
-                `data:${block.source.mediaType};base64,${block.source.data}`
-              }
-            />
-          );
-        }
-
-        const result = results.get(block.toolCallId);
-        const summary = toolSummary(block.input);
-
-        return (
-          <Accordion className="my-1.5" collapsible key={block.toolCallId} type="single">
-            <AccordionItem
-              className={result?.isError ? "border-destructive/40" : "border-success/35"}
-              value={block.toolCallId}
-            >
-              <AccordionTrigger>
-                <GitBranch className="size-3.5" />
-                <span className="truncate">{block.toolName}</span>
-                {summary ? <span className="truncate text-dim">{summary}</span> : null}
-                <Badge
-                  className="ml-auto"
-                  variant={result?.isError ? "destructive" : result ? "success" : "outline"}
-                >
-                  {result?.isError ? t.chat.message.toolError : result ? t.chat.message.toolDone : t.chat.message.toolRunning}
-                </Badge>
-              </AccordionTrigger>
-              <AccordionContent className="max-h-[400px] overflow-auto">
-                {JSON.stringify(block.input, null, 2)}
-                {"\n\n"}
-                {result ? resultText(result, t) : t.chat.message.waitingForOutput}
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        );
-      })}
-
-      {!streaming ? (
+      {!turn.streaming ? (
         <div className="mt-2 flex min-h-7 items-center gap-2 text-[10px] text-dim opacity-100 transition-opacity min-[641px]:opacity-0 min-[641px]:group-hover:opacity-100 min-[641px]:group-focus-within:opacity-100">
           
-          {message.usage ? (
+          {usage ? (
             <span>
-              {t.chat.message.usageIn} {message.usage.input} / {t.chat.message.usageOut} {message.usage.output} / {t.chat.message.usageCache}{" "}
-              {message.usage.cacheRead} / ${message.usage.cost.total.toFixed(4)}
+              {t.chat.message.usageIn} {usage.input} /{" "}
+              {t.chat.message.usageOut} {usage.output} /{" "}
+              {t.chat.message.usageCache} {usage.cacheRead} / $
+              {usage.cost.toFixed(4)}
             </span>
           ) : null}
 
@@ -441,11 +462,199 @@ function AssistantMessageView({
             </SmallAction>
           ) : null}
 
-          {message.timestamp ? <MessageTime value={message.timestamp} /> : null}
+          {latestMessage?.timestamp ? (
+            <MessageTime value={latestMessage.timestamp} />
+          ) : null}
         </div>
       ) : null}
     </div>
   );
+}
+
+function ExecutionProcess({
+  process,
+  results,
+  status,
+  streaming,
+  assistantError,
+}: {
+  process: AssistantTurnBlock[];
+  results: Map<string, ToolResultMessage>;
+  status: ReturnType<typeof executionProcessStatus>;
+  streaming: boolean;
+  assistantError: boolean;
+}) {
+  const { t } = useI18n();
+  const automaticValue =
+    streaming || assistantError ? "execution-process" : "";
+  const [value, setValue] = useState(automaticValue);
+  const userControlled = useRef(false);
+
+  useEffect(() => {
+    if (!userControlled.current) setValue(automaticValue);
+  }, [automaticValue]);
+
+  return (
+    <Accordion
+      className="my-1.5"
+      collapsible
+      onValueChange={(nextValue) => {
+        userControlled.current = true;
+        setValue(nextValue);
+      }}
+      type="single"
+      value={value}
+    >
+      <AccordionItem value="execution-process">
+        <AccordionTrigger>
+          <GitBranch className="size-3.5 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">
+            {t.chat.message.executionProcess} · {status.stepCount}{" "}
+            {t.chat.message.executionSteps}
+          </span>
+        </AccordionTrigger>
+        <AccordionContent className="max-h-[min(52vh,520px)] overflow-auto p-0 font-sans whitespace-normal">
+          <div className={styles.stepList}>
+            {process.map((step, index) => (
+              <ExecutionStep
+                key={executionStepKey(step, index)}
+                result={
+                  step.block.type === "toolCall"
+                    ? results.get(step.block.toolCallId)
+                    : undefined
+                }
+                step={step}
+              />
+            ))}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+function ExecutionStep({
+  step,
+  result,
+}: {
+  step: AssistantTurnBlock;
+  result?: ToolResultMessage;
+}) {
+  const { t } = useI18n();
+  const { block } = step;
+
+  if (block.type === "image") {
+    return (
+      <div className="p-2.5">
+        <AssistantImage block={block} />
+      </div>
+    );
+  }
+
+  if (block.type === "toolCall") {
+    const summary = toolSummary(block.input);
+    const statusLabel = result?.isError
+      ? t.chat.message.toolError
+      : result
+        ? t.chat.message.toolDone
+        : t.chat.message.toolRunning;
+    return (
+      <details className={styles.stepDetails}>
+        <summary
+          className={styles.stepSummary}
+          title={summary ? `${block.toolName} ${summary}` : block.toolName}
+        >
+          <GitBranch className="size-3.5 text-muted" />
+          <span className="min-w-0 truncate font-ui-mono text-[11px] text-muted">
+            <span className="font-medium text-primary">{block.toolName}</span>
+            {summary ? ` ${summary}` : ""}
+          </span>
+          <Badge
+            className={styles.stepStatus}
+            variant={
+              result?.isError ? "destructive" : result ? "success" : "outline"
+            }
+          >
+            {statusLabel}
+          </Badge>
+          <ChevronRight className={styles.stepChevron} />
+        </summary>
+        <pre className="max-h-[400px] overflow-auto border-t border-line-subtle bg-[var(--tool-bg)] px-3 py-2.5 font-ui-mono text-[11px] leading-[1.65] whitespace-pre-wrap text-muted">
+          {JSON.stringify(block.input, null, 2)}
+          {"\n\n"}
+          {result ? resultText(result, t) : t.chat.message.waitingForOutput}
+        </pre>
+      </details>
+    );
+  }
+
+  const label =
+    block.type === "thinking"
+      ? t.chat.message.thinking
+      : t.chat.message.executionNote;
+  const content = block.type === "thinking" ? block.thinking : block.text;
+  return (
+    <details className={styles.stepDetails}>
+      <summary className={styles.stepSummary}>
+        <span className="size-1.5 justify-self-center rounded-full bg-line-strong" />
+        <span className="min-w-0 truncate text-[11px] text-muted">
+          <span className="font-medium text-primary">{label}</span>
+          {content ? ` ${firstLine(content, 100)}` : ""}
+        </span>
+        <span />
+        <ChevronRight className={styles.stepChevron} />
+      </summary>
+      <div className="border-t border-line-subtle bg-[var(--tool-bg)] px-3 py-2.5 text-[11px] leading-[1.65] whitespace-pre-wrap text-muted">
+        {block.type === "text" ? <Markdown text={content} /> : content}
+      </div>
+    </details>
+  );
+}
+
+function FinalAssistantBlock({
+  block,
+}: {
+  block: TextContent | ImageContent;
+}) {
+  if (block.type === "text") return <Markdown text={block.text} />;
+  return <AssistantImage block={block} />;
+}
+
+function AssistantImage({ block }: { block: ImageContent }) {
+  const { t } = useI18n();
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      alt={t.chat.message.assistantImage}
+      className="my-2 max-h-80 max-w-full rounded-lg object-contain"
+      src={
+        block.source.url ??
+        `data:${block.source.mediaType};base64,${block.source.data}`
+      }
+    />
+  );
+}
+
+function executionStepKey(step: AssistantTurnBlock, index: number) {
+  return step.block.type === "toolCall"
+    ? step.block.toolCallId
+    : `${step.messageIndex}-${step.block.type}-${index}`;
+}
+
+function aggregateUsage(messages: AssistantMessage[]) {
+  const usage = messages.reduce(
+    (total, message) => {
+      if (!message.usage) return total;
+      total.input += message.usage.input;
+      total.output += message.usage.output;
+      total.cacheRead += message.usage.cacheRead;
+      total.cost += message.usage.cost.total;
+      total.present = true;
+      return total;
+    },
+    { input: 0, output: 0, cacheRead: 0, cost: 0, present: false },
+  );
+  return usage.present ? usage : null;
 }
 
 function failureSummary(
@@ -687,6 +896,11 @@ function toolSummary(input: Record<string, unknown>) {
   const keys = ["command", "path", "file_path", "pattern", "query"];
   const key = keys.find((candidate) => candidate in input) ?? Object.keys(input)[0];
   return key ? String(input[key]).slice(0, 120) : "";
+}
+
+function firstLine(text: string, limit: number) {
+  const line = text.trim().split(/\r?\n/, 1)[0] ?? "";
+  return line.length > limit ? `${line.slice(0, limit)}…` : line;
 }
 
 async function copyText(text: string) {

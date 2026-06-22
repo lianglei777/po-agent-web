@@ -1,0 +1,63 @@
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const source = readFileSync(
+  fileURLToPath(new URL("./message-view.tsx", import.meta.url)),
+  "utf8",
+);
+
+describe("chat execution process visual contract", () => {
+  const stylesPath = fileURLToPath(
+    new URL("./message-view.module.css", import.meta.url),
+  );
+  const styles = existsSync(stylesPath) ? readFileSync(stylesPath, "utf8") : "";
+
+  it("renders derived assistant turns instead of one article per assistant message", () => {
+    expect(source).toContain("buildMessagePresentation");
+    expect(source).toContain("<AssistantTurnView");
+    expect(source).not.toContain("const visible = messages");
+  });
+
+  it("uses one execution process disclosure with linear internal steps", () => {
+    expect(source).toContain("function ExecutionProcess");
+    expect(source).toContain("t.chat.message.executionProcess");
+    expect(source).toContain('value="execution-process"');
+    expect(source).toContain("styles.stepList");
+  });
+
+  it("keeps tool status and disclosure controls in stable columns", () => {
+    expect(source).toContain("styles.stepSummary");
+    expect(source).toContain("styles.stepStatus");
+    expect(styles).toContain(
+      "grid-template-columns: 14px minmax(0, 1fr) 56px 14px;",
+    );
+    expect(styles).toContain("width: 56px;");
+    expect(source).not.toContain('className="ml-auto"');
+  });
+
+  it("does not promote a recovered tool failure to the process header", () => {
+    expect(source).not.toContain('status.state === "error"');
+    expect(source).not.toContain("t.chat.message.executionError");
+    expect(source).not.toContain("border-destructive/40");
+  });
+
+  it("resets inherited accordion typography and gives steps visible disclosure state", () => {
+    expect(source).toContain("font-sans whitespace-normal");
+    expect(source).toContain("ChevronRight");
+    expect(source).toContain("styles.stepChevron");
+    expect(styles).toContain(".stepDetails[open] > .stepSummary .stepChevron");
+    expect(styles).toContain("transform: rotate(90deg);");
+  });
+
+  it("draws separators between adjacent execution steps", () => {
+    expect(source).toContain("styles.stepList");
+    expect(styles).toContain(".stepList > * + *");
+    expect(styles).toContain("border-top: 1px solid var(--border-subtle);");
+  });
+
+  it("renders preserved compaction summaries", () => {
+    expect(source).toContain("function CompactionSummaryView");
+    expect(source).toContain("<CompactionSummaryView");
+  });
+});

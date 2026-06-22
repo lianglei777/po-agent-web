@@ -155,14 +155,16 @@ export function useChatController(options: ChatControllerOptions) {
       (m) => m.role === "compactionSummary",
     );
     if (lastCompactionIndex === -1) return true;
+    const compactionTimestamp = messages[lastCompactionIndex].timestamp;
     const compactionTime =
-      messages[lastCompactionIndex].timestamp ?? 0;
+      typeof compactionTimestamp === "number" ? compactionTimestamp : 0;
     return messages
       .slice(lastCompactionIndex + 1)
       .some(
         (m) =>
           (m.role === "user" || m.role === "assistant") &&
-          (m.timestamp ?? 0) > compactionTime,
+          (typeof m.timestamp === "number" ? m.timestamp : 0) >
+            compactionTime,
       );
   }, [messages, running, isCompacting]);
 
