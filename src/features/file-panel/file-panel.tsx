@@ -1,21 +1,53 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText, PanelRightClose } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
 
 export type OpenFile = { path: string; name: string };
 
-export function FilePanel({ file }: { file: OpenFile | null }) {
+export function FilePanel({
+  file,
+  onClose,
+}: {
+  file: OpenFile | null;
+  onClose: () => void;
+}) {
   const { t } = useI18n();
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col">
-      <div className="flex h-9 flex-none items-center border-b border-line-strong bg-panel px-3 text-[11px] text-muted">
-        <span className="truncate" title={file?.path}>
+      <div className="flex h-9 flex-none items-stretch border-b border-line-strong bg-canvas text-[11px] text-muted">
+        <span
+          className="flex min-w-0 flex-1 items-center truncate px-3"
+          title={file?.path}
+        >
           {file?.name ?? t.files.files}
         </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              aria-label={t.workspace.hideFilePanel}
+              className="rounded-none border-l border-line-subtle"
+              onClick={onClose}
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <PanelRightClose />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {t.workspace.hideFilePanel}
+          </TooltipContent>
+        </Tooltip>
       </div>
       {file ? <LoadedFile file={file} key={file.path} /> : <EmptyFile />}
     </div>

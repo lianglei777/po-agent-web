@@ -32,6 +32,7 @@ export const zh = {
     context: "上下文",
     models: "模型",
     skills: "技能",
+    selectProjectForSkills: "请先选择项目以配置技能",
     closeSidebar: "关闭侧边栏",
     resizeSessionSidebar: "调整会话侧边栏宽度",
     resizeFilePanel: "调整文件面板宽度",

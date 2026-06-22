@@ -54,7 +54,7 @@ describe("visual foundation contract", () => {
 
   test("applies the visual foundation to the chat sample", () => {
     expect(chatCenter).toContain("text-display");
-    expect(topBar).toContain("text-display");
+    expect(topBar).toContain("font-ui-mono");
     expect(chatInput).not.toContain("rounded-[20px]");
     expect(chatInput).not.toContain("linear-gradient");
     expect(chatInput).toContain("rounded-lg");
@@ -63,7 +63,7 @@ describe("visual foundation contract", () => {
 
   test("uses one continuous canvas with locally elevated controls", () => {
     expect(agentWorkspace).toContain("border-line-subtle bg-canvas");
-    expect(topBar).toContain("border-line-subtle bg-canvas");
+    expect(topBar).toContain("border-line-strong bg-canvas");
     expect(chatInput).not.toContain("rounded-[14px]");
     expect(chatInput).not.toContain("shadow-[var(--shadow-composer)]");
   });

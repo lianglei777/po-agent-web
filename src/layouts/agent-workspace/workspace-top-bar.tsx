@@ -1,8 +1,11 @@
 import {
+  Cpu,
   GitBranch,
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  PanelRightOpen,
+  Sparkles,
   Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,11 @@ type WorkspaceTopBarProps = {
   onToggleSidebar: () => void;
   onToggleTheme: () => void;
   onToggleTopPanel: (panel: Exclude<TopPanel, null>) => void;
+  onOpenModels: () => void;
+  onOpenSkills: () => void;
+  onToggleFilePanel: () => void;
+  hasActiveWorkspace: boolean;
+  filePanelOpen: boolean;
   branchTree: SessionTreeNode[];
   activeLeafId: string | null;
   onLeafChange: ((leafId: string) => void) | null;
@@ -45,6 +53,11 @@ export function WorkspaceTopBar({
   onToggleSidebar,
   onToggleTheme,
   onToggleTopPanel,
+  onOpenModels,
+  onOpenSkills,
+  onToggleFilePanel,
+  hasActiveWorkspace,
+  filePanelOpen,
   branchTree,
   activeLeafId,
   onLeafChange,
@@ -55,7 +68,7 @@ export function WorkspaceTopBar({
 
   return (
     <>
-      <header className="flex h-9 flex-none items-stretch border-b border-line-strong bg-canvas pr-12">
+      <header className="flex h-9 flex-none items-stretch border-b border-line-strong bg-canvas">
 
         {/* Left session sidebar toggle */}
         <TopBarIconButton
@@ -113,6 +126,35 @@ export function WorkspaceTopBar({
           </>
         ) : null} */}
         <div className="flex-1" />
+        <TopBarIconButton
+          borderSide="left"
+          label={t.workspace.models}
+          onClick={onOpenModels}
+        >
+          <Cpu />
+        </TopBarIconButton>
+        <TopBarIconButton
+          borderSide="left"
+          disabled={!hasActiveWorkspace}
+          label={t.workspace.skills}
+          onClick={onOpenSkills}
+          tooltip={
+            hasActiveWorkspace
+              ? t.workspace.skills
+              : t.workspace.selectProjectForSkills
+          }
+        >
+          <Sparkles />
+        </TopBarIconButton>
+        {!filePanelOpen ? (
+          <TopBarIconButton
+            borderSide="left"
+            label={t.workspace.showFilePanel}
+            onClick={onToggleFilePanel}
+          >
+            <PanelRightOpen />
+          </TopBarIconButton>
+        ) : null}
       </header>
 
       {topPanel ? (
@@ -214,32 +256,51 @@ function TopPanelButton({
 }
 
 function TopBarIconButton({
+  borderSide = "right",
   children,
+  disabled = false,
   label,
   onClick,
   pressed,
+  tooltip = label,
 }: {
+  borderSide?: "left" | "right";
   children: React.ReactNode;
+  disabled?: boolean;
   label: string;
   onClick: () => void;
-  pressed: boolean;
+  pressed?: boolean;
+  tooltip?: string;
 }) {
+  const button = (
+    <Button
+      aria-label={label}
+      aria-pressed={pressed}
+      className={`rounded-none ${
+        borderSide === "left"
+          ? "border-l border-line-subtle"
+          : "border-r border-line-subtle"
+      }`}
+      disabled={disabled}
+      onClick={onClick}
+      size="icon"
+      type="button"
+      variant="ghost"
+    >
+      {children}
+    </Button>
+  );
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button
-          aria-label={label}
-          aria-pressed={pressed}
-          className="rounded-none border-r border-line-subtle"
-          onClick={onClick}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          {children}
-        </Button>
+        {disabled ? (
+          <span className="inline-flex h-9">{button}</span>
+        ) : (
+          button
+        )}
       </TooltipTrigger>
-      <TooltipContent side="bottom">{label}</TooltipContent>
+      <TooltipContent side="bottom">{tooltip}</TooltipContent>
     </Tooltip>
   );
 }

@@ -261,7 +261,7 @@ function Welcome({
         <h1 className="text-display mt-4 text-3xl text-primary max-[640px]:text-2xl">
           {t.chat.welcome.title}
         </h1>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+        {/* <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
           {t.chat.welcome.description}
         </p>
         <div className="mt-7 grid grid-cols-2 gap-2 text-left max-[560px]:grid-cols-1">
@@ -276,7 +276,7 @@ function Welcome({
               {prompt}
             </Button>
           ))}
-        </div>
+        </div> */}
       </div>
     </section>
   );

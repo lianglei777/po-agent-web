@@ -30,6 +30,7 @@ export const en = {
     context: "context",
     models: "Models",
     skills: "Skills",
+    selectProjectForSkills: "Select a project to configure skills",
     closeSidebar: "Close sidebar",
     resizeSessionSidebar: "Resize session sidebar",
     resizeFilePanel: "Resize file panel",

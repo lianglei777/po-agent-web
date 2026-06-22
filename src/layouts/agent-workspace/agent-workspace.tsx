@@ -7,20 +7,10 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import {
-  Cpu,
-  PanelRightClose,
-  PanelRightOpen,
-  Sparkles,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ResizeHandle } from "@/components/ui/resize-handle";
-import { Separator } from "@/components/ui/separator";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ChatCenter } from "@/features/chat/chat-center";
 import type {
@@ -342,31 +332,6 @@ export function AgentWorkspace({
                 }
                 refreshKey={sessionRefreshKey}
               />
-              <Separator />
-              <div className="flex gap-1.5 p-2">
-                <Button
-                  className="flex-1"
-                  onClick={() => setModelsOpen(true)}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Cpu />
-                  {t.workspace.models}
-                </Button>
-                <Separator orientation="vertical" />
-                <Button
-                  className="flex-1"
-                  disabled={!activeCwd}
-                  onClick={() => setSkillsOpen(true)}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Sparkles />
-                  {t.workspace.skills}
-                </Button>
-              </div>
             </div>
           </aside>
           {sidebarOpen ? (
@@ -396,7 +361,12 @@ export function AgentWorkspace({
             branchTree={branchTree}
             contextUsage={contextUsage}
             dark={dark}
+            filePanelOpen={filePanelOpen}
+            hasActiveWorkspace={Boolean(activeCwd)}
             onLeafChange={leafChange}
+            onOpenModels={() => setModelsOpen(true)}
+            onOpenSkills={() => setSkillsOpen(true)}
+            onToggleFilePanel={() => setFilePanelOpen((open) => !open)}
             onToggleSidebar={() => setSidebarOpen((open) => !open)}
             onToggleTheme={toggleTheme}
             onToggleTopPanel={toggleTopPanel}
@@ -426,32 +396,6 @@ export function AgentWorkspace({
 
         {/* Right file panel */}
         <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                aria-label={
-                  filePanelOpen
-                    ? t.workspace.hideFilePanel
-                    : t.workspace.showFilePanel
-                }
-                aria-pressed={filePanelOpen}
-                className={`fixed top-0 right-0 z-300 rounded-none ${filePanelOpen ? "bg-selected text-accent" : ""
-                  }`}
-                onClick={() => setFilePanelOpen((open) => !open)}
-                size="icon"
-                type="button"
-                variant="ghost"
-              >
-                {filePanelOpen ? <PanelRightClose /> : <PanelRightOpen />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {filePanelOpen
-                ? t.workspace.hideFilePanel
-                : t.workspace.showFilePanel}
-            </TooltipContent>
-          </Tooltip>
-
           {filePanelOpen ? (
             <ResizeHandle
               ariaLabel={t.workspace.resizeFilePanel}
@@ -480,7 +424,10 @@ export function AgentWorkspace({
                 : undefined
             }
           >
-            <FilePanel file={openFile} />
+            <FilePanel
+              file={openFile}
+              onClose={() => setFilePanelOpen(false)}
+            />
           </aside>
 
 
