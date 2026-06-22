@@ -276,7 +276,7 @@ function TopBarIconButton({
     <Button
       aria-label={label}
       aria-pressed={pressed}
-      className={`rounded-none ${
+      className={`h-full rounded-none ${
         borderSide === "left"
           ? "border-l border-line-subtle"
           : "border-r border-line-subtle"

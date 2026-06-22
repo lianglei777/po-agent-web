@@ -61,4 +61,8 @@ describe("workspace settings placement", () => {
     expect(topBarSource).toContain("border-line-subtle");
     expect(filePanelSource).toContain("bg-panel");
   });
+
+  it("stretches top-bar icon buttons to the full toolbar height", () => {
+    expect(topBarSource).toContain('className={`h-full rounded-none');
+  });
 });
