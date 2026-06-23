@@ -60,7 +60,33 @@ describe("model compatibility contract", () => {
         openRouterRouting: [],
         supportsStore: "yes",
       }),
-    ).toEqual({ thinkingFormat: "deepseek" });
+    ).toEqual({ thinkingFormat: "deepseek", supportsDeveloperRole: false });
+  });
+
+  it("defaults supportsDeveloperRole to false for openai-completions", () => {
+    // 无 compat 时默认 false
+    expect(sanitizeCompat("openai-completions", undefined)).toEqual({
+      supportsDeveloperRole: false,
+    });
+    // compat 中未设置时默认 false
+    expect(
+      sanitizeCompat("openai-completions", { supportsStore: true }),
+    ).toEqual({
+      supportsStore: true,
+      supportsDeveloperRole: false,
+    });
+    // 显式 true 时保留 true
+    expect(
+      sanitizeCompat("openai-completions", { supportsDeveloperRole: true }),
+    ).toEqual({ supportsDeveloperRole: true });
+    // 显式 false 时保持 false
+    expect(
+      sanitizeCompat("openai-completions", { supportsDeveloperRole: false }),
+    ).toEqual({ supportsDeveloperRole: false });
+    // 非 openai-completions 协议不受影响
+    expect(
+      sanitizeCompat("openai-responses", { sendSessionIdHeader: true }),
+    ).toEqual({ sendSessionIdHeader: true });
   });
 
   it("sanitizes provider and model compat using their effective api", () => {

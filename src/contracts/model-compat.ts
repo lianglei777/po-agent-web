@@ -93,21 +93,26 @@ export function sanitizeCompat(
   api: string | undefined,
   value: unknown,
 ): Record<string, unknown> | undefined {
-  if (!isRecord(value)) return undefined;
   const output: Record<string, unknown> = {};
-  for (const field of getCompatFields(api)) {
-    const fieldValue = value[field.key];
-    if (field.kind === "boolean" && typeof fieldValue === "boolean") {
-      output[field.key] = fieldValue;
-    } else if (
-      field.kind === "enum" &&
-      typeof fieldValue === "string" &&
-      field.values.includes(fieldValue)
-    ) {
-      output[field.key] = fieldValue;
-    } else if (field.kind === "object" && isRecord(fieldValue)) {
-      output[field.key] = fieldValue;
+  if (isRecord(value)) {
+    for (const field of getCompatFields(api)) {
+      const fieldValue = value[field.key];
+      if (field.kind === "boolean" && typeof fieldValue === "boolean") {
+        output[field.key] = fieldValue;
+      } else if (
+        field.kind === "enum" &&
+        typeof fieldValue === "string" &&
+        field.values.includes(fieldValue)
+      ) {
+        output[field.key] = fieldValue;
+      } else if (field.kind === "object" && isRecord(fieldValue)) {
+        output[field.key] = fieldValue;
+      }
     }
+  }
+  // openai-completions: 仅在显式设置为 true 时支持 developer role，其余默认 false
+  if (api === "openai-completions" && output.supportsDeveloperRole !== true) {
+    output.supportsDeveloperRole = false;
   }
   return Object.keys(output).length ? output : undefined;
 }

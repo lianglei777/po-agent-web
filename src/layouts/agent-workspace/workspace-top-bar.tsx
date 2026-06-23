@@ -74,7 +74,6 @@ export function WorkspaceTopBar({
         <TopBarIconButton
           label={sidebarOpen ? t.workspace.hideSidebar : t.workspace.showSidebar}
           onClick={onToggleSidebar}
-          pressed={sidebarOpen}
         >
           {sidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
         </TopBarIconButton>

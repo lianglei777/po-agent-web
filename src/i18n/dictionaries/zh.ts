@@ -170,7 +170,7 @@ export const zh = {
     noFileOpen: "未打开文件",
     unableToOpenFile: "无法打开文件",
     requestFailed: "请求失败",
-    explorer: "文件浏览器",
+    explorer: "文件浏览",
     refreshFiles: "刷新文件",
     unableToLoadFiles: "无法加载文件",
     empty: "空",

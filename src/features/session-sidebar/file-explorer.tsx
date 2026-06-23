@@ -89,7 +89,7 @@ export function FileExplorer({
   return (
     <section className={`flex min-h-0 flex-col ${open ? "flex-1" : "flex-none"}`}>
       <div
-        className={`flex h-8 flex-none items-center px-2 ${
+        className={`flex h-8 flex-none items-center bg-panel px-2 ${
           open ? "" : "border-t border-line-strong"
         }`}
       >
