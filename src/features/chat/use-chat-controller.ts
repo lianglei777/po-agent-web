@@ -20,6 +20,7 @@ import {
   sendCommand,
 } from "./agent-api";
 import {
+  canCompactContext,
   canAttachImagesToModel,
   resolveLoadedModelState,
   resolveThinkingLevelForMode,
@@ -44,6 +45,7 @@ import type {
   ContextUsage,
   ImageInput,
   ModelInfo,
+  RuntimeState,
   SessionStats,
   SessionTreeNode,
   ThinkingLevel,
@@ -102,11 +104,12 @@ export function useChatController(options: ChatControllerOptions) {
     errorMessage?: string;
   } | null>(null);
   const [isCompacting, setIsCompacting] = useState(false);
-  const [compactError, setCompactError] = useState("");
-  const [compactResult, setCompactResult] = useState<{
-    tokensBefore: number;
-    summary: string;
+  const [compactionAvailability, setCompactionAvailability] = useState<{
+    sessionId: string;
+    available: boolean;
   } | null>(null);
+  const [compactError, setCompactError] = useState("");
+  const [compactResult, setCompactResult] = useState(false);
   const [compactNotice, setCompactNotice] = useState("");
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [modelKey, setModelKey] = useState("");
@@ -146,32 +149,22 @@ export function useChatController(options: ChatControllerOptions) {
   );
   const stats = useMemo(() => sessionStats(messages), [messages]);
   const agentPhase = phaseLabel(runningTools, running);
-  // canCompact 从 messages 派生：最后一次 compactionSummary 之后无新对话消息时不可再次压缩。
-  // compactionSummary 在 messages 数组开头，其后紧跟 compact 前保留的旧消息（timestamp 较小），
-  // compact 后的新消息 timestamp 大于 compactionSummary 的 timestamp。
-  const canCompact = useMemo(() => {
-    if (running || isCompacting) return false;
-    const lastCompactionIndex = messages.findLastIndex(
-      (m) => m.role === "compactionSummary",
-    );
-    if (lastCompactionIndex === -1) return true;
-    const compactionTimestamp = messages[lastCompactionIndex].timestamp;
-    const compactionTime =
-      typeof compactionTimestamp === "number" ? compactionTimestamp : 0;
-    return messages
-      .slice(lastCompactionIndex + 1)
-      .some(
-        (m) =>
-          (m.role === "user" || m.role === "assistant") &&
-          (typeof m.timestamp === "number" ? m.timestamp : 0) >
-            compactionTime,
-      );
-  }, [messages, running, isCompacting]);
+  const compactionAvailable =
+    compactionAvailability !== null &&
+    compactionAvailability.sessionId === session?.id &&
+    compactionAvailability.available;
+  const canCompact = canCompactContext({
+    compactionAvailable,
+    isCompacting,
+    running,
+  });
 
   const syncRuntimeState = useCallback(
     (state?: {
+      sessionId?: string;
       isStreaming?: boolean;
       isCompacting?: boolean;
+      compactionAvailable?: boolean;
       contextUsage?: ContextUsage | null;
       systemPrompt?: string;
       thinkingLevel?: ThinkingLevel;
@@ -179,6 +172,12 @@ export function useChatController(options: ChatControllerOptions) {
     }) => {
       if (!state) return;
       setIsCompacting(Boolean(state.isCompacting));
+      if (state.sessionId) {
+        setCompactionAvailability({
+          sessionId: state.sessionId,
+          available: Boolean(state.compactionAvailable),
+        });
+      }
       onContextUsageChange?.(state.contextUsage ?? null);
       onSystemPromptChange?.(state.systemPrompt ?? null);
       if (state.thinkingLevel) setThinkingLevel(state.thinkingLevel);
@@ -398,6 +397,12 @@ export function useChatController(options: ChatControllerOptions) {
       try {
         const detail = await loadSession(session.id);
         applyDetail(detail);
+        if (!detail.agentState?.state) {
+          const runtimeState = await sendCommand<RuntimeState>(session.id, {
+            type: "get_state",
+          });
+          syncRuntimeState(runtimeState);
+        }
         setError("");
         if (detail.agentState?.running && detail.agentState.state?.isStreaming) {
           setRunning(true);
@@ -420,7 +425,7 @@ export function useChatController(options: ChatControllerOptions) {
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [applyDetail, connectSse, session]);
+  }, [applyDetail, connectSse, session, syncRuntimeState]);
 
   useEffect(() => {
     runningRef.current = running;
@@ -437,7 +442,7 @@ export function useChatController(options: ChatControllerOptions) {
   // compact 成功反馈自动消失
   useEffect(() => {
     if (!compactResult) return;
-    const timer = window.setTimeout(() => setCompactResult(null), 6000);
+    const timer = window.setTimeout(() => setCompactResult(false), 6000);
     return () => window.clearTimeout(timer);
   }, [compactResult]);
 
@@ -459,6 +464,8 @@ export function useChatController(options: ChatControllerOptions) {
         await sendCommand(id, { type: "navigate_tree", targetId: leafId });
         setMessages(result.context.messages);
         setEntryIds(result.context.entryIds);
+        const snapshot = await loadRuntime(id);
+        syncRuntimeState(snapshot.state);
       } catch (cause) {
         setActiveLeafId(previous);
         setActionError(
@@ -466,7 +473,7 @@ export function useChatController(options: ChatControllerOptions) {
         );
       }
     },
-    [activeLeafId, running],
+    [activeLeafId, running, syncRuntimeState],
   );
 
   useEffect(() => {
@@ -781,21 +788,11 @@ export function useChatController(options: ChatControllerOptions) {
         setIsCompacting(false);
         return;
       }
-      const result = await sendCommand<{
-        summary?: string;
-        tokensBefore?: number;
-        firstKeptEntryId?: string;
-      }>(id, { type: "compact" });
+      await sendCommand(id, { type: "compact" });
       setIsCompacting(false);
-      if (result.tokensBefore != null) {
-        setCompactResult({
-          tokensBefore: result.tokensBefore,
-          summary: result.summary ?? "",
-        });
-        // 刷新消息列表，使 compactionSummary 出现在末尾，
-        // canCompact 会通过 useMemo 自动派生为 false
-        void reloadHistory();
-      }
+      setCompactResult(true);
+      // 刷新消息列表，使 canCompact 从内部 compactionSummary 派生为 false。
+      void reloadHistory();
     } catch (cause) {
       setIsCompacting(false);
       const code = cause instanceof ApiRequestError ? cause.code : undefined;

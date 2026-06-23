@@ -91,7 +91,7 @@ Content-Type: text/event-stream; charset=utf-8
 | `FILE_TOO_LARGE` | 413 | 文本或图片超过预览限制 |
 | `MODEL_NOT_FOUND` | 404 | 模型不存在 |
 | `UNSUPPORTED_COMMAND` | 400 | Agent Command 类型不受支持 |
-| `COMPACTION_NOT_AVAILABLE` | 409 | 当前不能执行 Compaction（如上下文已压缩且无新消息） |
+| `COMPACTION_NOT_AVAILABLE` | 409 | 当前没有可压缩的较早上下文，或上下文已压缩且没有新增内容 |
 | `OAUTH_PROVIDER_NOT_FOUND` | 404 | OAuth Provider 不存在 |
 | `PENDING_INPUT_NOT_FOUND` | 404 | OAuth Pending Input Token 不存在或 Provider 不匹配 |
 | `SKILL_INSTALL_FAILED` | 500 | Skill CLI 安装失败 |
@@ -215,6 +215,7 @@ interface AgentRuntimeState {
   sessionFile: string;
   isStreaming: boolean;
   isCompacting: boolean;
+  compactionAvailable: boolean;
   autoCompactionEnabled: boolean;
   autoRetryEnabled: boolean;
   model?: {
@@ -650,6 +651,7 @@ Runtime 已加载：
     "sessionFile": "C:\\Users\\example\\.pi\\agent\\sessions\\...jsonl",
     "isStreaming": false,
     "isCompacting": false,
+    "compactionAvailable": false,
     "autoCompactionEnabled": true,
     "autoRetryEnabled": true,
     "model": {

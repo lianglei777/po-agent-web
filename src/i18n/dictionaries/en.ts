@@ -89,9 +89,10 @@ export const en = {
       compactContext: "Compact context",
       abortCompact: "Abort compact",
       compacting: "Compacting context...",
-      compacted: "Compacted",
       compactSuccess: "Context compacted",
-      alreadyCompacted: "Context already compacted. Send a new message before compacting again.",
+      alreadyCompacted: "There is no context available to compact.",
+      compactUnavailableWhileRunning:
+        "Wait for the current task to finish before compacting.",
       dismissNotice: "Dismiss notice",
       settings: "Settings",
       agentSettings: "Agent settings",
@@ -125,9 +126,6 @@ export const en = {
       waitingForOutput: "(waiting for output)",
       noOutput: "(no output)",
       messageActions: "Message actions",
-      tokens: "tokens",
-      compactionSummary: "Context compacted",
-      viewSummary: "View summary",
     },
   },
   sessions: {

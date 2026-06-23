@@ -8,7 +8,6 @@ import {
   Copy,
   GitBranch,
   GitFork,
-  Minimize2,
   MoreHorizontal,
   PencilLine,
 } from "lucide-react";
@@ -40,7 +39,6 @@ import type {
   AgentMessage,
   AgentFailure,
   AssistantMessage,
-  CompactionSummaryMessage,
   ImageContent,
   TextContent,
   ToolResultMessage,
@@ -132,18 +130,6 @@ export function MessageList({
           );
         }
 
-        if (item.kind === "compactionSummary") {
-          return (
-            <article
-              className="mb-5 px-2"
-              data-message-role="compactionSummary"
-              key={item.entryId ?? `summary-${item.originalIndex}`}
-            >
-              <CompactionSummaryView message={item.message} />
-            </article>
-          );
-        }
-
         const minimapIds = [
           ...item.entryIds,
           ...(item.streaming ? ["streaming-assistant"] : []),
@@ -176,31 +162,6 @@ export function MessageList({
         );
       })}
     </>
-  );
-}
-
-function CompactionSummaryView({
-  message,
-}: {
-  message: CompactionSummaryMessage;
-}) {
-  const { t } = useI18n();
-  return (
-    <details className="group/summary rounded-lg border border-line-subtle bg-subtle">
-      <summary className="grid min-h-9 cursor-pointer list-none grid-cols-[14px_minmax(0,1fr)_auto_14px] items-center gap-2 px-3 py-2 text-[11px] text-muted outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
-        <Minimize2 className="size-3.5" />
-        <span className="min-w-0 truncate font-medium text-primary">
-          {t.chat.message.compactionSummary}
-        </span>
-        <span className="text-dim">
-          {message.tokensBefore.toLocaleString()} {t.chat.message.tokens}
-        </span>
-        <ChevronRight className="size-3.5 text-dim transition-transform duration-[var(--motion-standard)] group-open/summary:rotate-90" />
-      </summary>
-      <div className="border-t border-line-subtle px-3 py-2 font-sans whitespace-normal">
-        <Markdown text={message.summary} />
-      </div>
-    </details>
   );
 }
 

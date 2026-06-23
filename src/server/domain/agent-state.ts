@@ -11,6 +11,7 @@ export interface AgentRuntimeState {
   sessionFile: string;
   isStreaming: boolean;
   isCompacting: boolean;
+  compactionAvailable: boolean;
   autoCompactionEnabled: boolean;
   autoRetryEnabled: boolean;
   model?: {

@@ -1,8 +1,10 @@
 import {
   createAgentSession,
+  findCutPoint,
   SessionManager,
   type AgentSession,
   type AgentSessionEvent,
+  type SessionEntry,
 } from "@earendil-works/pi-coding-agent";
 import type { AgentCommand, ImageInput } from "@/server/domain/agent-command";
 import { AppError } from "@/server/domain/app-error";
@@ -113,8 +115,21 @@ export class PiAgentRuntime implements AgentRuntime {
         return undefined as T;
       case "compact":
         try {
+          if (
+            !hasCompactableHistory(
+              this.session.sessionManager.getBranch(),
+              this.session.settingsManager.getCompactionSettings(),
+            )
+          ) {
+            throw new AppError(
+              "COMPACTION_NOT_AVAILABLE",
+              "No older context is available to compact",
+              409,
+            );
+          }
           return (await this.session.compact(command.customInstructions)) as T;
         } catch (cause) {
+          if (cause instanceof AppError) throw cause;
           // Pi SDK 在上下文已压缩且无新消息时抛出 "Already compacted"
           if (
             cause instanceof Error &&
@@ -167,6 +182,10 @@ export class PiAgentRuntime implements AgentRuntime {
       sessionFile: this.sessionFile,
       isStreaming: this.session.isStreaming,
       isCompacting: this.session.isCompacting,
+      compactionAvailable: hasCompactableHistory(
+        this.session.sessionManager.getBranch(),
+        this.session.settingsManager.getCompactionSettings(),
+      ),
       autoCompactionEnabled: this.session.autoCompactionEnabled,
       autoRetryEnabled: this.session.autoRetryEnabled,
       model: this.session.model
@@ -232,6 +251,62 @@ export class PiAgentRuntime implements AgentRuntime {
     }
     this.appliedModelConfigRevision = targetRevision;
   }
+}
+
+function hasCompactableHistory(
+  entries: SessionEntry[],
+  settings: { keepRecentTokens: number },
+): boolean {
+  if (entries.at(-1)?.type === "compaction") return false;
+
+  const previousCompactionIndex = entries.findLastIndex(
+    (entry) => entry.type === "compaction",
+  );
+  let boundaryStart = 0;
+  if (previousCompactionIndex >= 0) {
+    const previous = entries[previousCompactionIndex];
+    if (previous.type === "compaction") {
+      const keptIndex = entries.findIndex(
+        (entry) => entry.id === previous.firstKeptEntryId,
+      );
+      boundaryStart =
+        keptIndex >= 0 ? keptIndex : previousCompactionIndex + 1;
+    }
+  }
+
+  const cutPoint = findCutPoint(
+    entries,
+    boundaryStart,
+    entries.length,
+    settings.keepRecentTokens,
+  );
+  const historyEnd = cutPoint.isSplitTurn
+    ? cutPoint.turnStartIndex
+    : cutPoint.firstKeptEntryIndex;
+  return (
+    hasContextMessage(entries, boundaryStart, historyEnd) ||
+    (cutPoint.isSplitTurn &&
+      hasContextMessage(
+        entries,
+        cutPoint.turnStartIndex,
+        cutPoint.firstKeptEntryIndex,
+      ))
+  );
+}
+
+function hasContextMessage(
+  entries: SessionEntry[],
+  start: number,
+  end: number,
+): boolean {
+  return entries
+    .slice(start, end)
+    .some(
+      (entry) =>
+        entry.type === "message" ||
+        entry.type === "custom_message" ||
+        entry.type === "branch_summary",
+    );
 }
 
 function matchesCurrentModel(

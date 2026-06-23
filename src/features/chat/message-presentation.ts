@@ -1,7 +1,6 @@
 import type {
   AgentMessage,
   AssistantMessage,
-  CompactionSummaryMessage,
   ImageContent,
   TextContent,
   ThinkingContent,
@@ -31,16 +30,8 @@ export type AssistantTurnPresentationItem = {
   streaming: boolean;
 };
 
-export type CompactionPresentationItem = {
-  kind: "compactionSummary";
-  entryId?: string;
-  message: CompactionSummaryMessage;
-  originalIndex: number;
-};
-
 export type MessagePresentationItem =
   | UserPresentationItem
-  | CompactionPresentationItem
   | AssistantTurnPresentationItem;
 
 export type AssistantTurnBlock = {
@@ -83,12 +74,6 @@ export function buildMessagePresentation(
     }
     if (message.role === "compactionSummary") {
       activeTurn = null;
-      items.push({
-        kind: "compactionSummary",
-        entryId,
-        message,
-        originalIndex: index,
-      });
       return;
     }
     if (message.role !== "assistant") return;

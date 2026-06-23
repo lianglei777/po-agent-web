@@ -96,6 +96,7 @@ export type RuntimeState = {
   sessionId: string;
   isStreaming: boolean;
   isCompacting: boolean;
+  compactionAvailable: boolean;
   model?: { id: string; provider: string };
   contextUsage: ContextUsage | null;
   systemPrompt: string;

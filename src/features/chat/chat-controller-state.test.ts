@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canAttachImagesToModel,
+  canCompactContext,
   resolveLoadedModelState,
   resolveThinkingLevelForMode,
   thinkingModeFromLevel,
@@ -125,5 +126,31 @@ describe("image input support", () => {
       }),
     ).toBe(false);
     expect(canAttachImagesToModel(undefined)).toBe(false);
+  });
+});
+
+describe("context compaction availability", () => {
+  it("requires backend availability and an idle runtime", () => {
+    expect(
+      canCompactContext({
+        compactionAvailable: true,
+        isCompacting: false,
+        running: false,
+      }),
+    ).toBe(true);
+    expect(
+      canCompactContext({
+        compactionAvailable: false,
+        isCompacting: false,
+        running: false,
+      }),
+    ).toBe(false);
+    expect(
+      canCompactContext({
+        compactionAvailable: true,
+        isCompacting: false,
+        running: true,
+      }),
+    ).toBe(false);
   });
 });

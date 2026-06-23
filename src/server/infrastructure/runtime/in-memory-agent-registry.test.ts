@@ -62,6 +62,7 @@ function createRuntime(
       sessionFile: `${sessionId}.jsonl`,
       isStreaming: false,
       isCompacting: false,
+      compactionAvailable: false,
       autoCompactionEnabled: true,
       autoRetryEnabled: true,
       contextUsage: null,

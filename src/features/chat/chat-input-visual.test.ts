@@ -23,4 +23,20 @@ describe("chat input visual contract", () => {
     expect(source).toContain("t.chat.input.tools");
     expect(source).toContain("t.chat.input.compact");
   });
+
+  it("does not present tokensBefore as the amount saved", () => {
+    expect(source).not.toContain("compactResult.tokensBefore.toLocaleString()");
+  });
+
+  it("keeps the compact label stable when the action is unavailable", () => {
+    expect(source).not.toContain("t.chat.input.compacted");
+  });
+
+  it("explains why the disabled compact action is unavailable", () => {
+    expect(source).toContain("<Tooltip>");
+    expect(source).toContain("<TooltipTrigger asChild>");
+    expect(source).toContain('className="inline-flex"');
+    expect(source).toContain("t.chat.input.alreadyCompacted");
+    expect(source).toContain("t.chat.input.compactUnavailableWhileRunning");
+  });
 });

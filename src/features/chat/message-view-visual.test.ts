@@ -56,9 +56,9 @@ describe("chat execution process visual contract", () => {
     expect(styles).toContain("border-top: 1px solid var(--border-subtle);");
   });
 
-  it("renders preserved compaction summaries", () => {
-    expect(source).toContain("function CompactionSummaryView");
-    expect(source).toContain("<CompactionSummaryView");
+  it("does not render internal compaction summaries", () => {
+    expect(source).not.toContain("function CompactionSummaryView");
+    expect(source).not.toContain("<CompactionSummaryView");
   });
 
   it("keeps raw token usage and estimated generation speed out of messages", () => {

@@ -161,7 +161,7 @@ describe("chat message presentation", () => {
     ).toMatchObject({ errorCount: 1, state: "completed" });
   });
 
-  it("preserves compaction summaries between conversation turns", () => {
+  it("keeps compaction summaries out of the chat presentation", () => {
     const summary = {
       role: "compactionSummary" as const,
       summary: "Previous model inspection was compacted.",
@@ -178,12 +178,11 @@ describe("chat message presentation", () => {
       ["user-1", "assistant-1", "summary-1", "assistant-2"],
     );
 
-    expect(items).toHaveLength(4);
-    expect(items[2]).toEqual({
-      kind: "compactionSummary",
-      entryId: "summary-1",
-      message: summary,
-      originalIndex: 2,
-    });
+    expect(items).toHaveLength(3);
+    expect(items.map((item) => item.kind)).toEqual([
+      "user",
+      "assistantTurn",
+      "assistantTurn",
+    ]);
   });
 });

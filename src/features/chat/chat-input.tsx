@@ -39,6 +39,11 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
 import type {
   AttachedImage,
@@ -104,10 +109,10 @@ export function ChatInput({
   toolPreset: ToolPreset;
   isCompacting: boolean;
   compactError: string;
-  compactResult: { tokensBefore: number; summary: string } | null;
+  compactResult: boolean;
   compactNotice: string;
   canCompact: boolean;
-  setCompactResult: (value: { tokensBefore: number; summary: string } | null) => void;
+  setCompactResult: (value: boolean) => void;
   setCompactNotice: (value: string) => void;
   actionError: string;
   retryInfo: {
@@ -152,6 +157,12 @@ export function ChatInput({
   const shortcut = running
     ? t.chat.input.shortcutRunning
     : t.chat.input.shortcutIdle;
+  const compactDisabled = running || (!canCompact && !isCompacting);
+  const compactTooltip = running
+    ? t.chat.input.compactUnavailableWhileRunning
+    : !canCompact && !isCompacting
+      ? t.chat.input.alreadyCompacted
+      : t.chat.input.compactContext;
 
   return (
     <div
@@ -186,12 +197,10 @@ export function ChatInput({
         {compactResult ? (
           <InlineStatus
             dismissLabel={t.chat.input.dismissNotice}
-            onDismiss={() => setCompactResult(null)}
+            onDismiss={() => setCompactResult(false)}
             tone="success"
           >
-            {t.chat.input.compactSuccess} ·{" "}
-            {compactResult.tokensBefore.toLocaleString()}{" "}
-            {t.chat.message.tokens}
+            {t.chat.input.compactSuccess}
           </InlineStatus>
         ) : null}
 
@@ -439,26 +448,26 @@ export function ChatInput({
               />
 
               {/* compact */}
-              <Button
-                className="h-7 gap-1.5 px-2 text-[11px]"
-                disabled={running || (!canCompact && !isCompacting)}
-                onClick={() => void compact()}
-                size="sm"
-                title={
-                  !canCompact && !isCompacting
-                    ? t.chat.input.alreadyCompacted
-                    : t.chat.input.compactContext
-                }
-                type="button"
-                variant="ghost"
-              >
-                <Minimize2 className="size-3.5" />
-                {isCompacting
-                  ? t.chat.input.abortCompact
-                  : !canCompact
-                    ? t.chat.input.compacted
-                    : t.chat.input.compact}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <Button
+                      className="h-7 gap-1.5 px-2 text-[11px]"
+                      disabled={compactDisabled}
+                      onClick={() => void compact()}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <Minimize2 className="size-3.5" />
+                      {isCompacting
+                        ? t.chat.input.abortCompact
+                        : t.chat.input.compact}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">{compactTooltip}</TooltipContent>
+              </Tooltip>
             </div>
 
             {/* mobile 模式下 展示 settings 按钮 */}
@@ -664,9 +673,7 @@ function SettingsMenu({
           <Minimize2 className="size-3.5" />
           {isCompacting
             ? t.chat.input.abortCompact
-            : !canCompact
-              ? t.chat.input.compacted
-              : t.chat.input.compactContext}
+            : t.chat.input.compactContext}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
