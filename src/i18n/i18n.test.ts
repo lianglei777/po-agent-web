@@ -41,6 +41,13 @@ describe("dictionaries", () => {
       "从技能市场添加一个技能。",
     );
   });
+
+  it("uses the approved workspace navigation labels", () => {
+    expect(en.workspace.modelProvider).toBe("Model Provider");
+    expect(zh.workspace.modelProvider).toBe("模型供应商");
+    expect(en.workspace.skills).toBe("Skills");
+    expect(zh.workspace.skills).toBe("技能");
+  });
 });
 
 function flattenKeys(value: unknown, prefix = ""): string[] {

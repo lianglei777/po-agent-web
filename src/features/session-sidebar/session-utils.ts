@@ -9,7 +9,7 @@ export function getSessionTitle(session: SessionInfo) {
   );
 }
 
-export function getRecentCwds(sessions: SessionInfo[]) {
+function getProjectCwds(sessions: SessionInfo[]) {
   const latestByCwd = new Map<string, string>();
   for (const session of sessions) {
     if (!session.cwd) continue;
@@ -20,8 +20,25 @@ export function getRecentCwds(sessions: SessionInfo[]) {
   }
   return [...latestByCwd]
     .sort((left, right) => right[1].localeCompare(left[1]))
-    .slice(0, 5)
     .map(([cwd]) => cwd);
+}
+
+export function getRecentCwds(sessions: SessionInfo[]) {
+  return getProjectCwds(sessions).slice(0, 5);
+}
+
+export function groupSessionsByCwd(sessions: SessionInfo[]) {
+  return getProjectCwds(sessions).map((cwd) => ({
+    cwd,
+    nodes: buildSessionTree(
+      sessions.filter((session) => session.cwd === cwd),
+    ),
+  }));
+}
+
+export function getProjectName(cwd: string) {
+  const segments = cwd.split(/[\\/]+/).filter(Boolean);
+  return segments[segments.length - 1] ?? cwd;
 }
 
 export function shortenCwd(cwd: string, home = "") {
