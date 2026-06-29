@@ -26,3 +26,12 @@ describe("chat-center confirm gating", () => {
     expect(source).toContain("controller.fork(entryId)");
   });
 });
+
+describe("chat-center branch history", () => {
+  it("renders BranchHistory wired to the controller tree and changeLeaf", () => {
+    expect(source).toContain("<BranchHistory");
+    expect(source).toContain("controller.tree");
+    expect(source).toContain("controller.activeLeafId");
+    expect(source).toContain("controller.changeLeaf");
+  });
+});

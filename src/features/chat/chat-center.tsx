@@ -11,6 +11,7 @@ import {
 import { ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/use-i18n";
+import { BranchHistory } from "./branch-history";
 import { ChatInput } from "./chat-input";
 import { ConfirmActionDialog } from "./confirm-action-dialog";
 import { createChatMinimapEntries } from "./minimap/chat-minimap-adapter";
@@ -178,7 +179,15 @@ export function ChatCenter({
         <CenteredState error>{controller.error}</CenteredState>
       ) : (
         <>
-          <div className="relative flex min-h-0 flex-1 overflow-hidden">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="flex items-center justify-end border-b border-line-subtle px-4 py-1.5">
+              <BranchHistory
+                activeLeafId={controller.activeLeafId}
+                onChangeLeaf={(leafId) => void controller.changeLeaf(leafId)}
+                tree={controller.tree}
+              />
+            </div>
+            <div className="relative flex min-h-0 flex-1 overflow-hidden">
             <div
               className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none]"
               ref={(node) => {
@@ -235,6 +244,7 @@ export function ChatCenter({
               scroller={scrollerNode}
               viewportInsets={minimapViewportInsets}
             />
+            </div>
           </div>
 
           {/* Error indicators */}
