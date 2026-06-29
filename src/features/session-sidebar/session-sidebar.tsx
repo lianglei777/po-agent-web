@@ -6,13 +6,10 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
-import { Check, Plus, RefreshCw } from "lucide-react";
+import { Check, ChevronRight, Folder, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ResizeHandle } from "@/components/ui/resize-handle";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -20,17 +17,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
-import { loadDefaultCwd, loadHome, loadSessions } from "./api";
+import { loadDefaultCwd, loadSessions } from "./api";
 import { CwdPicker } from "./cwd-picker";
-import { FileExplorer } from "./file-explorer";
 import { createDraftSession } from "./session-draft";
 import {
-  getSessionPanelBounds,
-  resolveSessionPanelHeight,
-} from "./session-panel-layout";
-import {
-  buildSessionTree,
+  getProjectName,
   getRecentCwds,
+  groupSessionsByCwd,
 } from "./session-utils";
 import { SessionTree } from "./session-tree";
 import type { SessionInfo } from "./types";
@@ -56,54 +49,23 @@ export function SessionSidebar({
   selectedCwd,
   initialSessionId,
   refreshKey = 0,
-  explorerRefreshKey = 0,
   draftSession,
   onSelectSession,
   onNewSession,
   onSessionDeleted,
   onCwdChange,
   onInitialRestoreDone,
-  onOpenFile,
-  onAtMention,
 }: SessionSidebarProps) {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
-  const [home, setHome] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refreshed, setRefreshed] = useState(false);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
+    new Set(),
+  );
   const restoreAttempted = useRef(false);
   const feedbackTimer = useRef<number | null>(null);
   const { t } = useI18n();
-
-  // 会话区与文件浏览器之间可拖拽的纵向分隔。
-  const [fileExplorerOpen, setFileExplorerOpen] = useState(true);
-  const [sessionPanelHeight, setSessionPanelHeight] = useState<number | null>(
-    null,
-  );
-  const flexRegionRef = useRef<HTMLDivElement>(null);
-  const [flexRegionHeight, setFlexRegionHeight] = useState(0);
-
-  // 测量弹性区域高度，并将会话区高度约束在当前可用范围内。
-  useEffect(() => {
-    const el = flexRegionRef.current;
-    if (!el) return;
-    const sync = () => {
-      const height = el.clientHeight;
-      setFlexRegionHeight(height);
-      setSessionPanelHeight((current) =>
-        resolveSessionPanelHeight(current, height),
-      );
-    };
-    sync();
-    const observer = new ResizeObserver(sync);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  const sessionBounds = useMemo(
-    () => getSessionPanelBounds(flexRegionHeight),
-    [flexRegionHeight],
-  );
 
   const refresh = useCallback(
     async (showLoading = false) => {
@@ -125,14 +87,7 @@ export function SessionSidebar({
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void Promise.all([
-        refresh(true),
-        loadHome()
-          .then(({ home: value }) => setHome(value))
-          .catch(() => undefined),
-      ]);
-    }, 0);
+    const timer = window.setTimeout(() => void refresh(true), 0);
     return () => window.clearTimeout(timer);
   }, [refresh]);
 
@@ -150,12 +105,21 @@ export function SessionSidebar({
     };
   }, []);
 
+  useEffect(() => {
+    if (!selectedCwd) return;
+    setExpandedProjects((current) => {
+      if (current.has(selectedCwd)) return current;
+      const next = new Set(current);
+      next.add(selectedCwd);
+      return next;
+    });
+  }, [selectedCwd]);
+
   const recentCwds = useMemo(() => getRecentCwds(sessions), [sessions]);
-  const visibleSessions = useMemo(() => {
-    const matching = sessions.filter((session) => session.cwd === selectedCwd);
-    if (!selectedCwd || draftSession?.cwd !== selectedCwd) return matching;
+  const navigableSessions = useMemo(() => {
+    if (!draftSession) return sessions;
     return [
-      ...matching,
+      ...sessions,
       createDraftSession({
         temporaryId: draftSession.id,
         cwd: draftSession.cwd,
@@ -163,11 +127,20 @@ export function SessionSidebar({
         now: draftSession.created,
       }),
     ];
-  }, [draftSession, selectedCwd, sessions, t.sessions.draft]);
-  const tree = useMemo(
-    () => buildSessionTree(visibleSessions),
-    [visibleSessions],
+  }, [draftSession, sessions, t.sessions.draft]);
+  const projectGroups = useMemo(
+    () => groupSessionsByCwd(navigableSessions),
+    [navigableSessions],
   );
+  const displayedGroups = useMemo(() => {
+    if (
+      !selectedCwd ||
+      projectGroups.some((group) => group.cwd === selectedCwd)
+    ) {
+      return projectGroups;
+    }
+    return [{ cwd: selectedCwd, nodes: [] }, ...projectGroups];
+  }, [projectGroups, selectedCwd]);
 
   useEffect(() => {
     if (
@@ -216,136 +189,119 @@ export function SessionSidebar({
     feedbackTimer.current = window.setTimeout(() => setRefreshed(false), 2000);
   }
 
-  const showSplitHandle =
-    Boolean(selectedCwd) && fileExplorerOpen && sessionPanelHeight !== null;
-  const sessionRegionStyle: CSSProperties = showSplitHandle
-    ? { height: sessionPanelHeight as number, flex: "none" }
-    : { flex: 1 };
+  function selectProject(cwd: string) {
+    onCwdChange(cwd);
+    setExpandedProjects((current) => {
+      const next = new Set(current);
+      if (cwd === selectedCwd && next.has(cwd)) next.delete(cwd);
+      else next.add(cwd);
+      return next;
+    });
+  }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-panel">
-      <CwdPicker
-        cwd={selectedCwd}
-        home={home}
-        onChange={onCwdChange}
-        recentCwds={recentCwds}
-      />
-
-      <Separator />
-
-      <div className="flex min-h-0 flex-1 flex-col" ref={flexRegionRef}>
-        <div className="flex min-h-0 flex-col" style={sessionRegionStyle}>
-          <div className="flex h-9 items-center gap-1 border-b border-line-subtle px-2.5 text-[11px] font-medium text-muted">
-            <span className="flex-1">
-              {t.sessions.title}
-            </span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  aria-label={t.sessions.new}
-                  disabled={!selectedCwd}
-                  onClick={() =>
-                    selectedCwd && onNewSession(crypto.randomUUID(), selectedCwd)
-                  }
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Plus />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t.sessions.new}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  aria-label={t.sessions.refreshSessions}
-                  onClick={manualRefresh}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  {refreshed ? (
-                    <Check className="text-success" />
-                  ) : (
-                    <RefreshCw />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t.sessions.refreshSessions}</TooltipContent>
-            </Tooltip>
-          </div>
-          <ScrollArea className="min-h-20 flex-1">
-            {loading ? (
-              <div
-                className="space-y-2 px-3 py-3.5"
-                aria-label={t.sessions.loadingSessions}
-              >
-                <Skeleton className="h-[54px] w-full" />
-                <Skeleton className="h-[54px] w-[88%]" />
-                <Skeleton className="h-[54px] w-[72%]" />
-              </div>
-            ) : error ? (
-              <div className="p-3 text-[11px] text-destructive">
-                <p>{error}</p>
-                <Button
-                  className="mt-2"
-                  onClick={() => void refresh(true)}
-                  size="sm"
-                  variant="outline"
-                >
-                  {t.common.retry}
-                </Button>
-              </div>
-            ) : !selectedCwd ? (
-              <div className="p-4 text-center text-[11px] text-dim">
-                {t.sessions.selectProjectToViewSessions}
-              </div>
-            ) : tree.length ? (
-              <div className="py-1">
-                <SessionTree
-                  nodes={tree}
-                  onChanged={refresh}
-                  onDeleted={onSessionDeleted}
-                  onSelect={(session) => {
-                    if (session.draft) onNewSession(session.id, session.cwd);
-                    else onSelectSession(session);
-                  }}
-                  selectedSessionId={selectedSessionId}
-                />
-              </div>
-            ) : (
-              <div className="p-4 text-center text-[11px] text-dim">
-                {t.sessions.noSessions}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
-
-        {showSplitHandle ? (
-          <ResizeHandle
-            ariaLabel={t.sessions.resizeExplorer}
-            axis="y"
-            direction={1}
-            max={sessionBounds.max}
-            min={sessionBounds.min}
-            onResize={setSessionPanelHeight}
-            value={sessionPanelHeight ?? 0}
-          />
-        ) : null}
-
-        {selectedCwd ? (
-          <FileExplorer
-            cwd={selectedCwd}
-            key={selectedCwd}
-            onAtMention={onAtMention}
-            onOpenChange={setFileExplorerOpen}
-            onOpenFile={onOpenFile}
-            open={fileExplorerOpen}
-            refreshKey={explorerRefreshKey}
-          />
-        ) : null}
+    <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex h-8 flex-none items-center gap-1 px-2 text-[11px] font-medium text-muted">
+        <span className="flex-1">{t.workspace.projects}</span>
+        <CwdPicker onChange={onCwdChange} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              aria-label={t.sessions.refreshSessions}
+              onClick={manualRefresh}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
+            >
+              {refreshed ? (
+                <Check className="text-success" />
+              ) : (
+                <RefreshCw />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t.sessions.refreshSessions}</TooltipContent>
+        </Tooltip>
       </div>
+
+      <ScrollArea className="min-h-0 flex-1">
+        {loading ? (
+          <div
+            aria-label={t.sessions.loadingSessions}
+            className="space-y-2 px-2 py-2"
+          >
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-[88%]" />
+            <Skeleton className="h-14 w-[72%]" />
+          </div>
+        ) : error ? (
+          <div className="p-3 text-[11px] text-destructive">
+            <p>{error}</p>
+            <Button
+              className="mt-2"
+              onClick={() => void refresh(true)}
+              size="sm"
+              variant="outline"
+            >
+              {t.common.retry}
+            </Button>
+          </div>
+        ) : displayedGroups.length ? (
+          <div className="space-y-0.5 py-1">
+            {displayedGroups.map((group) => {
+              const expanded = expandedProjects.has(group.cwd);
+              const selected = group.cwd === selectedCwd;
+              return (
+                <div key={group.cwd}>
+                  <Button
+                    aria-expanded={expanded}
+                    className="h-8 w-full justify-start gap-1.5 px-2 text-[11px]"
+                    onClick={() => selectProject(group.cwd)}
+                    title={group.cwd}
+                    type="button"
+                    variant={selected ? "secondary" : "ghost"}
+                  >
+                    <ChevronRight
+                      className={`size-3 transition-transform ${expanded ? "rotate-90" : ""}`}
+                    />
+                    <Folder className="size-3.5" />
+                    <span className="min-w-0 truncate">
+                      {getProjectName(group.cwd)}
+                    </span>
+                  </Button>
+                  {expanded ? (
+                    group.nodes.length ? (
+                      <div className="ml-3 border-l border-line-subtle pl-1">
+                        <SessionTree
+                          nodes={group.nodes}
+                          onChanged={refresh}
+                          onDeleted={onSessionDeleted}
+                          onSelect={(session) => {
+                            if (session.draft) {
+                              onNewSession(session.id, session.cwd);
+                            } else {
+                              onSelectSession(session);
+                            }
+                          }}
+                          selectedSessionId={selectedSessionId}
+                        />
+                      </div>
+                    ) : (
+                      <div className="px-7 py-2 text-[10px] text-dim">
+                        {t.sessions.noSessions}
+                      </div>
+                    )
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-4 text-center text-[11px] text-dim">
+            {t.sessions.noSessions}
+          </div>
+        )}
+      </ScrollArea>
     </div>
   );
 }

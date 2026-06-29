@@ -1,22 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, FolderOpen } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
 import { loadDefaultCwd } from "./api";
-import { shortenCwd } from "./session-utils";
 
 export function CwdPicker({
-  cwd,
-  home,
-  recentCwds,
   onChange,
 }: {
-  cwd: string | null;
-  home: string;
-  recentCwds: string[];
   onChange: (cwd: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -66,42 +64,25 @@ export function CwdPicker({
   }
 
   return (
-    <div className="relative mx-2.5 my-2" ref={rootRef}>
-      <Button
-        aria-expanded={open}
-        className="h-9 w-full justify-start border-line-strong bg-elevated px-2.5 font-ui-mono text-[11px]"
-        onClick={() => setOpen((current) => !current)}
-        title={cwd ?? t.sessions.selectProject}
-        type="button"
-        variant="outline"
-      >
-        <FolderOpen />
-        <span className="min-w-0 flex-1 truncate text-left">
-          {cwd ? shortenCwd(cwd, home) : t.sessions.selectProjectEllipsis}
-        </span>
-        <ChevronDown className="size-3" />
-      </Button>
+    <div className="relative" ref={rootRef}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            aria-expanded={open}
+            aria-label={t.workspace.openProject}
+            onClick={() => setOpen((current) => !current)}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <Plus />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t.workspace.openProject}</TooltipContent>
+      </Tooltip>
 
       {open ? (
-        <div className="absolute top-full right-0 left-0 z-100 mt-1 rounded-lg border border-line-strong bg-popover p-1.5 shadow-[var(--shadow-floating)]">
-          {recentCwds.map((recent) => (
-            <Button
-              className="h-8 w-full justify-start px-2 text-[11px]"
-              key={recent}
-              onClick={() => select(recent)}
-              title={recent}
-              type="button"
-              variant={recent === cwd ? "secondary" : "ghost"}
-            >
-              <Check
-                className={recent === cwd ? "text-accent" : "invisible"}
-              />
-              <span className="truncate">{shortenCwd(recent, home)}</span>
-            </Button>
-          ))}
-          {recentCwds.length ? (
-            <div className="my-1 border-t border-line-subtle" />
-          ) : null}
+        <div className="absolute top-full right-0 z-100 mt-1 w-64 rounded-lg border border-line-strong bg-popover p-1.5 shadow-[var(--shadow-floating)]">
           {custom ? (
             <div className="space-y-1.5 p-1">
               <Input
