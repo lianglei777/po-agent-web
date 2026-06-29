@@ -8,7 +8,6 @@ import {
   Copy,
   GitBranch,
   GitFork,
-  MoreHorizontal,
   PencilLine,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -26,12 +25,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/use-i18n";
 import { assistantErrorDetails } from "./assistant-error";
@@ -192,7 +185,7 @@ function UserMessageView({
       : message.content;
   return (
     <div className="flex flex-col items-end">
-      <div className="max-w-[76%] rounded-lg border border-line-subtle bg-[var(--user-bg)] px-3.5 py-2.5 text-sm leading-[1.65] break-words whitespace-pre-wrap max-[640px]:max-w-[90%]">
+      <div className="max-w-[76%] rounded-lg border border-line-subtle bg-[var(--user-bg)] px-3.5 py-2.5 text-sm leading-[1.65] break-words whitespace-pre-wrap">
         <div className="flex flex-wrap gap-2">
 
           {/* image content */}
@@ -223,12 +216,12 @@ function UserMessageView({
       </div>
 
 
-      <div className="mt-1 flex min-h-7 items-center gap-1 opacity-100 transition-opacity min-[641px]:opacity-0 min-[641px]:group-hover:opacity-100 min-[641px]:group-focus-within:opacity-100">
+      <div className="mt-1 flex min-h-7 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
         {message.status === "failed" ? (
           <Badge variant="destructive">{t.chat.message.failed}</Badge>
         ) : null}
 
-        <div className="hidden items-center gap-1 min-[641px]:flex">
+        <div className="flex items-center gap-1">
           <SmallAction
             label={copied ? t.chat.message.copied : t.chat.message.copy}
             onClick={() => void copyText(messageText(message)).then(() => {
@@ -252,22 +245,6 @@ function UserMessageView({
               <GitFork />
             </SmallAction>
           ) : null}
-        </div>
-
-        <div className="min-[641px]:hidden">
-          <MessageActionMenu
-            canEdit={canEdit && !running}
-            canFork={canFork && Boolean(entryId) && !running}
-            copied={copied}
-            copyingText={messageText(message)}
-            forking={forking}
-            onCopied={() => {
-              setCopied(true);
-              window.setTimeout(() => setCopied(false), 1500);
-            }}
-            onEdit={onEdit}
-            onFork={onFork}
-          />
         </div>
 
         {/* time */}
@@ -396,7 +373,7 @@ function AssistantTurnView({
       ) : null}
 
       {!turn.streaming ? (
-        <div className="mt-2 flex min-h-7 items-center gap-2 text-[10px] text-dim opacity-100 transition-opacity min-[641px]:opacity-0 min-[641px]:group-hover:opacity-100 min-[641px]:group-focus-within:opacity-100">
+        <div className="mt-2 flex min-h-7 items-center gap-2 text-[10px] text-dim opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
           {/*  copy button */}
           {text ? (
             <SmallAction
@@ -670,65 +647,6 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
         {code}
       </SyntaxHighlighter>
     </div>
-  );
-}
-
-function MessageActionMenu({
-  canEdit,
-  canFork,
-  copied,
-  copyingText,
-  forking,
-  onCopied,
-  onEdit,
-  onFork,
-}: {
-  canEdit: boolean;
-  canFork: boolean;
-  copied: boolean;
-  copyingText: string;
-  forking: boolean;
-  onCopied: () => void;
-  onEdit: () => void;
-  onFork: () => void;
-}) {
-  const { t } = useI18n();
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          aria-label={t.chat.message.messageActions}
-          className="size-7"
-          size="icon-sm"
-          type="button"
-          variant="ghost"
-        >
-          <MoreHorizontal />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onSelect={() =>
-            void copyText(copyingText).then(() => onCopied())
-          }
-        >
-          {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-          {copied ? t.chat.message.copied : t.chat.message.copy}
-        </DropdownMenuItem>
-        {canEdit ? (
-          <DropdownMenuItem onSelect={onEdit}>
-            <PencilLine className="size-3.5" />
-            {t.chat.message.editFromHere}
-          </DropdownMenuItem>
-        ) : null}
-        {canFork ? (
-          <DropdownMenuItem disabled={forking} onSelect={onFork}>
-            <GitFork className="size-3.5" />
-            {forking ? t.chat.message.creating : t.chat.message.newSession}
-          </DropdownMenuItem>
-        ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
 

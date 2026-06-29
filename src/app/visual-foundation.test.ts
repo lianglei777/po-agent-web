@@ -89,6 +89,12 @@ describe("visual foundation contract", () => {
     expect(chatInput).not.toContain("shadow-[var(--shadow-composer)]");
   });
 
+  test("enforces the desktop workspace floor", () => {
+    expect(css).toContain("min-width: 1024px");
+    expect(css).toContain("overflow-x: auto");
+    expect(css).toContain("overflow-y: hidden");
+  });
+
   test("keeps the design sidecar synchronized with the approved themes", () => {
     expect(designSidecar).toContain('"canonical": "#f1f3f2"');
     expect(designSidecar).toContain('"canonical": "#17624b"');

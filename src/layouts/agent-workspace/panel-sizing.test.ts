@@ -24,16 +24,16 @@ describe("agent workspace panel sizing", () => {
     });
   });
 
-  it("shrinks visible panels when the workspace becomes narrow", () => {
+  it("fits both panels at the 1024px desktop floor", () => {
     expect(
       fitPanelWidths(
-        700,
+        1024,
         { filePanel: 480, sidebar: 260 },
         { filePanelOpen: true, sidebarOpen: true },
       ),
     ).toEqual({
-      filePanel: 300,
-      sidebar: 200,
+      filePanel: 402,
+      sidebar: 260,
     });
   });
 

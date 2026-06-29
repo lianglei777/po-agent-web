@@ -14,24 +14,11 @@ import {
   Minimize2,
   Paperclip,
   Send,
-  Settings2,
   Square,
   Wrench,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -166,7 +153,7 @@ export function ChatInput({
 
   return (
     <div
-      className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-canvas px-4 pt-3 pb-2 max-[640px]:right-0 max-[640px]:px-2 max-[640px]:pb-2"
+      className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-canvas px-4 pt-3 pb-2"
       ref={rootRef}
     >
       <div className="pointer-events-auto mx-auto max-w-[820px]">
@@ -231,7 +218,7 @@ export function ChatInput({
         ) : null}
 
         <div
-          className={`overflow-hidden rounded-md border bg-panel transition-[border-color,box-shadow] duration-[var(--motion-standard)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 ${
+          className={`overflow-hidden rounded-lg border bg-elevated transition-[border-color,box-shadow] duration-[var(--motion-standard)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 ${
             running ? "border-warning" : "border-line-strong"
           }`}
         >
@@ -330,7 +317,7 @@ export function ChatInput({
             >
               <SelectTrigger
                 aria-label={t.chat.input.model}
-                className="h-9 max-w-52 border-0 bg-transparent px-2 shadow-none hover:bg-hover max-[480px]:max-w-36"
+                className="h-9 max-w-52 border-0 bg-transparent px-2 shadow-none hover:bg-hover"
               >
                 <Cpu className="size-3.5 opacity-60" />
                 <span className="truncate">
@@ -355,7 +342,7 @@ export function ChatInput({
               <>
                 {/* queue button */}
                 <Button
-                  className="h-9 px-2.5 text-xs max-[520px]:px-2"
+                  className="h-9 px-2.5 text-xs"
                   disabled={!canSubmit}
                   onClick={() => void submit("follow_up")}
                   size="sm"
@@ -364,9 +351,7 @@ export function ChatInput({
                   variant="outline"
                 >
                   <Clock3 />
-                  <span className="max-[520px]:sr-only">
-                    {t.chat.input.queue}
-                  </span>
+                  <span>{t.chat.input.queue}</span>
                 </Button>
 
                 {/* steer button */}
@@ -379,9 +364,7 @@ export function ChatInput({
                   type="button"
                 >
                   <Send />
-                  <span className="max-[420px]:sr-only">
-                    {t.chat.input.steer}
-                  </span>
+                  <span>{t.chat.input.steer}</span>
                 </Button>
                 {/* stop send */}
                 <Button
@@ -405,22 +388,20 @@ export function ChatInput({
               // send button
               <Button
                 aria-label={t.chat.input.sendMessage}
-                className="h-9 min-w-24 px-4 text-xs max-[480px]:min-w-9 max-[480px]:px-0"
+                className="h-9 min-w-24 px-4 text-xs"
                 disabled={!canSubmit}
                 onClick={() => void submit()}
                 size="sm"
                 type="button"
               >
                 <Send />
-                <span className="max-[480px]:sr-only">
-                  {t.chat.input.send}
-                </span>
+                <span>{t.chat.input.send}</span>
               </Button>
             )}
           </div>
 
           <div className="flex min-h-9 items-center gap-1 border-t border-line-subtle bg-subtle px-2.5 text-[11px] text-muted">
-            <div className="flex items-center gap-1 max-[700px]:hidden">
+            <div className="flex items-center gap-1">
               {/* thinking */}
               <CompactSelect
                 icon={<Brain />}
@@ -471,22 +452,8 @@ export function ChatInput({
             </div>
 
             {/* mobile 模式下 展示 settings 按钮 */}
-            <div className="min-[701px]:hidden">
-              <SettingsMenu
-                isCompacting={isCompacting}
-                canCompact={canCompact}
-                onCompact={compact}
-                onThinkingChange={changeThinkingMode}
-                onToolsChange={changeTools}
-                running={running}
-                thinkingMode={thinkingMode}
-                thinkingOptions={thinkingOptions}
-                toolPreset={toolPreset}
-              />
-            </div>
-
             <span
-              className="ml-auto truncate text-[11px] text-dim max-[520px]:hidden"
+              className="ml-auto truncate text-[11px] text-dim"
               id="composer-shortcut"
             >
               {shortcut}
@@ -575,108 +542,6 @@ function CompactSelect({
         ))}
       </SelectContent>
     </Select>
-  );
-}
-
-function SettingsMenu({
-  thinkingMode,
-  thinkingOptions,
-  toolPreset,
-  isCompacting,
-  canCompact,
-  running,
-  onThinkingChange,
-  onToolsChange,
-  onCompact,
-}: {
-  thinkingMode: ThinkingMode;
-  thinkingOptions: Array<{ label: string; value: ThinkingMode }>;
-  toolPreset: ToolPreset;
-  isCompacting: boolean;
-  canCompact: boolean;
-  running: boolean;
-  onThinkingChange: (value: ThinkingMode) => Promise<void>;
-  onToolsChange: (value: ToolPreset) => Promise<void>;
-  onCompact: () => Promise<void>;
-}) {
-  const { t } = useI18n();
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          aria-label={t.chat.input.agentSettings}
-          className="h-7 px-2 text-[11px]"
-          size="sm"
-          type="button"
-          variant="ghost"
-        >
-          <Settings2 className="size-3.5" />
-          {t.chat.input.settings}
-        </Button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent align="start" side="top">
-        <DropdownMenuLabel>{t.chat.input.agentSettings}</DropdownMenuLabel>
-
-        {/* thinking */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Brain className="size-3.5" />
-            {t.chat.input.thinking}:{" "}
-            {thinkingOptions.find((option) => option.value === thinkingMode)
-              ?.label ?? thinkingMode}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup
-              onValueChange={(value) =>
-                void onThinkingChange(value as ThinkingMode)
-              }
-              value={thinkingMode}
-            >
-              {thinkingOptions.map((option) => (
-                <DropdownMenuRadioItem key={option.value} value={option.value}>
-                  {option.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-
-        {/* tools */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Wrench className="size-3.5" />
-            {t.chat.input.tools}: {toolPreset}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup
-              onValueChange={(value) =>
-                void onToolsChange(value as ToolPreset)
-              }
-              value={toolPreset}
-            >
-              <DropdownMenuRadioItem value="none">off</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="default">
-                default
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="full">full</DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-
-        {/* prompt compact */}
-        <DropdownMenuItem
-          disabled={running || (!canCompact && !isCompacting)}
-          onSelect={() => void onCompact()}
-        >
-          <Minimize2 className="size-3.5" />
-          {isCompacting
-            ? t.chat.input.abortCompact
-            : t.chat.input.compactContext}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
 

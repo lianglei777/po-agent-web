@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   computeMessageTopRatio,
@@ -10,7 +12,17 @@ import {
   scrollTopForViewportRatio,
 } from "./minimap-logic";
 
+const minimapSource = readFileSync(
+  fileURLToPath(new URL("./chat-minimap.tsx", import.meta.url)),
+  "utf8",
+);
+
 describe("chat minimap geometry", () => {
+  it("uses the localized conversation label", () => {
+    expect(minimapSource).toContain("t.workspace.conversationMinimap");
+    expect(minimapSource).not.toContain('aria-label="Conversation minimap"');
+  });
+
   it("hides short conversations and reports a full viewport", () => {
     expect(
       computeViewportGeometry({

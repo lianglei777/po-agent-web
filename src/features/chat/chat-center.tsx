@@ -258,13 +258,13 @@ function Welcome({
         <div className="font-ui-mono text-xs font-semibold tracking-wide text-muted">
           Po Agent Web
         </div>
-        <h1 className="text-display mt-4 text-3xl text-primary max-[640px]:text-2xl">
+        <h1 className="text-display mt-4 text-3xl text-primary">
           {t.chat.welcome.title}
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
           {t.chat.welcome.description}
         </p>
-        <div className="mt-7 grid grid-cols-2 gap-2 text-left max-[560px]:grid-cols-1">
+        <div className="mt-7 grid grid-cols-2 gap-2 text-left">
           {starterPrompts.map((prompt) => (
             <Button
               className="h-auto min-h-12 justify-start whitespace-normal border-line-subtle bg-panel px-3 py-2.5 text-left text-xs leading-5 hover:border-line-strong hover:bg-selected"

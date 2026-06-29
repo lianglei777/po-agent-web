@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/i18n/use-i18n";
 import {
   computeMessageTopRatio,
   computeTooltipPositions,
@@ -47,6 +48,7 @@ export function ChatMinimap({
   onHoverMessageChange?: (messageId: string | null) => void;
   viewportInsets?: ViewportInsets;
 }) {
+  const { t } = useI18n();
   const [nodes, setNodes] = useState<MinimapNodeInfo[]>([]);
   const [metrics, setMetrics] = useState<Metrics>(INITIAL_METRICS);
   const [hovered, setHovered] = useState(false);
@@ -230,8 +232,8 @@ export function ChatMinimap({
 
   return (
     <div
-      aria-label="Conversation minimap"
-      className="relative w-9 flex-shrink-0 touch-none select-none overflow-visible border-l border-line bg-panel"
+      aria-label={t.workspace.conversationMinimap}
+      className="relative w-9 flex-shrink-0 touch-none select-none overflow-visible border-l border-line-subtle bg-panel"
       onPointerCancel={(event) => {
         draggingRef.current = false;
         setHoverMessage(null);
@@ -317,7 +319,7 @@ export function ChatMinimap({
 
       {/* scroll bar */}
       <div
-        className="pointer-events-none absolute right-0 left-0 z-10 border-y border-neutral-500/20 bg-neutral-500/10"
+        className="pointer-events-none absolute right-0 left-0 z-10 border-y border-line-strong/30 bg-selected/60"
         style={{
           height: `${metrics.viewportRatio * 100}%`,
           top: `${metrics.viewportTopRatio * 100}%`,
@@ -350,9 +352,7 @@ export function ChatMinimap({
         ? tooltipEntries.map(({ node, index }, tooltipIndex) => {
             const nearest = index === nearestIndex;
             const roleBorder =
-              node.role === "user"
-                ? "rgba(23, 23, 23, 0.7)"
-                : "rgba(157, 157, 151, 0.5)";
+              node.role === "user" ? "var(--accent)" : "var(--text-dim)";
 
             return (
               <div
@@ -362,9 +362,15 @@ export function ChatMinimap({
                   borderLeftColor: roleBorder,
                   borderLeftStyle: "solid",
                   borderLeftWidth: 2,
-                  borderBottomColor: nearest ? roleBorder : "var(--border)",
-                  borderRightColor: nearest ? roleBorder : "var(--border)",
-                  borderTopColor: nearest ? roleBorder : "var(--border)",
+                  borderBottomColor: nearest
+                    ? roleBorder
+                    : "var(--border-subtle)",
+                  borderRightColor: nearest
+                    ? roleBorder
+                    : "var(--border-subtle)",
+                  borderTopColor: nearest
+                    ? roleBorder
+                    : "var(--border-subtle)",
                   height: TOOLTIP_HEIGHT,
                   opacity: nearest ? 1 : 0.45,
                   top: tooltipWindowPositions[tooltipIndex] ?? 0,
