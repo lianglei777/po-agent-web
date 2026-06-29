@@ -143,8 +143,14 @@ export function AgentWorkspace() {
   }
 
   const requestNavigation = useCallback(
-    (action: () => void) => {
-      if (shouldConfirmWorkspaceNavigation(activeView, modelProviderDirty)) {
+    (targetView: WorkspaceView, action: () => void) => {
+      if (
+        shouldConfirmWorkspaceNavigation(
+          activeView,
+          targetView,
+          modelProviderDirty,
+        )
+      ) {
         pendingNavigationRef.current = action;
         setConfirmingDiscard(true);
         return;
@@ -310,27 +316,31 @@ export function AgentWorkspace() {
               dark={dark}
               onNewChat={() => {
                 if (!activeCwd) return;
-                requestNavigation(() =>
+                requestNavigation("chat", () =>
                   handleNewSession(crypto.randomUUID(), activeCwd),
                 );
               }}
               onOpenModelProvider={() =>
-                requestNavigation(() => setActiveView("model-provider"))
+                requestNavigation("model-provider", () =>
+                  setActiveView("model-provider"),
+                )
               }
               onOpenSkills={() =>
-                requestNavigation(() => setActiveView("skills"))
+                requestNavigation("skills", () => setActiveView("skills"))
               }
               onToggleTheme={toggleTheme}
               sessionProps={{
                 draftSession,
                 initialSessionId,
                 onCwdChange: (cwd) =>
-                  requestNavigation(() => handleCwdChange(cwd)),
+                  requestNavigation("chat", () => handleCwdChange(cwd)),
                 onInitialRestoreDone: () => updateSessionUrl(null),
                 onNewSession: (temporaryId, cwd) =>
-                  requestNavigation(() => handleNewSession(temporaryId, cwd)),
+                  requestNavigation("chat", () =>
+                    handleNewSession(temporaryId, cwd),
+                  ),
                 onSelectSession: (session, isRestore) =>
-                  requestNavigation(() =>
+                  requestNavigation("chat", () =>
                     handleSelectSession(session, isRestore),
                   ),
                 onSessionDeleted: handleSessionDeleted,
