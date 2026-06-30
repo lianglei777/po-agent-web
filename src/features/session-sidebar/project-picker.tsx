@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, type FormEvent } from "react";
 import { Folder, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -30,6 +31,8 @@ export function ProjectPicker({
   trigger?: "icon" | "button";
 }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"input" | "browse">("input");
+  const [pathInput, setPathInput] = useState("");
   const [result, setResult] = useState<ProjectBrowseResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -55,14 +58,22 @@ export function ProjectPicker({
     [t.sessions.unableToLoadDirectory],
   );
 
-  async function selectCurrent() {
-    if (!result || saving) return;
+  function closePicker() {
+    setOpen(false);
+    setMode("input");
+    setPathInput("");
+    setError("");
+  }
+
+  async function submitProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const path = pathInput.trim();
+    if (!path || saving) return;
     setSaving(true);
     try {
-      const project = await addProject(result.current);
+      const project = await addProject(path);
       onSelect(project.path);
-      setOpen(false);
-      setError("");
+      closePicker();
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -74,13 +85,17 @@ export function ProjectPicker({
     }
   }
 
+  function selectCurrent() {
+    if (!result) return;
+    setPathInput(result.current);
+    setMode("input");
+    setError("");
+  }
+
   const triggerButton = (
     <Button
       aria-label={t.workspace.openProject}
-      onClick={() => {
-        setOpen(true);
-        if (!result) void navigate();
-      }}
+      onClick={() => setOpen(true)}
       size={trigger === "icon" ? "icon-sm" : "sm"}
       type="button"
       variant={trigger === "icon" ? "ghost" : "outline"}
@@ -103,111 +118,193 @@ export function ProjectPicker({
 
       <Dialog
         onOpenChange={(nextOpen) => {
-          setOpen(nextOpen);
-          if (!nextOpen) setError("");
+          if (nextOpen) setOpen(true);
+          else closePicker();
         }}
         open={open}
       >
         <DialogContent className="max-w-xl" closeLabel={t.common.close}>
-          <DialogHeader>
-            <DialogTitle>{t.sessions.openProject}</DialogTitle>
-            <DialogDescription className="truncate font-ui-mono text-xs">
-              {result?.current ?? t.sessions.loadingDirectories}
-            </DialogDescription>
-          </DialogHeader>
+          {mode === "input" ? (
+            <form
+              className="space-y-4"
+              onSubmit={(event) => void submitProject(event)}
+            >
+              <DialogHeader>
+                <DialogTitle>{t.sessions.openProject}</DialogTitle>
+                <DialogDescription>
+                  {t.sessions.projectPathHint}
+                </DialogDescription>
+              </DialogHeader>
 
-          <div>
-            <p className="mb-1.5 text-[11px] font-medium text-muted">
-              {t.sessions.projectLocations}
-            </p>
-            <div className="flex max-h-20 flex-wrap gap-1 overflow-y-auto">
-              {result?.roots.map((root) => (
+              <div className="space-y-1.5">
+                <label
+                  className="text-xs font-medium"
+                  htmlFor="project-path"
+                >
+                  {t.sessions.projectPath}
+                </label>
+                <Input
+                  aria-invalid={Boolean(error)}
+                  autoFocus
+                  className="font-ui-mono text-xs"
+                  id="project-path"
+                  onChange={(event) => setPathInput(event.target.value)}
+                  value={pathInput}
+                />
+                {error ? (
+                  <p className="text-xs text-destructive">{error}</p>
+                ) : null}
+              </div>
+
+              <DialogFooter>
                 <Button
-                  className="max-w-full font-ui-mono text-[11px]"
-                  key={root}
-                  onClick={() => void navigate(root)}
-                  size="sm"
+                  onClick={closePicker}
                   type="button"
                   variant="outline"
                 >
-                  <span className="truncate">{root}</span>
+                  {t.common.cancel}
                 </Button>
-              ))}
-            </div>
-          </div>
+                <Button
+                  onClick={() => {
+                    setError("");
+                    setMode("browse");
+                    if (!result) void navigate();
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  <Folder />
+                  {t.sessions.browseDirectories}
+                </Button>
+                <Button disabled={saving || !pathInput.trim()} type="submit">
+                  {saving ? t.common.saving : t.sessions.addProject}
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>{t.sessions.openProject}</DialogTitle>
+                <DialogDescription className="truncate font-ui-mono text-xs">
+                  {result?.current ?? t.sessions.loadingDirectories}
+                </DialogDescription>
+              </DialogHeader>
 
-          <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto border-b border-line-subtle pb-2">
-            {result?.breadcrumbs.map((crumb) => (
-              <Button
-                className="shrink-0 font-ui-mono text-[11px]"
-                key={crumb.path}
-                onClick={() => void navigate(crumb.path)}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                {crumb.name}
-              </Button>
-            ))}
-          </div>
-
-          <ScrollArea className="h-[min(55vh,28rem)] rounded-md border border-line-subtle">
-            <div className="p-1">
-              {loading ? (
-                <div className="space-y-1 p-1" aria-label={t.sessions.loadingDirectories}>
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-[86%]" />
-                  <Skeleton className="h-8 w-[72%]" />
-                </div>
-              ) : (
-                <>
-                  {result?.parent ? (
+              <div>
+                <p className="mb-1.5 text-[11px] font-medium text-muted">
+                  {t.sessions.projectLocations}
+                </p>
+                <div className="flex max-h-20 flex-wrap gap-1 overflow-y-auto">
+                  {result?.roots.map((root) => (
                     <Button
-                      className="w-full justify-start"
-                      onClick={() => void navigate(result.parent ?? undefined)}
+                      className="max-w-full font-ui-mono text-[11px]"
+                      key={root}
+                      onClick={() => void navigate(root)}
+                      size="sm"
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                     >
-                      <Folder />
-                      {t.sessions.parentDirectory}
-                    </Button>
-                  ) : null}
-                  {result?.directories.map((directory) => (
-                    <Button
-                      className="w-full justify-start font-ui-mono text-xs"
-                      key={directory.path}
-                      onClick={() => void navigate(directory.path)}
-                      title={directory.path}
-                      type="button"
-                      variant="ghost"
-                    >
-                      <Folder />
-                      <span className="truncate">{directory.name}</span>
+                      <span className="truncate">{root}</span>
                     </Button>
                   ))}
-                  {result && !result.directories.length ? (
-                    <p className="p-4 text-center text-xs text-dim">
-                      {t.sessions.noDirectories}
-                    </p>
-                  ) : null}
-                </>
-              )}
-            </div>
-          </ScrollArea>
+                </div>
+              </div>
 
-          {error ? <p className="text-xs text-destructive">{error}</p> : null}
-          <DialogFooter>
-            <Button onClick={() => setOpen(false)} type="button" variant="outline">
-              {t.common.cancel}
-            </Button>
-            <Button
-              disabled={!result || loading || saving}
-              onClick={() => void selectCurrent()}
-              type="button"
-            >
-              {saving ? t.common.saving : t.sessions.chooseThisFolder}
-            </Button>
-          </DialogFooter>
+              <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto border-b border-line-subtle pb-2">
+                {result?.breadcrumbs.map((crumb) => (
+                  <Button
+                    className="shrink-0 font-ui-mono text-[11px]"
+                    key={crumb.path}
+                    onClick={() => void navigate(crumb.path)}
+                    size="sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    {crumb.name}
+                  </Button>
+                ))}
+              </div>
+
+              <ScrollArea className="h-[min(55vh,28rem)] rounded-md border border-line-subtle">
+                <div className="p-1">
+                  {loading ? (
+                    <div
+                      aria-label={t.sessions.loadingDirectories}
+                      className="space-y-1 p-1"
+                    >
+                      <Skeleton className="h-8 w-full" />
+                      <Skeleton className="h-8 w-[86%]" />
+                      <Skeleton className="h-8 w-[72%]" />
+                    </div>
+                  ) : (
+                    <>
+                      {result?.parent ? (
+                        <Button
+                          className="w-full justify-start"
+                          onClick={() =>
+                            void navigate(result.parent ?? undefined)
+                          }
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Folder />
+                          {t.sessions.parentDirectory}
+                        </Button>
+                      ) : null}
+                      {result?.directories.map((directory) => (
+                        <Button
+                          className="w-full justify-start font-ui-mono text-xs"
+                          key={directory.path}
+                          onClick={() => void navigate(directory.path)}
+                          title={directory.path}
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Folder />
+                          <span className="truncate">{directory.name}</span>
+                        </Button>
+                      ))}
+                      {result && !result.directories.length ? (
+                        <p className="p-4 text-center text-xs text-dim">
+                          {t.sessions.noDirectories}
+                        </p>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+              </ScrollArea>
+
+              {error ? (
+                <p className="text-xs text-destructive">{error}</p>
+              ) : null}
+              <DialogFooter>
+                <Button
+                  onClick={closePicker}
+                  type="button"
+                  variant="outline"
+                >
+                  {t.common.cancel}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setMode("input");
+                    setError("");
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  {t.sessions.backToPathEntry}
+                </Button>
+                <Button
+                  disabled={!result || loading}
+                  onClick={selectCurrent}
+                  type="button"
+                >
+                  {t.sessions.chooseThisFolder}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>
