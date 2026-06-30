@@ -3,6 +3,7 @@ import {
   buildSessionTree,
   getProjectName,
   getRecentCwds,
+  groupSessionsByProject,
   groupSessionsByCwd,
   shortenCwd,
 } from "./session-utils";
@@ -81,6 +82,23 @@ describe("session sidebar utilities", () => {
     );
 
     expect(groupSessionsByCwd(sessions)).toHaveLength(6);
+  });
+
+  it("keeps registered projects without Sessions and filters unregistered Sessions", () => {
+    const groups = groupSessionsByProject(
+      [{ path: "C:\\work\\alpha" }, { path: "C:\\work\\empty" }],
+      [
+        session("alpha", "2026-01-03", undefined, "C:\\work\\alpha"),
+        session("hidden", "2026-01-04", undefined, "C:\\work\\removed"),
+      ],
+    );
+
+    expect(groups.map((group) => group.cwd)).toEqual([
+      "C:\\work\\alpha",
+      "C:\\work\\empty",
+    ]);
+    expect(groups[0]?.nodes[0]?.session.id).toBe("alpha");
+    expect(groups[1]?.nodes).toEqual([]);
   });
 
   it("uses the final path segment as the project name", () => {

@@ -1,4 +1,4 @@
-import type { SessionInfo, SessionTreeNode } from "./types";
+import type { Project, SessionInfo, SessionTreeNode } from "./types";
 import type { Locale } from "@/i18n/locales";
 
 export function getSessionTitle(session: SessionInfo) {
@@ -32,6 +32,18 @@ export function groupSessionsByCwd(sessions: SessionInfo[]) {
     cwd,
     nodes: buildSessionTree(
       sessions.filter((session) => session.cwd === cwd),
+    ),
+  }));
+}
+
+export function groupSessionsByProject(
+  projects: Project[],
+  sessions: SessionInfo[],
+) {
+  return projects.map((project) => ({
+    cwd: project.path,
+    nodes: buildSessionTree(
+      sessions.filter((session) => session.cwd === project.path),
     ),
   }));
 }

@@ -1,4 +1,8 @@
-import type { SessionInfo } from "./types";
+import type {
+  Project,
+  ProjectBrowseResult,
+  SessionInfo,
+} from "./types";
 
 type ApiError = { error?: { message?: string } };
 
@@ -21,6 +25,30 @@ export function loadHome() {
 
 export function loadDefaultCwd() {
   return requestJson<{ cwd: string }>("/api/default-cwd");
+}
+
+export function loadProjects() {
+  return requestJson<Project[]>("/api/projects");
+}
+
+export function addProject(path: string) {
+  return requestJson<Project>("/api/projects", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path }),
+  });
+}
+
+export function removeProject(path: string) {
+  return requestJson<{ success: true }>(
+    `/api/projects?path=${encodeURIComponent(path)}`,
+    { method: "DELETE" },
+  );
+}
+
+export function browseProjects(path?: string) {
+  const query = path ? `?path=${encodeURIComponent(path)}` : "";
+  return requestJson<ProjectBrowseResult>(`/api/projects/browse${query}`);
 }
 
 export function renameSession(id: string, name: string) {

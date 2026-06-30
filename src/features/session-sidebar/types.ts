@@ -15,3 +15,13 @@ export interface SessionTreeNode {
   session: SessionInfo;
   children: SessionTreeNode[];
 }
+
+export type Project = { path: string };
+
+export type ProjectBrowseResult = {
+  current: string;
+  parent: string | null;
+  roots: string[];
+  breadcrumbs: Array<{ name: string; path: string }>;
+  directories: Array<{ name: string; path: string }>;
+};
