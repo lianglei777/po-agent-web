@@ -48,4 +48,28 @@ describe("SkillService", () => {
       expectedVersion: "v1",
     });
   });
+
+  it("resolves remove by cwd and skillId through the provider", async () => {
+    const remove = vi.fn().mockResolvedValue({
+      skills: [],
+      diagnostics: [],
+    });
+    const root = path.resolve("C:\\workspace");
+    const service = new SkillService(
+      { remove } as unknown as SkillProvider,
+      { listRoots: async () => [root], addRoot: vi.fn() },
+    );
+
+    await service.remove({
+      cwd: root,
+      skillId: "opaque-id",
+    });
+    expect(remove).toHaveBeenCalledWith({
+      cwd: root,
+      skillId: "opaque-id",
+    });
+    await expect(
+      service.remove({ cwd: path.resolve("C:\\outside"), skillId: "x" }),
+    ).rejects.toMatchObject({ status: 403 });
+  });
 });

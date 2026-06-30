@@ -251,10 +251,10 @@ export function ProjectPicker({
                           {t.sessions.parentDirectory}
                         </Button>
                       ) : null}
-                      {result?.directories.map((directory) => (
+                      {result?.directories.map((directory, index) => (
                         <Button
                           className="w-full justify-start font-ui-mono text-xs"
-                          key={directory.path}
+                          key={index}
                           onClick={() => void navigate(directory.path)}
                           title={directory.path}
                           type="button"

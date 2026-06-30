@@ -8,6 +8,7 @@ import {
   requiredBoolean,
   requiredString,
   optionalString,
+  parseSkillRemove,
 } from "@/server/transport/http/validators";
 
 export const runtime = "nodejs";
@@ -29,4 +30,12 @@ export async function PATCH(request: Request) {
       expectedVersion: optionalString(body, "expectedVersion"),
     });
   });
+}
+
+export async function DELETE(request: Request) {
+  return handleRoute(async () =>
+    container.skillService.remove(
+      parseSkillRemove(await readJson(request)),
+    ),
+  );
 }

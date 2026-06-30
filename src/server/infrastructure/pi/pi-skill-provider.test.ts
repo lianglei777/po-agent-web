@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ProcessRunner } from "@/server/ports/process-runner";
 import {
   buildInstallArgs,
+  buildRemoveArgs,
   displaySkillPath,
   parseCliSearch,
   PiSkillProvider,
@@ -80,6 +81,21 @@ describe("PiSkillProvider helpers", () => {
     expect(() => validatePackageSpec("owner/repo; rm -rf")).toThrow(
       "valid skills package reference",
     );
+  });
+
+  it("builds remove commands as argument arrays", () => {
+    expect(
+      buildRemoveArgs("C:\\npm\\npx-cli.js", "react-testing"),
+    ).toEqual([
+      "C:\\npm\\npx-cli.js",
+      "--yes",
+      "skills",
+      "remove",
+      "react-testing",
+      "-y",
+      "--agent",
+      "pi",
+    ]);
   });
 
   it("falls back to the CLI when market search fails", async () => {

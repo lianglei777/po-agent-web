@@ -363,5 +363,11 @@ export const en = {
     path: "Path",
     readOnlySymlink: "This skill was discovered through a symlink and is read-only.",
     changesNotice: "Changes affect newly created sessions, restored sessions, or a session after its resources are reloaded. The current running session is not silently restarted.",
+    removeSkill: "Remove skill",
+    remove: "Remove",
+    removeConfirmTitle: "Remove skill?",
+    removeConfirmDescription: "Remove \u201C{name}\u201D from this project? This deletes the skill files and updates the lock file. This action cannot be undone.",
+    removeConfirmAction: "Remove",
+    removed: "Removed",
   },
 } as const;

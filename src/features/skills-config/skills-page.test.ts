@@ -14,7 +14,6 @@ describe("Skills page", () => {
     expect(source).toContain("SkillDetail");
     expect(source).toContain("AddSkillPanel");
     expect(source).not.toContain("<Dialog open");
-    expect(source).not.toContain("onClose");
   });
 
   it("keeps refresh, installation, diagnostics, and busy guards", () => {
@@ -22,5 +21,11 @@ describe("Skills page", () => {
     expect(source).toContain("skills.toggleModelInvocation()");
     expect(source).toContain("skills.savingSkillId");
     expect(source).toContain("skills.diagnostics");
+  });
+
+  it("delegates removal confirmation to a dedicated dialog component", () => {
+    expect(source).toContain("ConfirmRemoveDialog");
+    expect(source).toContain("skills.removeSkill()");
+    expect(source).toContain("skills.removingSkillId");
   });
 });

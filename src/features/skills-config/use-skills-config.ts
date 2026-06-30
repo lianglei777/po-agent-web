@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { loadSkills, setSkillModelInvocation } from "./api";
+import { loadSkills, removeSkill as removeSkillApi, setSkillModelInvocation } from "./api";
 import { useI18n } from "@/i18n/use-i18n";
 import { reconcileSelectedSkill } from "./skill-state";
 import type { SkillLoadResult } from "./types";
@@ -17,6 +17,7 @@ export function useSkillsConfig(cwd: string) {
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingSkillId, setSavingSkillId] = useState<string | null>(null);
+  const [removingSkillId, setRemovingSkillId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requestRef = useRef<AbortController | null>(null);
 
@@ -89,16 +90,44 @@ export function useSkillsConfig(cwd: string) {
     }
   }, [applyResult, cwd, selectedSkill, t.skills.somethingWentWrong]);
 
+  const removeSkill = useCallback(async (): Promise<boolean> => {
+    if (!selectedSkill) return false;
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setLoading(false);
+    setRemovingSkillId(selectedSkill.skillId);
+    setError(null);
+    try {
+      applyResult(
+        await removeSkillApi(
+          { skillId: selectedSkill.skillId, cwd },
+          controller.signal,
+        ),
+      );
+      return true;
+    } catch (nextError) {
+      if (!controller.signal.aborted) {
+        setError(errorMessage(nextError, t.skills.somethingWentWrong));
+      }
+      return false;
+    } finally {
+      if (!controller.signal.aborted) setRemovingSkillId(null);
+    }
+  }, [applyResult, cwd, selectedSkill, t.skills.somethingWentWrong]);
+
   return {
     ...result,
     error,
     loading,
     refresh,
+    removingSkillId,
     savingSkillId,
     selectedSkill,
     selectedSkillId,
     setSelectedSkillId,
     toggleModelInvocation,
+    removeSkill,
   };
 }
 

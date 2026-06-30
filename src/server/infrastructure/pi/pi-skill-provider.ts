@@ -11,6 +11,7 @@ import {
 import { AppError } from "@/server/domain/app-error";
 import type {
   InstallSkillInput,
+  RemoveSkillInput,
   SetSkillInvocationInput,
   SkillInfo,
   SkillLoadResult,
@@ -157,6 +158,78 @@ export class PiSkillProvider implements SkillProvider {
       if (error instanceof AppError) throw error;
       throw new AppError(
         "SKILL_INSTALL_FAILED",
+        error instanceof Error ? error.message : String(error),
+        500,
+      );
+    } finally {
+      this.installRunning = false;
+    }
+  }
+
+  async remove(input: RemoveSkillInput): Promise<SkillLoadResult> {
+    if (this.installRunning) {
+      throw new AppError(
+        "SKILL_REMOVE_BUSY",
+        "Another skill operation is already running.",
+        409,
+      );
+    }
+
+    this.installRunning = true;
+    try {
+      const cwd = input.cwd ?? process.cwd();
+      const before = await this.load(cwd);
+      const skill = before.skills.find(
+        (candidate) => candidate.skillId === input.skillId,
+      );
+      if (!skill) {
+        throw new AppError(
+          "SKILL_NOT_FOUND",
+          "The selected skill is no longer available. Refresh and try again.",
+          404,
+        );
+      }
+      if (skill.sourceInfo.scope !== "project") {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Only project-scoped skills can be removed.",
+          403,
+        );
+      }
+      if (!skill.name.trim() || skill.name.startsWith("-")) {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "invalid skill name",
+          400,
+        );
+      }
+
+      const npxCli = await resolveNpxCli();
+      const args = buildRemoveArgs(npxCli, skill.name);
+
+      await this.processes.run(process.execPath, args, {
+        cwd,
+        timeoutMs: 90_000,
+        maxOutputBytes: MAX_COMMAND_OUTPUT,
+        env: { FORCE_COLOR: "0", NO_COLOR: "1" },
+      });
+
+      const after = await this.load(cwd);
+      const stillExists = after.skills.some(
+        (candidate) => candidate.skillId === input.skillId,
+      );
+      if (stillExists) {
+        throw new AppError(
+          "SKILL_REMOVE_FAILED",
+          "The remover completed, but the skill is still present.",
+          500,
+        );
+      }
+      return after;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(
+        "SKILL_REMOVE_FAILED",
         error instanceof Error ? error.message : String(error),
         500,
       );
@@ -488,6 +561,19 @@ export function buildInstallArgs(
   ];
   if (input.scope === "global") args.push("-g");
   return args;
+}
+
+export function buildRemoveArgs(npxCli: string, skillName: string): string[] {
+  return [
+    npxCli,
+    "--yes",
+    "skills",
+    "remove",
+    skillName,
+    "-y",
+    "--agent",
+    "pi",
+  ];
 }
 
 async function resolveNpxCli(): Promise<string> {

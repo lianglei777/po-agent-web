@@ -15,6 +15,8 @@ export type AppErrorCode =
   | "SKILL_SEARCH_FAILED"
   | "SKILL_INSTALL_BUSY"
   | "SKILL_INSTALL_FAILED"
+  | "SKILL_REMOVE_BUSY"
+  | "SKILL_REMOVE_FAILED"
   | "INTERNAL_ERROR";
 
 export class AppError extends Error {

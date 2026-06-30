@@ -1,6 +1,7 @@
 import type {
   InstallSkillInput,
   InstallSkillResult,
+  RemoveSkillInput,
   SetSkillInvocationInput,
   SkillLoadResult,
   SkillSearchResult,
@@ -27,4 +28,11 @@ export interface SkillProvider {
    * 此操作有副作用（会执行安装命令或写入文件），需保留用户反馈和错误状态。
    */
   install(input: InstallSkillInput): Promise<InstallSkillResult>;
+  /**
+   * 移除已安装的项目级技能。
+   *
+   * 此操作有副作用（会执行删除命令、清理符号链接、更新 lock 文件），需保留用户反馈和错误状态。
+   * 仅支持 project scope 的技能；其他 scope 的技能应在调用前由上层过滤。
+   */
+  remove(input: RemoveSkillInput): Promise<SkillLoadResult>;
 }

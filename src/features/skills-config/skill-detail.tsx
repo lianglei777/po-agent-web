@@ -1,4 +1,5 @@
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -10,11 +11,15 @@ import type { SkillInfo } from "./types";
 export function SkillDetail({
   skill,
   saving,
+  removing,
   onToggle,
+  onRemove,
 }: {
   skill: SkillInfo;
   saving: boolean;
+  removing: boolean;
   onToggle: () => void;
+  onRemove: () => void;
 }) {
   const enabled = !skill.disableModelInvocation;
   const { t } = useI18n();
@@ -92,6 +97,26 @@ export function SkillDetail({
             : ""}
           {t.skills.changesNotice}
         </p>
+
+        {skill.sourceInfo.scope === "project" ? (
+          <div className="mt-4 flex justify-end">
+            <Button
+              aria-label={t.skills.removeSkill}
+              disabled={removing || saving}
+              onClick={onRemove}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              {removing ? (
+                <LoaderCircle className="animate-spin" />
+              ) : (
+                <Trash2 />
+              )}
+              {t.skills.remove}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

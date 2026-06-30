@@ -5,6 +5,7 @@ import {
   parseModelsConfig,
   parseProjectPath,
   parseSkillInstall,
+  parseSkillRemove,
 } from "./validators";
 
 describe("agent HTTP validation", () => {
@@ -49,6 +50,24 @@ describe("agent HTTP validation", () => {
       scope: "project",
       cwd: "C:\\work",
     });
+  });
+
+  it("parses skill remove requests", () => {
+    expect(
+      parseSkillRemove({
+        skillId: "abc123",
+        cwd: "C:\\work",
+      }),
+    ).toEqual({
+      skillId: "abc123",
+      cwd: "C:\\work",
+    });
+    expect(() => parseSkillRemove({ skillId: "" })).toThrow(
+      "skillId must be a non-empty string",
+    );
+    expect(() => parseSkillRemove({ skillId: "abc" })).toThrow(
+      "cwd must be a non-empty string",
+    );
   });
 
   it("sanitizes protocol-specific model compatibility fields", () => {

@@ -1927,6 +1927,45 @@ Global Scope 会追加：
 - `409 SKILL_INSTALL_BUSY`
 - `500 SKILL_INSTALL_FAILED`
 
+### 10.5 移除 Skill
+
+```http
+DELETE /api/skills
+Content-Type: application/json
+```
+
+请求：
+
+```json
+{
+  "skillId": "d60c...",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+字段：
+
+| 字段 | 必需 | 说明 |
+| --- | --- | --- |
+| `skillId` | 是 | 要移除的技能 ID |
+| `cwd` | 是 | 已注册的 Workspace Root |
+
+CLI：
+
+```text
+node <npm>/bin/npx-cli.js --yes skills remove <name> -y --agent pi
+```
+
+仅支持 project scope 的技能。服务端会先加载技能列表确认 skillId 存在且为 project scope，然后执行 CLI 删除文件、清理符号链接、更新 lock 文件。命令成功后重新运行 `DefaultResourceLoader` 验证技能已不存在；返回移除后的完整技能列表。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `403 VALIDATION_ERROR`（非 project scope）
+- `404 SKILL_NOT_FOUND`
+- `409 SKILL_REMOVE_BUSY`
+- `500 SKILL_REMOVE_FAILED`
+
 ## 11. SSE 通用行为
 
 Agent、OAuth 和 File Watch 使用相同的 SSE Transport。

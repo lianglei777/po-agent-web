@@ -363,5 +363,11 @@ export const zh = {
     path: "路径",
     readOnlySymlink: "该技能通过符号链接发现，处于只读状态。",
     changesNotice: "改动会影响新建会话、恢复的会话，或资源重新加载后的会话。当前运行中的会话不会被静默重启。",
+    removeSkill: "移除技能",
+    remove: "移除",
+    removeConfirmTitle: "移除技能？",
+    removeConfirmDescription: "从该项目移除“{name}”？这将删除技能文件并更新锁文件。此操作无法撤销。",
+    removeConfirmAction: "移除",
+    removed: "已移除",
   },
 } satisfies Dictionary;

@@ -63,6 +63,18 @@ export async function installSkill(
   });
 }
 
+export async function removeSkill(
+  input: { skillId: string; cwd: string },
+  signal?: AbortSignal,
+): Promise<SkillLoadResult> {
+  return requestJson("/api/skills", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
 async function requestJson<T>(
   input: RequestInfo | URL,
   init?: RequestInit,

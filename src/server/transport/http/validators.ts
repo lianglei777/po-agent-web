@@ -6,7 +6,7 @@ import {
 } from "@/server/domain/agent-command";
 import { AppError } from "@/server/domain/app-error";
 import type { CreateAgentRequest } from "@/server/application/agent-service";
-import type { InstallSkillInput } from "@/server/domain/skill";
+import type { InstallSkillInput, RemoveSkillInput } from "@/server/domain/skill";
 import type {
   DiscoverModelsInput,
   TestModelInput,
@@ -172,6 +172,14 @@ export function parseSkillInstall(value: unknown): InstallSkillInput {
       requiredString(object, "source"),
     scope,
     cwd: optionalString(object, "cwd"),
+  };
+}
+
+export function parseSkillRemove(value: unknown): RemoveSkillInput {
+  const object = asObject(value);
+  return {
+    skillId: requiredString(object, "skillId"),
+    cwd: requiredString(object, "cwd"),
   };
 }
 

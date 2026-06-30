@@ -39,6 +39,11 @@ export interface InstallSkillInput {
   cwd?: string;
 }
 
+export interface RemoveSkillInput {
+  skillId: string;
+  cwd: string;
+}
+
 export interface InstallSkillResult {
   installed: true;
   skills: SkillInfo[];

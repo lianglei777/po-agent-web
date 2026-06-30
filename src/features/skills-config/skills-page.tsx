@@ -2,6 +2,7 @@
 
 import {
   AlertTriangle,
+  CheckCircle2,
   LoaderCircle,
   Plus,
   RefreshCw,
@@ -10,14 +11,29 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/use-i18n";
 import { AddSkillPanel } from "./add-skill-panel";
+import { ConfirmRemoveDialog } from "./confirm-remove-dialog";
 import { SkillDetail } from "./skill-detail";
 import { SkillList } from "./skill-list";
 import { useSkillsConfig } from "./use-skills-config";
 
 export function SkillsPage({ cwd }: { cwd: string }) {
   const [adding, setAdding] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<string | null>(null);
+  const [removeSuccess, setRemoveSuccess] = useState<string | null>(null);
   const skills = useSkillsConfig(cwd);
   const { t } = useI18n();
+
+  async function handleRemoveConfirm() {
+    if (!skills.selectedSkill) return;
+    const skillName = skills.selectedSkill.name;
+    const ok = await skills.removeSkill();
+    if (ok) {
+      setRemoveSuccess(`${t.skills.removed} ${skillName}.`);
+    }
+    setRemoveTarget(null);
+  }
+
+  const removing = skills.removingSkillId === skills.selectedSkill?.skillId;
 
   return (
     <div className="flex min-h-0 flex-1 bg-canvas">
@@ -123,6 +139,15 @@ export function SkillsPage({ cwd }: { cwd: string }) {
             </Button>
           </div>
         ) : null}
+        {removeSuccess && !removing ? (
+          <div
+            aria-live="polite"
+            className="flex items-center gap-2 border-b border-success/30 bg-success/8 px-4 py-2 text-sm text-success"
+          >
+            <CheckCircle2 className="size-4 shrink-0" />
+            {removeSuccess}
+          </div>
+        ) : null}
         {adding ? (
           <AddSkillPanel
             cwd={cwd}
@@ -137,7 +162,12 @@ export function SkillsPage({ cwd }: { cwd: string }) {
           />
         ) : skills.selectedSkill ? (
           <SkillDetail
+            onRemove={() => {
+              setRemoveSuccess(null);
+              setRemoveTarget(skills.selectedSkill!.skillId);
+            }}
             onToggle={() => void skills.toggleModelInvocation()}
+            removing={removing}
             saving={skills.savingSkillId === skills.selectedSkill.skillId}
             skill={skills.selectedSkill}
           />
@@ -147,6 +177,14 @@ export function SkillsPage({ cwd }: { cwd: string }) {
           </div>
         )}
       </main>
+
+      <ConfirmRemoveDialog
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => void handleRemoveConfirm()}
+        open={removeTarget !== null}
+        removing={removing}
+        skillName={skills.selectedSkill?.name ?? ""}
+      />
     </div>
   );
 }

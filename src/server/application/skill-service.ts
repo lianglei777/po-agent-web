@@ -2,6 +2,7 @@ import path from "node:path";
 import { AppError } from "@/server/domain/app-error";
 import type {
   InstallSkillInput,
+  RemoveSkillInput,
   SetSkillInvocationInput,
 } from "@/server/domain/skill";
 import type { WorkspaceRootProvider } from "@/server/ports/file-system";
@@ -35,6 +36,13 @@ export class SkillService {
         input.scope === "project"
           ? await this.resolveAllowedCwd(input.cwd ?? "")
           : input.cwd,
+    });
+  }
+
+  async remove(input: RemoveSkillInput) {
+    return this.skills.remove({
+      ...input,
+      cwd: await this.resolveAllowedCwd(input.cwd),
     });
   }
 
