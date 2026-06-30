@@ -13,15 +13,10 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/use-i18n";
 import { BranchHistory } from "./branch-history";
 import { ChatInput } from "./chat-input";
-import { ConfirmActionDialog } from "./confirm-action-dialog";
 import { createChatMinimapEntries } from "./minimap/chat-minimap-adapter";
 import { ChatMinimap } from "./minimap/chat-minimap";
 import { MessageList } from "./message-view";
-import type {
-  ContextUsage,
-  SessionStats,
-  SessionTreeNode,
-} from "./agent-types";
+import type { ContextUsage, SessionStats } from "./agent-types";
 import {
   type ChatSession,
   useChatController,
@@ -34,7 +29,6 @@ export function ChatCenter({
   onAgentEnd,
   onSessionCreated,
   onSessionForked,
-  onBranchDataChange,
   onSystemPromptChange,
   onSessionStatsChange,
   onContextUsageChange,
@@ -45,11 +39,6 @@ export function ChatCenter({
   onAgentEnd?: () => void;
   onSessionCreated?: (sessionId: string) => void;
   onSessionForked?: (sessionId: string) => void;
-  onBranchDataChange?: (
-    tree: SessionTreeNode[],
-    leafId: string | null,
-    onLeafChange: (leafId: string) => void,
-  ) => void;
   onSystemPromptChange?: (prompt: string | null) => void;
   onSessionStatsChange?: (stats: SessionStats | null) => void;
   onContextUsageChange?: (usage: ContextUsage | null) => void;
@@ -61,7 +50,6 @@ export function ChatCenter({
     onAgentEnd,
     onSessionCreated,
     onSessionForked,
-    onBranchDataChange,
     onSystemPromptChange,
     onSessionStatsChange,
     onContextUsageChange,
@@ -75,12 +63,6 @@ export function ChatCenter({
   >(null);
   const [composerNode, setComposerNode] = useState<HTMLDivElement | null>(null);
   const [composerHeight, setComposerHeight] = useState(0);
-  const [pendingEdit, setPendingEdit] = useState<
-    { targetId: string; text: string } | null
-  >(null);
-  const [pendingFork, setPendingFork] = useState<{ entryId: string } | null>(
-    null,
-  );
   const dragCounter = useRef(0);
   const messageElementsRef = useRef<Map<string, HTMLElement>>(new Map());
 
@@ -180,13 +162,12 @@ export function ChatCenter({
       ) : (
         <>
           <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="flex items-center justify-end border-b border-line-subtle px-4 py-1.5">
-              <BranchHistory
-                activeLeafId={controller.activeLeafId}
-                onChangeLeaf={(leafId) => void controller.changeLeaf(leafId)}
-                tree={controller.tree}
-              />
-            </div>
+            <BranchHistory
+              activeLeafId={controller.activeLeafId}
+              onChangeLeaf={(leafId) => void controller.changeLeaf(leafId)}
+              running={controller.running}
+              tree={controller.tree}
+            />
             <div className="relative flex min-h-0 flex-1 overflow-hidden">
             <div
               className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none]"
@@ -221,9 +202,9 @@ export function ChatCenter({
                   lastUserRef={controller.lastUserRef}
                   messages={controller.messages}
                   onEdit={(targetId, text) =>
-                    setPendingEdit({ targetId, text })
+                    void controller.editFromHere(targetId, text)
                   }
-                  onFork={(entryId) => setPendingFork({ entryId })}
+                  onFork={(entryId) => void controller.fork(entryId)}
                   highlightedMessageId={highlightedMessageId}
                   onMessageElement={handleMessageElement}
                   running={controller.running}
@@ -251,35 +232,6 @@ export function ChatCenter({
           {/* Chat input */}
           <ChatInput {...controller} rootRef={setComposerNode} />
 
-          <ConfirmActionDialog
-            cancelLabel={t.chat.message.cancel}
-            confirmLabel={t.chat.message.editConfirmAction}
-            description={t.chat.message.editConfirmDesc}
-            onConfirm={() => {
-              if (!pendingEdit) return;
-              const { targetId, text } = pendingEdit;
-              setPendingEdit(null);
-              void controller.editFromHere(targetId, text);
-            }}
-            onDismiss={() => setPendingEdit(null)}
-            open={pendingEdit !== null}
-            title={t.chat.message.editConfirmTitle}
-            tone="danger"
-          />
-          <ConfirmActionDialog
-            cancelLabel={t.chat.message.cancel}
-            confirmLabel={t.chat.message.forkConfirmAction}
-            description={t.chat.message.forkConfirmDesc}
-            onConfirm={() => {
-              if (!pendingFork) return;
-              const { entryId } = pendingFork;
-              setPendingFork(null);
-              void controller.fork(entryId);
-            }}
-            onDismiss={() => setPendingFork(null)}
-            open={pendingFork !== null}
-            title={t.chat.message.forkConfirmTitle}
-          />
         </>
       )}
     </main>

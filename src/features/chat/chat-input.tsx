@@ -210,10 +210,14 @@ export function ChatInput({
         {undoable ? (
           <InlineStatus
             action={{
+              disabled: running,
+              disabledReason: running
+                ? t.chat.message.branchNavigationUnavailableWhileRunning
+                : undefined,
               label: t.chat.message.editUndoAction,
               onClick: () => void undoEdit(),
             }}
-            dismissLabel={t.chat.message.editUndoAction}
+            dismissLabel={t.chat.input.dismissNotice}
             onDismiss={dismissUndo}
             tone="info"
           >
@@ -499,7 +503,12 @@ function InlineStatus({
   tone: "warning" | "error" | "success" | "info";
   onDismiss?: () => void;
   dismissLabel?: string;
-  action?: { label: string; onClick: () => void };
+  action?: {
+    label: string;
+    onClick: () => void;
+    disabled?: boolean;
+    disabledReason?: string;
+  };
 }) {
   const toneClasses: Record<typeof tone, string> = {
     warning: "border-warning/40 bg-warning/8 text-warning",
@@ -507,23 +516,36 @@ function InlineStatus({
     success: "border-success/40 bg-success/8 text-success",
     info: "border-line-strong bg-subtle text-muted",
   };
+  const actionButton = action ? (
+    <Button
+      className="h-6 shrink-0 text-xs"
+      disabled={action.disabled}
+      onClick={action.onClick}
+      size="sm"
+      type="button"
+      variant="ghost"
+    >
+      {action.label}
+    </Button>
+  ) : null;
   return (
     <div
       aria-live="polite"
       className={`mb-2 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${toneClasses[tone]}`}
     >
       <span className="min-w-0 flex-1">{children}</span>
-      {action ? (
-        <Button
-          className="h-6 shrink-0 text-xs"
-          onClick={action.onClick}
-          size="sm"
-          type="button"
-          variant="ghost"
-        >
-          {action.label}
-        </Button>
-      ) : null}
+      {action?.disabledReason ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex" title={action.disabledReason}>
+              {actionButton}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">{action.disabledReason}</TooltipContent>
+        </Tooltip>
+      ) : (
+        actionButton
+      )}
       {onDismiss ? (
         <Button
           aria-label={dismissLabel}

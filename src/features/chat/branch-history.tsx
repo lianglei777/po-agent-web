@@ -8,51 +8,31 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
-import { collectLeaves } from "./branch-leaves";
+import { collectLeaves, leafSummary } from "./branch-leaves";
 import type { SessionTreeNode } from "./agent-types";
-
-// 取叶子节点上可读的首行摘要,用于下拉项标签;无法提取时回退到短 id。
-function leafSummary(node: SessionTreeNode): string {
-  const fallback = node.label ?? node.entry.id.slice(0, 8);
-  const message = node.entry.message;
-  if (!message || typeof message !== "object" || !("content" in message)) {
-    return fallback;
-  }
-  const content = (message as { content: unknown }).content;
-  let text = "";
-  if (typeof content === "string") {
-    text = content;
-  } else if (Array.isArray(content)) {
-    text = content
-      .filter(
-        (block): block is { type: "text"; text: string } =>
-          typeof block === "object" &&
-          block !== null &&
-          (block as { type?: string }).type === "text" &&
-          typeof (block as { text?: unknown }).text === "string",
-      )
-      .map((block) => block.text)
-      .join(" ");
-  }
-  const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
-  return firstLine.slice(0, 60) || fallback;
-}
 
 export function BranchHistory({
   tree,
   activeLeafId,
+  running,
   onChangeLeaf,
 }: {
   tree: SessionTreeNode[];
   activeLeafId: string | null;
+  running: boolean;
   onChangeLeaf: (leafId: string) => void;
 }) {
   const { t } = useI18n();
   const leaves = collectLeaves(tree);
   if (leaves.length <= 1) return null;
 
-  return (
+  const menu = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -60,28 +40,47 @@ export function BranchHistory({
           size="sm"
           type="button"
           variant="ghost"
+          disabled={running}
         >
           <GitBranch className="size-3.5" />
           {t.chat.message.branchHistory}
           <span className="text-dim">{leaves.length}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="bottom">
+      <DropdownMenuContent align="end" className="max-w-80" side="bottom">
         {leaves.map((node) => {
           const active = node.entry.id === activeLeafId;
           return (
             <DropdownMenuItem
               key={node.entry.id}
+              disabled={active}
               onSelect={() => onChangeLeaf(node.entry.id)}
             >
               <Check className={active ? "size-3.5" : "size-3.5 opacity-0"} />
               <span className="min-w-0 truncate">
-                {leafSummary(node) || node.entry.id.slice(0, 8)}
+                {leafSummary(node)}
               </span>
             </DropdownMenuItem>
           );
         })}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+
+  return (
+    <div className="flex items-center justify-end border-b border-line-subtle px-4 py-1.5">
+      {running ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex">{menu}</span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {t.chat.message.branchNavigationUnavailableWhileRunning}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        menu
+      )}
+    </div>
   );
 }

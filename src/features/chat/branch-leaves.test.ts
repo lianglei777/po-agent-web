@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectLeaves } from "./branch-leaves";
+import { collectLeaves, leafSummary } from "./branch-leaves";
 import type { SessionTreeNode } from "./agent-types";
 
 function node(id: string, children: SessionTreeNode[] = []): SessionTreeNode {
@@ -41,5 +41,22 @@ describe("collectLeaves", () => {
     expect(collectLeaves([node("only")]).map((n) => n.entry.id)).toEqual([
       "only",
     ]);
+  });
+});
+
+describe("leafSummary", () => {
+  it("prefers an explicit branch label over message text", () => {
+    const leaf = node("branch-id");
+    leaf.label = "Named branch";
+    leaf.entry.message = { role: "user", content: "Fallback message" };
+
+    expect(leafSummary(leaf)).toBe("Named branch");
+  });
+
+  it("uses the first message line when no label exists", () => {
+    const leaf = node("branch-id");
+    leaf.entry.message = { role: "user", content: "First line\nSecond line" };
+
+    expect(leafSummary(leaf)).toBe("First line");
   });
 });

@@ -222,6 +222,7 @@ function UserMessageView({
         ) : null}
 
         <div className="flex items-center gap-1">
+          {/* copy */}
           <SmallAction
             label={copied ? t.chat.message.copied : t.chat.message.copy}
             onClick={() => void copyText(messageText(message)).then(() => {
@@ -231,11 +232,13 @@ function UserMessageView({
           >
             {copied ? <Check /> : <Copy />}
           </SmallAction>
+          {/* 从此处编辑 */}
           {canEdit && !running ? (
             <SmallAction label={t.chat.message.editFromHere} onClick={onEdit}>
               <PencilLine />
             </SmallAction>
           ) : null}
+          {/* 新会话 */}
           {canFork && entryId && !running ? (
             <SmallAction
               disabled={forking}

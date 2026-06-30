@@ -61,11 +61,6 @@ export type ChatControllerOptions = {
   onAgentEnd?: () => void;
   onSessionCreated?: (sessionId: string) => void;
   onSessionForked?: (sessionId: string) => void;
-  onBranchDataChange?: (
-    tree: SessionTreeNode[],
-    leafId: string | null,
-    onLeafChange: (leafId: string) => void,
-  ) => void;
   onSystemPromptChange?: (prompt: string | null) => void;
   onSessionStatsChange?: (stats: SessionStats | null) => void;
   onContextUsageChange?: (usage: ContextUsage | null) => void;
@@ -79,7 +74,6 @@ export function useChatController(options: ChatControllerOptions) {
     onAgentEnd,
     onSessionCreated,
     onSessionForked,
-    onBranchDataChange,
     onSystemPromptChange,
     onSessionStatsChange,
     onContextUsageChange,
@@ -456,15 +450,16 @@ export function useChatController(options: ChatControllerOptions) {
 
   // 编辑撤销提示自动消失(对齐 compact 反馈的超时)
   useEffect(() => {
-    if (!undoable) return;
+    if (!undoable || running) return;
     const timer = window.setTimeout(() => setUndoable(null), 8000);
     return () => window.clearTimeout(timer);
-  }, [undoable]);
+  }, [running, undoable]);
 
   const changeLeaf = useCallback(
     async (leafId: string) => {
       const id = sessionIdRef.current;
-      if (!id || running) return;
+      if (!id || running) return false;
+      if (leafId === activeLeafId) return true;
       const previous = activeLeafId;
       setActiveLeafId(leafId);
       try {
@@ -472,34 +467,37 @@ export function useChatController(options: ChatControllerOptions) {
         await sendCommand(id, { type: "navigate_tree", targetId: leafId });
         setMessages(result.context.messages);
         setEntryIds(result.context.entryIds);
-        const snapshot = await loadRuntime(id);
-        syncRuntimeState(snapshot.state);
+        setActionError("");
+        try {
+          const snapshot = await loadRuntime(id);
+          syncRuntimeState(snapshot.state);
+        } catch (cause) {
+          setActionError(
+            cause instanceof Error ? cause.message : "Unable to refresh runtime",
+          );
+        }
+        return true;
       } catch (cause) {
         setActiveLeafId(previous);
         setActionError(
           cause instanceof Error ? cause.message : "Unable to change branch",
         );
+        return false;
       }
     },
     [activeLeafId, running, syncRuntimeState],
   );
 
   useEffect(() => {
-    onBranchDataChange?.(tree, activeLeafId, changeLeaf);
-  }, [activeLeafId, changeLeaf, onBranchDataChange, tree]);
-
-  useEffect(() => {
     return () => {
       closeSource();
       imagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-      onBranchDataChange?.([], null, async () => {});
       onSystemPromptChange?.(null);
       onSessionStatsChange?.(null);
       onContextUsageChange?.(null);
     };
   }, [
     closeSource,
-    onBranchDataChange,
     onContextUsageChange,
     onSessionStatsChange,
     onSystemPromptChange,
@@ -841,7 +839,7 @@ export function useChatController(options: ChatControllerOptions) {
     text: string,
   ) {
     const prev = activeLeafId;
-    await changeLeaf(targetId);
+    if (!(await changeLeaf(targetId))) return;
     if (prev && prev !== targetId) setUndoable({ leafId: prev });
     insertIfEmpty(text);
   }
@@ -849,8 +847,7 @@ export function useChatController(options: ChatControllerOptions) {
   async function undoEdit() {
     if (!undoable) return;
     const { leafId } = undoable;
-    setUndoable(null);
-    await changeLeaf(leafId);
+    if (await changeLeaf(leafId)) setUndoable(null);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
