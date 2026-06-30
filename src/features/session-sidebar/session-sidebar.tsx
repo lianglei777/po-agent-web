@@ -7,8 +7,20 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check, ChevronRight, Folder, RefreshCw } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  Folder,
+  MoreHorizontal,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -17,16 +29,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
-import { loadDefaultCwd, loadSessions } from "./api";
-import { CwdPicker } from "./cwd-picker";
+import { loadProjects, loadSessions, removeProject } from "./api";
+import { ProjectPicker } from "./project-picker";
 import { createDraftSession } from "./session-draft";
 import {
   getProjectName,
-  getRecentCwds,
-  groupSessionsByCwd,
+  groupSessionsByProject,
 } from "./session-utils";
 import { SessionTree } from "./session-tree";
-import type { SessionInfo } from "./types";
+import type { Project, SessionInfo } from "./types";
 
 export type SessionSidebarProps = {
   selectedSessionId: string | null;
@@ -54,8 +65,11 @@ export function SessionSidebar({
   onInitialRestoreDone,
 }: SessionSidebarProps) {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [projectError, setProjectError] = useState("");
+  const [removingProject, setRemovingProject] = useState<string | null>(null);
   const [refreshed, setRefreshed] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
     new Set(),
@@ -71,7 +85,12 @@ export function SessionSidebar({
     async (showLoading = false) => {
       if (showLoading) setLoading(true);
       try {
-        setSessions(await loadSessions());
+        const [nextProjects, nextSessions] = await Promise.all([
+          loadProjects(),
+          loadSessions(),
+        ]);
+        setProjects(nextProjects);
+        setSessions(nextSessions);
         setError("");
       } catch (cause) {
         setError(
@@ -105,7 +124,6 @@ export function SessionSidebar({
     };
   }, []);
 
-  const recentCwds = useMemo(() => getRecentCwds(sessions), [sessions]);
   const navigableSessions = useMemo(() => {
     if (!draftSession) return sessions;
     return [
@@ -118,19 +136,10 @@ export function SessionSidebar({
       }),
     ];
   }, [draftSession, sessions, t.sessions.draft]);
-  const projectGroups = useMemo(
-    () => groupSessionsByCwd(navigableSessions),
-    [navigableSessions],
+  const displayedGroups = useMemo(
+    () => groupSessionsByProject(projects, navigableSessions),
+    [navigableSessions, projects],
   );
-  const displayedGroups = useMemo(() => {
-    if (
-      !selectedCwd ||
-      projectGroups.some((group) => group.cwd === selectedCwd)
-    ) {
-      return projectGroups;
-    }
-    return [{ cwd: selectedCwd, nodes: [] }, ...projectGroups];
-  }, [projectGroups, selectedCwd]);
 
   useEffect(() => {
     if (
@@ -150,14 +159,8 @@ export function SessionSidebar({
       }
       onInitialRestoreDone?.();
     }
-    if (!selectedCwd && recentCwds[0]) {
-      onCwdChange(recentCwds[0]);
-      return;
-    }
-    if (!selectedCwd) {
-      void loadDefaultCwd()
-        .then(({ cwd }) => onCwdChange(cwd))
-        .catch(() => undefined);
+    if (!selectedCwd && projects[0]) {
+      onCwdChange(projects[0].path);
     }
   }, [
     initialSessionId,
@@ -165,7 +168,7 @@ export function SessionSidebar({
     onCwdChange,
     onInitialRestoreDone,
     onSelectSession,
-    recentCwds,
+    projects,
     selectedCwd,
     sessions,
   ]);
@@ -194,11 +197,39 @@ export function SessionSidebar({
     );
   }
 
+  const handleProjectSelected = useCallback(
+    async (cwd: string) => {
+      await refresh();
+      onCwdChange(cwd);
+    },
+    [onCwdChange, refresh],
+  );
+
+  async function removeFromList(cwd: string) {
+    if (removingProject) return;
+    setRemovingProject(cwd);
+    try {
+      await removeProject(cwd);
+      setProjects((current) =>
+        current.filter((project) => project.path !== cwd),
+      );
+      setProjectError("");
+    } catch (cause) {
+      setProjectError(
+        cause instanceof Error
+          ? cause.message
+          : t.sessions.removeProjectFailed,
+      );
+    } finally {
+      setRemovingProject(null);
+    }
+  }
+
   return (
     <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex h-8 flex-none items-center gap-1 px-2 text-[11px] font-medium text-muted">
         <span className="flex-1">{t.workspace.projects}</span>
-        <CwdPicker onChange={onCwdChange} />
+        <ProjectPicker onSelect={(cwd) => void handleProjectSelected(cwd)} />
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -218,6 +249,12 @@ export function SessionSidebar({
           <TooltipContent>{t.sessions.refreshSessions}</TooltipContent>
         </Tooltip>
       </div>
+
+      {projectError ? (
+        <p className="px-2 py-1 text-[11px] text-destructive">
+          {projectError}
+        </p>
+      ) : null}
 
       <ScrollArea className="min-h-0 flex-1">
         {loading ? (
@@ -250,22 +287,50 @@ export function SessionSidebar({
                 (selected && collapsedSelectedCwd !== group.cwd);
               return (
                 <div key={group.cwd}>
-                  <Button
-                    aria-expanded={expanded}
-                    className="h-8 w-full justify-start gap-1.5 px-2 text-[11px]"
-                    onClick={() => selectProject(group.cwd)}
-                    title={group.cwd}
-                    type="button"
-                    variant={selected ? "secondary" : "ghost"}
-                  >
-                    <ChevronRight
-                      className={`size-3 transition-transform ${expanded ? "rotate-90" : ""}`}
-                    />
-                    <Folder className="size-3.5" />
-                    <span className="min-w-0 truncate">
-                      {getProjectName(group.cwd)}
-                    </span>
-                  </Button>
+                  <div className="group flex items-center px-1">
+                    <Button
+                      aria-expanded={expanded}
+                      className="h-8 min-w-0 flex-1 justify-start gap-1.5 px-1 text-[11px]"
+                      onClick={() => selectProject(group.cwd)}
+                      title={group.cwd}
+                      type="button"
+                      variant={selected ? "secondary" : "ghost"}
+                    >
+                      <ChevronRight
+                        className={`size-3 transition-transform ${expanded ? "rotate-90" : ""}`}
+                      />
+                      <Folder className="size-3.5" />
+                      <span className="min-w-0 truncate">
+                        {getProjectName(group.cwd)}
+                      </span>
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-label={t.sessions.removeProject}
+                          className="opacity-0 focus:opacity-100 group-hover:opacity-100"
+                          size="icon-sm"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <MoreHorizontal />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          disabled={removingProject === group.cwd}
+                          onSelect={() => void removeFromList(group.cwd)}
+                        >
+                          <div>
+                            <div>{t.sessions.removeProject}</div>
+                            <div className="text-[10px] text-dim">
+                              {t.sessions.removeProjectDescription}
+                            </div>
+                          </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                   {expanded ? (
                     group.nodes.length ? (
                       <div className="ml-3 border-l border-line-subtle pl-1">
@@ -294,8 +359,12 @@ export function SessionSidebar({
             })}
           </div>
         ) : (
-          <div className="p-4 text-center text-[11px] text-dim">
-            {t.sessions.noSessions}
+          <div className="space-y-2 p-4 text-center text-[11px] text-dim">
+            <p>{t.sessions.noProjects}</p>
+            <ProjectPicker
+              onSelect={(cwd) => void handleProjectSelected(cwd)}
+              trigger="button"
+            />
           </div>
         )}
       </ScrollArea>

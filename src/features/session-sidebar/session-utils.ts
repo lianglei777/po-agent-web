@@ -9,33 +9,6 @@ export function getSessionTitle(session: SessionInfo) {
   );
 }
 
-function getProjectCwds(sessions: SessionInfo[]) {
-  const latestByCwd = new Map<string, string>();
-  for (const session of sessions) {
-    if (!session.cwd) continue;
-    const previous = latestByCwd.get(session.cwd);
-    if (!previous || session.modified > previous) {
-      latestByCwd.set(session.cwd, session.modified);
-    }
-  }
-  return [...latestByCwd]
-    .sort((left, right) => right[1].localeCompare(left[1]))
-    .map(([cwd]) => cwd);
-}
-
-export function getRecentCwds(sessions: SessionInfo[]) {
-  return getProjectCwds(sessions).slice(0, 5);
-}
-
-export function groupSessionsByCwd(sessions: SessionInfo[]) {
-  return getProjectCwds(sessions).map((cwd) => ({
-    cwd,
-    nodes: buildSessionTree(
-      sessions.filter((session) => session.cwd === cwd),
-    ),
-  }));
-}
-
 export function groupSessionsByProject(
   projects: Project[],
   sessions: SessionInfo[],

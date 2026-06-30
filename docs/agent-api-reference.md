@@ -104,7 +104,6 @@ Content-Type: text/event-stream; charset=utf-8
 | Method | Path | 用途 |
 | --- | --- | --- |
 | `GET` | `/api/home` | 获取当前用户 Home 目录 |
-| `GET` | `/api/default-cwd` | 获取服务端默认工作目录 |
 
 ### 2.2 Projects
 
@@ -391,20 +390,6 @@ GET /api/home
 ```json
 {
   "home": "C:\\Users\\example"
-}
-```
-
-### 4.2 获取默认工作目录
-
-```http
-GET /api/default-cwd
-```
-
-响应：
-
-```json
-{
-  "cwd": "C:\\workspace\\po-agent-web"
 }
 ```
 

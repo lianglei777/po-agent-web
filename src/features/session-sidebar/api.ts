@@ -23,10 +23,6 @@ export function loadHome() {
   return requestJson<{ home: string }>("/api/home");
 }
 
-export function loadDefaultCwd() {
-  return requestJson<{ cwd: string }>("/api/default-cwd");
-}
-
 export function loadProjects() {
   return requestJson<Project[]>("/api/projects");
 }

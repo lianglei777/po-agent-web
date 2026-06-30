@@ -43,6 +43,6 @@ describe("workspace sidebar", () => {
   it("keeps files out of project and session navigation", () => {
     expect(sessionsSource).not.toContain("FileExplorer");
     expect(sessionsSource).not.toContain("sessionPanelHeight");
-    expect(sessionsSource).toContain("groupSessionsByCwd");
+    expect(sessionsSource).toContain("groupSessionsByProject");
   });
 });
