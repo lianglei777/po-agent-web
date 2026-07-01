@@ -1,7 +1,17 @@
+import type {
+  ApiKeyProviderInfo as ApiKeyProviderContract,
+  OAuthProviderInfo,
+} from "@/contracts/auth";
 import {
   MODEL_API_PROTOCOLS,
   type ModelApiProtocol,
 } from "@/contracts/model-compat";
+import type {
+  ModelDiagnostic,
+  ModelDiscoveryConfidence as ApiModelDiscoveryConfidence,
+  ModelDiscoverySource as ApiModelDiscoverySource,
+  ModelTestResponse,
+} from "@/contracts/models";
 
 export const API_OPTIONS = MODEL_API_PROTOCOLS;
 
@@ -17,28 +27,14 @@ export const THINKING_LEVELS = [
 export type ApiOption = ModelApiProtocol;
 export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 export type ConfiguredThinkingLevel = Exclude<ThinkingLevel, "off">;
-
-export interface OAuthProvider {
-  id: string;
-  name: string;
-}
-
-export interface ApiKeyProviderInfo {
-  id: string;
-  name: string;
-}
+export type OAuthProvider = OAuthProviderInfo;
+export type ApiKeyProviderInfo = ApiKeyProviderContract;
 
 export interface ApiKeyProvider extends ApiKeyProviderInfo {
   configured: boolean;
   source?: string;
   label?: string;
   modelCount: number;
-}
-
-export interface ModelInfo {
-  id: string;
-  name: string;
-  provider: string;
 }
 
 export interface ModelEntry {
@@ -78,13 +74,8 @@ export interface ModelsJson {
   providers?: Record<string, ProviderEntry>;
 }
 
-export type ModelDiscoverySource =
-  | "catalog"
-  | "remote"
-  | "inferred"
-  | "defaulted";
-
-export type ModelDiscoveryConfidence = "high" | "medium" | "low";
+export type ModelDiscoverySource = ApiModelDiscoverySource;
+export type ModelDiscoveryConfidence = ApiModelDiscoveryConfidence;
 
 export interface ModelDiscoverySuggestion {
   source: ModelDiscoverySource;
@@ -150,59 +141,9 @@ export type Selection =
   | { type: "oauth"; providerId: string }
   | { type: "apikey"; providerId: string };
 
-export type OAuthServerEvent =
-  | { type: "auth"; url: string; instructions?: string }
-  | {
-      type: "device_code";
-      userCode: string;
-      verificationUri: string;
-      intervalSeconds?: number;
-      expiresInSeconds?: number;
-    }
-  | {
-      type: "prompt";
-      token: string;
-      message: string;
-      placeholder?: string;
-      allowEmpty?: boolean;
-    }
-  | {
-      type: "select";
-      token: string;
-      message: string;
-      options: Array<{ id: string; label: string }>;
-    }
-  | { type: "progress"; message: string }
-  | { type: "error"; message: string }
-  | { type: "complete" };
-
-export interface ModelTestResult {
-  ok: boolean;
-  latencyMs?: number;
-  responseText?: string;
-  error?: string;
-  verification: {
-    status: "verified" | "failed";
-    scenario: "basic-chat";
-    checkedAt: string;
-    latencyMs: number;
-  };
-  diagnostic?: ModelDiagnostic;
-}
-
-export interface ModelDiagnosticPatch {
-  scope: "provider" | "model";
-  api: string;
-  changes: Record<string, unknown>;
-  reason: string;
-}
-
-export interface ModelDiagnostic {
-  code: string;
-  summary: string;
-  technicalMessage?: string;
-  provider?: string;
-  model?: string;
-  retryable: boolean;
-  suggestedPatch?: ModelDiagnosticPatch;
-}
+export type { OAuthServerEvent } from "@/contracts/auth";
+export type {
+  ModelDiagnostic,
+  ModelDiagnosticPatch,
+} from "@/contracts/models";
+export type ModelTestResult = ModelTestResponse;

@@ -6,6 +6,13 @@ import type {
 } from "./agent";
 import type { SuccessResponse } from "./common";
 import type { FileEntry, ListFilesResponse } from "./files";
+import type { ApiKeyStatusResponse, OAuthServerEvent } from "./auth";
+import type {
+  ModelDiscoveryResponse,
+  ModelsConfigBootstrapResponse,
+  ModelsResponse,
+  ModelTestResponse,
+} from "./models";
 import type { ListProjectsResponse, Project } from "./projects";
 import type { ListSessionsResponse, SessionInfo } from "./sessions";
 import type { HomeResponse } from "./system";
@@ -32,5 +39,18 @@ describe("shared API contracts", () => {
     expectTypeOf<ListProjectsResponse>().toEqualTypeOf<Project[]>();
     expectTypeOf<ListSessionsResponse>().toEqualTypeOf<SessionInfo[]>();
     expectTypeOf<ListFilesResponse>().toEqualTypeOf<FileEntry[]>();
+  });
+
+  it("covers model and auth API responses", () => {
+    expectTypeOf<ModelsResponse>().toHaveProperty("models");
+    expectTypeOf<ModelsConfigBootstrapResponse>().toHaveProperty(
+      "apiKeyProviders",
+    );
+    expectTypeOf<ModelDiscoveryResponse>().toHaveProperty("models");
+    expectTypeOf<ModelTestResponse>().toHaveProperty("verification");
+    expectTypeOf<ApiKeyStatusResponse>().toHaveProperty("configured");
+    expectTypeOf<
+      Extract<OAuthServerEvent, { type: "complete" }>
+    >().toEqualTypeOf<{ type: "complete" }>();
   });
 });

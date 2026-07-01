@@ -8,9 +8,10 @@ import {
 import { AppError } from "@/server/domain/app-error";
 import type { InstallSkillInput, RemoveSkillInput } from "@/server/domain/skill";
 import type {
-  DiscoverModelsInput,
-  TestModelInput,
-} from "@/server/domain/model";
+  ModelDiscoveryRequest,
+  ModelTestRequest,
+  SaveModelsConfigRequest,
+} from "@/contracts/models";
 import { sanitizeModelsConfig } from "@/contracts/model-compat";
 import type { AddProjectRequest } from "@/contracts/projects";
 
@@ -120,7 +121,7 @@ export function parseAgentCommand(value: unknown): AgentCommand {
   }
 }
 
-export function parseModelTest(value: unknown): TestModelInput {
+export function parseModelTest(value: unknown): ModelTestRequest {
   const object = asObject(value);
   const config = object.config;
   return {
@@ -132,7 +133,7 @@ export function parseModelTest(value: unknown): TestModelInput {
   };
 }
 
-export function parseModelDiscovery(value: unknown): DiscoverModelsInput {
+export function parseModelDiscovery(value: unknown): ModelDiscoveryRequest {
   const object = asObject(value);
   const provider = asObject(object.provider, "provider");
   return {
@@ -146,7 +147,7 @@ export function parseModelDiscovery(value: unknown): DiscoverModelsInput {
   };
 }
 
-export function parseModelsConfig(value: unknown): Record<string, unknown> {
+export function parseModelsConfig(value: unknown): SaveModelsConfigRequest {
   try {
     return sanitizeModelsConfig(asObject(value, "config"), {
       strictApi: true,

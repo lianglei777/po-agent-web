@@ -1,10 +1,11 @@
+import type { ModelsConfigBootstrapResponse } from "@/contracts/models";
 import { container } from "@/server/composition/container";
 import { handleRoute } from "@/server/transport/http/api-response";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  return handleRoute(async () => {
+  return handleRoute<ModelsConfigBootstrapResponse>(async () => {
     const [config, oauthProviders, models] = await Promise.all([
       container.modelService.readConfig(),
       container.authService.listOAuthProviders(),

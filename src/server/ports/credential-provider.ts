@@ -1,7 +1,7 @@
 import type {
   ApiKeyProviderInfo,
   ApiKeyStatus,
-  ConfiguredApiKeyProviderInfo,
+  StoredApiKeyProviderInfo,
   OAuthCallbacks,
   OAuthProviderInfo,
 } from "@/server/domain/auth";
@@ -18,7 +18,7 @@ export interface CredentialProvider {
   /** 列出支持 API Key 认证的凭证提供者。 */
   listApiKeyProviders(): Promise<ApiKeyProviderInfo[]>;
   /** 列出已配置 API Key 的凭证提供者。 */
-  listConfiguredApiKeyProviders(): Promise<ConfiguredApiKeyProviderInfo[]>;
+  listConfiguredApiKeyProviders(): Promise<StoredApiKeyProviderInfo[]>;
   /** 查询指定提供者的 API Key 状态。 */
   getApiKeyStatus(provider: string): Promise<ApiKeyStatus>;
   /** 设置指定提供者的 API Key。 */

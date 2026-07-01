@@ -1,5 +1,9 @@
+import type {
+  OAuthInputRequest,
+  OAuthInputResponse,
+  OAuthServerEvent,
+} from "@/contracts/auth";
 import { container } from "@/server/composition/container";
-import type { OAuthServerEvent } from "@/server/domain/auth";
 import {
   handleRoute,
   readJson,
@@ -36,13 +40,17 @@ export async function GET(request: Request, context: Context) {
 }
 
 export async function POST(request: Request, context: Context) {
-  return handleRoute(async () => {
+  return handleRoute<OAuthInputResponse>(async () => {
     const { provider } = await context.params;
     const body = asObject(await readJson(request));
+    const input: OAuthInputRequest = {
+      token: requiredString(body, "token"),
+      value: requiredString(body, "value"),
+    };
     container.authService.submitInput(
       provider,
-      requiredString(body, "token"),
-      requiredString(body, "value"),
+      input.token,
+      input.value,
     );
     return { success: true };
   });

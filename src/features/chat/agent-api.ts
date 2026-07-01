@@ -6,8 +6,8 @@ import type {
   CreateAgentResponse,
 } from "@/contracts/agent";
 import type { ApiErrorResponse } from "@/contracts/common";
+import type { ModelsResponse } from "@/contracts/models";
 import type {
-  ModelInfo,
   SessionDetail,
 } from "./agent-types";
 
@@ -48,10 +48,7 @@ export function loadSessionContext(id: string, leafId: string) {
 }
 
 export function loadModels() {
-  return requestJson<{
-    models: ModelInfo[];
-    defaultModel: { provider: string; modelId: string } | null;
-  }>("/api/models");
+  return requestJson<ModelsResponse>("/api/models");
 }
 
 export function createAgent(input: CreateAgentRequest) {

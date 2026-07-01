@@ -1,39 +1,38 @@
 import type {
   ApiKeyProvider,
   ApiKeyProviderInfo,
-  ModelDiscoveryResult,
   ModelsJson,
   ProviderEntry,
-  ModelTestResult,
-  OAuthProvider,
 } from "./types";
+import type {
+  ApiKeyStatusResponse,
+  LogoutOAuthResponse,
+  OAuthInputResponse,
+  RemoveApiKeyResponse,
+  SaveApiKeyResponse,
+} from "@/contracts/auth";
+import type { ApiErrorResponse } from "@/contracts/common";
 import { sanitizeModelsConfig } from "@/contracts/model-compat";
-
-interface ApiErrorResponse {
-  error?: {
-    message?: string;
-  };
-}
-
-interface ApiKeyStatus {
-  configured: boolean;
-  source?: string;
-  label?: string;
-}
-
-interface ModelsConfigBootstrapResponse {
-  config: unknown;
-  oauthProviders: OAuthProvider[];
-  apiKeyProviders: ApiKeyProvider[];
-}
+import type {
+  ModelDiscoveryRequest,
+  ModelDiscoveryResponse,
+  ModelsConfigBootstrapResponse,
+  ModelTestRequest,
+  ModelTestResponse,
+  SaveModelsConfigRequest,
+  SaveModelsConfigResponse,
+} from "@/contracts/models";
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
-  const data = (await response.json()) as T & ApiErrorResponse;
+  const data = (await response.json()) as T | ApiErrorResponse;
   if (!response.ok) {
-    throw new Error(data.error?.message ?? `Request failed (${response.status})`);
+    const failure = data as ApiErrorResponse;
+    throw new Error(
+      failure.error?.message ?? `Request failed (${response.status})`,
+    );
   }
-  return data;
+  return data as T;
 }
 
 export function normalizeModelsConfig(value: unknown): ModelsJson {
@@ -57,7 +56,7 @@ export async function loadApiKeyProvider(
   modelCount = 0,
 ): Promise<ApiKeyProvider> {
   try {
-    const status = await requestJson<ApiKeyStatus>(
+    const status = await requestJson<ApiKeyStatusResponse>(
       `/api/auth/api-key/${encodeURIComponent(provider.id)}`,
     );
     return { ...provider, ...status, modelCount };
@@ -78,12 +77,13 @@ export async function loadModelsConfigData() {
 }
 
 export function saveModelsConfig(config: ModelsJson) {
-  return requestJson<{ success: true }>("/api/models-config", {
+  const body = sanitizeModelsConfig(
+    config as Record<string, unknown>,
+  ) satisfies SaveModelsConfigRequest;
+  return requestJson<SaveModelsConfigResponse>("/api/models-config", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(
-      sanitizeModelsConfig(config as Record<string, unknown>),
-    ),
+    body: JSON.stringify(body),
   });
 }
 
@@ -91,10 +91,11 @@ export function discoverModelsConfig(input: {
   providerName: string;
   provider: ProviderEntry;
 }) {
-  return requestJson<ModelDiscoveryResult>("/api/models-config/discover", {
+  const body: ModelDiscoveryRequest = input;
+  return requestJson<ModelDiscoveryResponse>("/api/models-config/discover", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify(body),
   });
 }
 
@@ -104,15 +105,19 @@ export function testModelConfig(input: {
   config: ModelsJson;
   timeoutMs?: number;
 }) {
-  return requestJson<ModelTestResult>("/api/models-config/test", {
+  const body: ModelTestRequest = {
+    ...input,
+    config: input.config as Record<string, unknown>,
+  };
+  return requestJson<ModelTestResponse>("/api/models-config/test", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify(body),
   });
 }
 
 export function saveApiKey(providerId: string, apiKey: string) {
-  return requestJson<{ success: true }>(
+  return requestJson<SaveApiKeyResponse>(
     `/api/auth/api-key/${encodeURIComponent(providerId)}`,
     {
       method: "POST",
@@ -123,7 +128,7 @@ export function saveApiKey(providerId: string, apiKey: string) {
 }
 
 export function removeApiKey(providerId: string) {
-  return requestJson<{ success: true }>(
+  return requestJson<RemoveApiKeyResponse>(
     `/api/auth/api-key/${encodeURIComponent(providerId)}`,
     { method: "DELETE" },
   );
@@ -134,7 +139,7 @@ export function submitOAuthInput(
   token: string,
   value: string,
 ) {
-  return requestJson<{ success: true }>(
+  return requestJson<OAuthInputResponse>(
     `/api/auth/login/${encodeURIComponent(providerId)}`,
     {
       method: "POST",
@@ -145,7 +150,7 @@ export function submitOAuthInput(
 }
 
 export function logoutOAuth(providerId: string) {
-  return requestJson<{ success: true }>(
+  return requestJson<LogoutOAuthResponse>(
     `/api/auth/logout/${encodeURIComponent(providerId)}`,
     { method: "POST" },
   );
