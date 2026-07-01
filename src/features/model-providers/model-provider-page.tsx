@@ -3,12 +3,12 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/use-i18n";
-import ApiKeyDetail from "../details/api-key-detail";
-import ModelDetail from "../details/model-detail";
-import OAuthDetail from "../details/oauth-detail";
-import ProviderDetail from "../details/provider-detail";
-import { useModelsConfig } from "../hooks/use-models-config";
-import { ModelsConfigSidebar } from "../sidebar/models-config-sidebar";
+import ApiKeyDetail from "./details/api-key-detail";
+import ModelDetail from "./details/model-detail";
+import OAuthDetail from "./details/oauth-detail";
+import ProviderDetail from "./details/provider-detail";
+import { ModelProviderSidebar } from "./sidebar/model-provider-sidebar";
+import { useModelProviders } from "./use-model-providers";
 
 export function ModelProviderPage({
   onDirtyChange,
@@ -17,7 +17,7 @@ export function ModelProviderPage({
   onDirtyChange: (dirty: boolean) => void;
   onSaved?: () => void;
 }) {
-  const modelConfig = useModelsConfig(onSaved);
+  const modelConfig = useModelProviders(onSaved);
   const { t } = useI18n();
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function ModelProviderPage({
         </div>
       ) : (
         <div className="flex min-h-0 flex-1">
-          <ModelsConfigSidebar
+          <ModelProviderSidebar
             apiKeyProviders={modelConfig.apiKeyProviders}
             config={modelConfig.config}
             onAddModel={modelConfig.addModel}
@@ -84,7 +84,7 @@ export function ModelProviderPage({
 function ModelsConfigDetail({
   modelConfig,
 }: {
-  modelConfig: ReturnType<typeof useModelsConfig>;
+  modelConfig: ReturnType<typeof useModelProviders>;
 }) {
   const selection = modelConfig.selection;
   if (!selection) return <EmptySelection />;

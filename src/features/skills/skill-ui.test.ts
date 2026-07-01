@@ -11,7 +11,7 @@ const listSource = readFileSync(
   "utf8",
 );
 const hookSource = readFileSync(
-  fileURLToPath(new URL("./use-skills-config.ts", import.meta.url)),
+  fileURLToPath(new URL("./use-skills.ts", import.meta.url)),
   "utf8",
 );
 const pageSource = readFileSync(

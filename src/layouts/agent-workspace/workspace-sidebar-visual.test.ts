@@ -8,7 +8,7 @@ const source = readFileSync(
 );
 const sessionsSource = readFileSync(
   fileURLToPath(
-    new URL("../../features/session-sidebar/session-sidebar.tsx", import.meta.url),
+    new URL("../../features/sessions/session-sidebar.tsx", import.meta.url),
   ),
   "utf8",
 );

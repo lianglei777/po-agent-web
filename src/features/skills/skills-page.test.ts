@@ -9,7 +9,7 @@ const source = readFileSync(
 
 describe("Skills page", () => {
   it("reuses project skill behavior without a top-level Dialog", () => {
-    expect(source).toContain("useSkillsConfig(cwd)");
+    expect(source).toContain("useSkills(cwd)");
     expect(source).toContain("SkillList");
     expect(source).toContain("SkillDetail");
     expect(source).toContain("AddSkillPanel");

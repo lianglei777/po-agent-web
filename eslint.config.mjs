@@ -212,9 +212,9 @@ const eslintConfig = defineConfig([
   },
   featureBoundary("chat"),
   featureBoundary("files"),
-  featureBoundary("models-config"),
+  featureBoundary("model-providers"),
   featureBoundary("sessions"),
-  featureBoundary("skills-config"),
+  featureBoundary("skills"),
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

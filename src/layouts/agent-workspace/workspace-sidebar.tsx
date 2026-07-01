@@ -14,7 +14,7 @@ import {
 import {
   SessionSidebar,
   type SessionSidebarProps,
-} from "@/features/session-sidebar/session-sidebar";
+} from "@/features/sessions/session-sidebar";
 import { useI18n } from "@/i18n/use-i18n";
 import type { WorkspaceView } from "./workspace-navigation";
 

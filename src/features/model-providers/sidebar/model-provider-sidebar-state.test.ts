@@ -3,7 +3,7 @@ import {
   getSelectionKey,
   getSelectionProviderName,
   isProviderCollapsed,
-} from "./models-config-sidebar-state";
+} from "./model-provider-sidebar-state";
 import type { Selection } from "../types";
 
 describe("models config sidebar state", () => {

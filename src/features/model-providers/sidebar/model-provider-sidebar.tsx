@@ -11,7 +11,7 @@ import { ChevronRight, Server } from "lucide-react";
 import {
   getSelectionKey,
   isProviderCollapsed,
-} from "./models-config-sidebar-state";
+} from "./model-provider-sidebar-state";
 import { ProviderIcon } from "./provider-icon";
 
 interface Props {
@@ -23,7 +23,7 @@ interface Props {
   onAddModel: (providerName: string) => void;
 }
 
-export function ModelsConfigSidebar({
+export function ModelProviderSidebar({
   config,
   apiKeyProviders,
   selection,

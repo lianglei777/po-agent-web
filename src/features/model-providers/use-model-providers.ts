@@ -6,10 +6,10 @@ import {
   loadApiKeyProvider,
   loadModelsConfigData,
   saveModelsConfig,
-} from "../api/models-config-api";
+} from "./api";
 import { useI18n } from "@/i18n/use-i18n";
 import { mergeDiscoveredModels } from "./model-discovery-merge";
-import { isDialogDirty } from "../dialog-safety";
+import { isDialogDirty } from "./dialog-safety";
 import type {
   ApiKeyProvider,
   ModelDiscoveryResult,
@@ -19,7 +19,7 @@ import type {
   OAuthProvider,
   ProviderEntry,
   Selection,
-} from "../types";
+} from "./types";
 
 const EMPTY_CONFIG: ModelsJson = { providers: {} };
 type DiscoveryState =
@@ -28,7 +28,7 @@ type DiscoveryState =
   | (ModelDiscoveryResult & { phase: "result"; providerName: string })
   | { phase: "error"; providerName: string; message: string };
 
-export function useModelsConfig(onSaved?: () => void) {
+export function useModelProviders(onSaved?: () => void) {
   const { t } = useI18n();
   const [config, setConfig] = useState<ModelsJson>(EMPTY_CONFIG);
   const [baselineConfig, setBaselineConfig] = useState<ModelsJson | null>(null);

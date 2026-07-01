@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { testModelConfig } from "../api/models-config-api";
+import { testModelConfig } from "../api";
 import { getEffectiveApi } from "@/contracts/model-compat";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ import {
   type ModelDiagnostic,
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
-import { SectionTitle, Field, inputStyle } from "../shared/form-ui";
+import { SectionTitle, Field, inputStyle } from "../form-ui";
 import {
   getDefaultThinkingOnLevel,
   getSourceTone,

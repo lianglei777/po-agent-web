@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { logoutOAuth, submitOAuthInput } from "../api/models-config-api";
+import { logoutOAuth, submitOAuthInput } from "../api";
 import { useI18n } from "@/i18n/use-i18n";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SectionTitle } from "../shared/form-ui";
+import { SectionTitle } from "../form-ui";
 import type {
   OAuthLoginState,
   OAuthProvider,

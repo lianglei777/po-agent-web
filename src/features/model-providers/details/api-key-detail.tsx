@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { removeApiKey, saveApiKey } from "../api/models-config-api";
+import { removeApiKey, saveApiKey } from "../api";
 import {
   type ApiKeyProvider,
 } from "../types";
@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SectionTitle, inputStyle } from "../shared/form-ui";
+import { SectionTitle, inputStyle } from "../form-ui";
 
 interface Props {
   provider: ApiKeyProvider;

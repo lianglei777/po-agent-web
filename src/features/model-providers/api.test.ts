@@ -4,7 +4,7 @@ import {
   loadModelsConfigData,
   normalizeModelsConfig,
   saveModelsConfig,
-} from "./models-config-api";
+} from "./api";
 
 afterEach(() => vi.unstubAllGlobals());
 

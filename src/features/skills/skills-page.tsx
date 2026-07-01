@@ -14,13 +14,13 @@ import { AddSkillPanel } from "./add-skill-panel";
 import { ConfirmRemoveDialog } from "./confirm-remove-dialog";
 import { SkillDetail } from "./skill-detail";
 import { SkillList } from "./skill-list";
-import { useSkillsConfig } from "./use-skills-config";
+import { useSkills } from "./use-skills";
 
 export function SkillsPage({ cwd }: { cwd: string }) {
   const [adding, setAdding] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<string | null>(null);
   const [removeSuccess, setRemoveSuccess] = useState<string | null>(null);
-  const skills = useSkillsConfig(cwd);
+  const skills = useSkills(cwd);
   const { t } = useI18n();
 
   async function handleRemoveConfirm() {

@@ -11,7 +11,7 @@ const EMPTY_RESULT: SkillLoadResult = {
   diagnostics: [],
 };
 
-export function useSkillsConfig(cwd: string) {
+export function useSkills(cwd: string) {
   const { t } = useI18n();
   const [result, setResult] = useState(EMPTY_RESULT);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);

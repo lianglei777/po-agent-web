@@ -139,8 +139,9 @@ src/lib          浏览器与共享 UI 工具
 src/components/ui
 src/features/chat
 src/features/files
-src/features/models-config
+src/features/model-providers
 src/features/sessions
+src/features/skills
 src/layouts/agent-workspace
 ```
 

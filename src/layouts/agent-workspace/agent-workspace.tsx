@@ -19,15 +19,15 @@ import {
 import { ResizeHandle } from "@/components/ui/resize-handle";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatCenter, type BranchState } from "@/features/chat/chat-center";
-import { FilePanel, type OpenFile } from "@/features/file-panel/file-panel";
-import { ModelProviderPage } from "@/features/models-config";
-import { loadSessions } from "@/features/session-sidebar/api";
+import { FilePanel, type OpenFile } from "@/features/files/file-panel";
+import { ModelProviderPage } from "@/features/model-providers/model-provider-page";
+import { loadSessions } from "@/features/sessions/api";
 import {
   getProjectName,
   getSessionTitle,
-} from "@/features/session-sidebar/session-utils";
-import type { SessionInfo } from "@/features/session-sidebar/types";
-import { SkillsPage } from "@/features/skills-config/skills-page";
+} from "@/features/sessions/session-utils";
+import type { SessionInfo } from "@/features/sessions/types";
+import { SkillsPage } from "@/features/skills/skills-page";
 import { useI18n } from "@/i18n/use-i18n";
 import {
   DEFAULT_FILE_PANEL_WIDTH,

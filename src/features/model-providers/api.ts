@@ -6,7 +6,7 @@ import type {
   ProviderEntry,
   ModelTestResult,
   OAuthProvider,
-} from "../types";
+} from "./types";
 import { sanitizeModelsConfig } from "@/contracts/model-compat";
 
 interface ApiErrorResponse {

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const picker = readFileSync(
-  `${root}/src/features/session-sidebar/project-picker.tsx`,
+  `${root}/src/features/sessions/project-picker.tsx`,
   "utf8",
 );
 const english = readFileSync(

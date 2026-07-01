@@ -4,15 +4,15 @@ import { describe, expect, it } from "vitest";
 
 const source = readFileSync(
   fileURLToPath(
-    new URL("./components/model-provider-page.tsx", import.meta.url),
+    new URL("./model-provider-page.tsx", import.meta.url),
   ),
   "utf8",
 );
 
 describe("Model Provider page", () => {
   it("reuses model configuration behavior without a top-level modal", () => {
-    expect(source).toContain("useModelsConfig");
-    expect(source).toContain("ModelsConfigSidebar");
+    expect(source).toContain("useModelProviders");
+    expect(source).toContain("ModelProviderSidebar");
     expect(source).toContain("onDirtyChange");
     expect(source).not.toContain("ModalOverlay");
     expect(source).not.toContain("<Dialog open");

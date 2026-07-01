@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SectionTitle, Field, inputStyle } from "../shared/form-ui";
+import { SectionTitle, Field, inputStyle } from "../form-ui";
 import { CompatEditor } from "./compat-editor";
 import { changeEntryApi } from "./compat-editor-state";
 

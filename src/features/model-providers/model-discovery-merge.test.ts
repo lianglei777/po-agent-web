@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mergeDiscoveredModels } from "./model-discovery-merge";
-import type { ModelDiscoverySuggestion, ModelsJson } from "../types";
+import type { ModelDiscoverySuggestion, ModelsJson } from "./types";
 
 describe("mergeDiscoveredModels", () => {
   it("adds only new discovered models and selects the first inserted model", () => {

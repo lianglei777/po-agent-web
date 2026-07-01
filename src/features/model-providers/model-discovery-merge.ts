@@ -2,7 +2,7 @@ import type {
   ModelDiscoverySuggestion,
   ModelsJson,
   Selection,
-} from "../types";
+} from "./types";
 
 export function mergeDiscoveredModels(
   config: ModelsJson,

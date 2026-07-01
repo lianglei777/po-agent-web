@@ -6,7 +6,7 @@ import {
   type CompatFieldDefinition,
 } from "@/contracts/model-compat";
 import { useI18n } from "@/i18n/use-i18n";
-import { Field, inputStyle, SectionTitle } from "../shared/form-ui";
+import { Field, inputStyle, SectionTitle } from "../form-ui";
 import { changeCompatValue } from "./compat-editor-state";
 
 interface Props {
