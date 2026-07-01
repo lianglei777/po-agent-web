@@ -71,3 +71,14 @@ export interface RemoveSkillRequest {
 }
 
 export type RemoveSkillResponse = SkillLoadResponse;
+
+export interface CreateLocalSkillRequest {
+  sourceFilePath: string;
+  scope: "global" | "project";
+  cwd?: string;
+}
+
+export interface CreateLocalSkillResponse {
+  created: true;
+  skills: SkillInfo[];
+}

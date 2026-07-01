@@ -1,6 +1,7 @@
 import path from "node:path";
 import { AppError } from "@/server/domain/app-error";
 import type {
+  ImportLocalSkillInput,
   InstallSkillInput,
   RemoveSkillInput,
   SetSkillInvocationInput,
@@ -43,6 +44,16 @@ export class SkillService {
     return this.skills.remove({
       ...input,
       cwd: await this.resolveAllowedCwd(input.cwd),
+    });
+  }
+
+  async importLocal(input: ImportLocalSkillInput) {
+    return this.skills.importLocal({
+      ...input,
+      cwd:
+        input.scope === "project"
+          ? await this.resolveAllowedCwd(input.cwd ?? "")
+          : input.cwd,
     });
   }
 

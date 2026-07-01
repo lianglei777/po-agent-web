@@ -191,6 +191,8 @@ Content-Type: text/event-stream; charset=utf-8
 | `PATCH` | `/api/skills` | 修改 Skill 的模型调用开关 |
 | `POST` | `/api/skills/search` | 搜索可安装 Skill |
 | `POST` | `/api/skills/install` | 安装 Skill |
+| `POST` | `/api/skills/local` | 导入本地 Skill 文件 |
+| `DELETE` | `/api/skills` | 移除 Skill |
 
 ## 3. 通用数据结构
 
@@ -1984,7 +1986,65 @@ Global Scope 会追加：
 - `409 SKILL_INSTALL_BUSY`
 - `500 SKILL_INSTALL_FAILED`
 
-### 10.5 移除 Skill
+### 10.5 导入本地 Skill
+
+```http
+POST /api/skills/local
+Content-Type: application/json
+```
+
+请求：
+
+```json
+{
+  "sourceFilePath": "D:\\my-skills\\review\\SKILL.md",
+  "scope": "project",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+字段：
+
+| 字段 | 必需 | 说明 |
+| --- | --- | --- |
+| `sourceFilePath` | 是 | 本地 skill 文件的绝对路径（`.md` 文件）或包含 `SKILL.md` 的目录路径 |
+| `scope` | 是 | `global` 或 `project` |
+| `cwd` | Project 必需 | 已注册的 Workspace Root |
+
+行为：
+
+读取 `sourceFilePath` 指定的 skill 文件。如果路径是目录，则自动查找该目录下的
+`SKILL.md`。从其 frontmatter 中解析 `name` 字段；
+如果没有 frontmatter 或没有 `name` 字段，则用源文件名（不含扩展名）作为技能名。
+然后将文件内容复制到 `<cwd>/.agents/skills/<name>/SKILL.md`（Project scope）或
+`~/.agents/skills/<name>/SKILL.md`（Global scope）。写入后重新运行
+`DefaultResourceLoader` 验证技能已被发现。正在运行的 AgentSession 不会被静默重启，
+新会话、恢复会话或显式资源 reload 后生效。
+
+成功响应：
+
+```json
+{
+  "created": true,
+  "skills": [
+    {
+      "skillId": "d60c...",
+      "name": "my-skill",
+      "displayPath": ".agents\\skills\\my-skill\\SKILL.md"
+    }
+  ]
+}
+```
+
+错误：
+
+- `400 VALIDATION_ERROR`（路径非法、不是 .md 文件）
+- `404 VALIDATION_ERROR`（源文件不存在或不可读）
+- `409 VALIDATION_ERROR`（同名技能已存在）
+- `409 SKILL_INSTALL_BUSY`（有其他技能操作正在运行）
+- `500 SKILL_CREATE_FAILED`
+
+### 10.6 移除 Skill
 
 ```http
 DELETE /api/skills

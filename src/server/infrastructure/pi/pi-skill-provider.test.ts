@@ -8,6 +8,7 @@ import {
   PiSkillProvider,
   updateSkillFrontmatter,
   validatePackageSpec,
+  validateSkillName,
 } from "./pi-skill-provider";
 
 describe("PiSkillProvider helpers", () => {
@@ -131,5 +132,30 @@ describe("PiSkillProvider helpers", () => {
     } finally {
       global.fetch = originalFetch;
     }
+  });
+
+  it("rejects invalid skill names", () => {
+    expect(() => validateSkillName("My Skill!")).toThrow(
+      "skill name must be 1-64 chars",
+    );
+    expect(() => validateSkillName("UPPER")).toThrow(
+      "skill name must be 1-64 chars",
+    );
+    expect(() => validateSkillName("-leading-hyphen")).toThrow(
+      "skill name must be 1-64 chars",
+    );
+    expect(() => validateSkillName("")).toThrow(
+      "skill name must be 1-64 chars",
+    );
+    expect(() => validateSkillName("a".repeat(65))).toThrow(
+      "skill name must be 1-64 chars",
+    );
+    expect(() => validateSkillName("path/../traversal")).toThrow(
+      "skill name must be 1-64 chars",
+    );
+    // 合法名称不应抛出
+    expect(() => validateSkillName("my-skill")).not.toThrow();
+    expect(() => validateSkillName("skill-123")).not.toThrow();
+    expect(() => validateSkillName("a")).not.toThrow();
   });
 });

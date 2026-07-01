@@ -6,7 +6,10 @@ import {
   type ThinkingLevel,
 } from "@/contracts/agent";
 import { AppError } from "@/server/domain/app-error";
-import type { InstallSkillInput } from "@/server/domain/skill";
+import type {
+  ImportLocalSkillInput,
+  InstallSkillInput,
+} from "@/server/domain/skill";
 import type {
   ModelDiscoveryRequest,
   ModelTestRequest,
@@ -190,6 +193,19 @@ export function parseSkillRemove(value: unknown): RemoveSkillRequest {
   return {
     skillId: requiredString(object, "skillId"),
     cwd: requiredString(object, "cwd"),
+  };
+}
+
+export function parseSkillCreateLocal(value: unknown): ImportLocalSkillInput {
+  const object = asObject(value);
+  const scope = requiredString(object, "scope");
+  if (scope !== "global" && scope !== "project") {
+    invalid("scope must be global or project");
+  }
+  return {
+    sourceFilePath: requiredString(object, "sourceFilePath"),
+    scope,
+    cwd: optionalString(object, "cwd"),
   };
 }
 

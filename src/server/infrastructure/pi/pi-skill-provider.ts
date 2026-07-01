@@ -10,6 +10,8 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { AppError } from "@/server/domain/app-error";
 import type {
+  ImportLocalSkillInput,
+  ImportLocalSkillResult,
   InstallSkillInput,
   RemoveSkillInput,
   SetSkillInvocationInput,
@@ -224,10 +226,7 @@ export class PiSkillProvider implements SkillProvider {
       // 不在 lock 中，CLI 报成功但不删文件，回退到直接删除 skill 目录。
       if (stillExists && skill.canModify) {
         const skillDir = path.resolve(skill.baseDir);
-        const skillsRoot =
-          removeScope === "global"
-            ? path.resolve(os.homedir(), ".agents", "skills")
-            : path.resolve(cwd, ".agents", "skills");
+        const skillsRoot = resolveSkillsRoot(removeScope, cwd);
         const relative = path.relative(skillsRoot, skillDir);
         if (relative && !relative.startsWith("..") && !path.isAbsolute(relative)) {
           await this.withFileLock(skill.filePath, () =>
@@ -251,6 +250,120 @@ export class PiSkillProvider implements SkillProvider {
       if (error instanceof AppError) throw error;
       throw new AppError(
         "SKILL_REMOVE_FAILED",
+        error instanceof Error ? error.message : String(error),
+        500,
+      );
+    } finally {
+      this.installRunning = false;
+    }
+  }
+
+  async importLocal(
+    input: ImportLocalSkillInput,
+  ): Promise<ImportLocalSkillResult> {
+    if (this.installRunning) {
+      throw new AppError(
+        "SKILL_INSTALL_BUSY",
+        "Another skill operation is already running.",
+        409,
+      );
+    }
+
+    this.installRunning = true;
+    try {
+      const cwd = input.scope === "project"
+        ? (input.cwd ?? process.cwd())
+        : process.cwd();
+
+      // 解析源路径：支持 .md 文件路径或包含 SKILL.md 的目录路径
+      const rawPath = path.resolve(input.sourceFilePath);
+      let sourcePath: string;
+      let sourceContent: string;
+      try {
+        const stat = await fs.stat(rawPath);
+        if (stat.isDirectory()) {
+          // 目录路径：查找目录内的 SKILL.md
+          sourcePath = path.join(rawPath, "SKILL.md");
+          sourceContent = await fs.readFile(sourcePath, "utf8");
+        } else if (rawPath.endsWith(".md")) {
+          sourcePath = rawPath;
+          sourceContent = await fs.readFile(sourcePath, "utf8");
+        } else {
+          throw new AppError(
+            "VALIDATION_ERROR",
+            "Source path must be a .md file or a directory containing SKILL.md.",
+            400,
+          );
+        }
+      } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Source skill file not found or not readable.",
+          404,
+        );
+      }
+
+      // 从 frontmatter 解析 name，没有则用文件名（不含扩展名）
+      const skillName = parseSkillNameFromContent(
+        sourceContent,
+        path.basename(sourcePath, ".md"),
+      );
+      validateSkillName(skillName);
+
+      const skillsRoot = resolveSkillsRoot(input.scope, cwd);
+      const skillDir = path.resolve(skillsRoot, skillName);
+      const skillFile = path.join(skillDir, "SKILL.md");
+
+      // 安全校验：skillDir 必须在 skillsRoot 之下
+      const relative = path.relative(skillsRoot, skillDir);
+      if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Invalid skill name.",
+          400,
+        );
+      }
+
+      // 检查是否已存在
+      try {
+        await fs.access(skillDir);
+        throw new AppError(
+          "VALIDATION_ERROR",
+          `Skill "${skillName}" already exists.`,
+          409,
+        );
+      } catch (error) {
+        if (error instanceof AppError) throw error;
+        // 目录不存在，继续
+      }
+
+      await this.withFileLock(skillFile, async () => {
+        await fs.mkdir(skillDir, { recursive: true });
+        await fs.writeFile(skillFile, sourceContent, "utf8");
+      });
+
+      // 重新加载验证
+      const after = await this.load(cwd);
+      const created = after.skills.filter(
+        (skill) =>
+          skill.name === skillName &&
+          (input.scope === "global"
+            ? skill.sourceInfo.scope === "user"
+            : skill.sourceInfo.scope === "project"),
+      );
+      if (created.length === 0) {
+        throw new AppError(
+          "SKILL_CREATE_FAILED",
+          "The skill file was written, but ResourceLoader could not verify it.",
+          500,
+        );
+      }
+      return { created: true as const, skills: created };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(
+        "SKILL_CREATE_FAILED",
         error instanceof Error ? error.message : String(error),
         500,
       );
@@ -522,6 +635,22 @@ export function displaySkillPath(
   return filePath;
 }
 
+/**
+ * 解析 skill 的存储根目录，与 Pi ResourceLoader 的扫描路径保持一致。
+ *
+ * Pi 加载器默认扫描：
+ *   - user scope:    getAgentDir()/skills/  (即 ~/.pi/agent/skills/)
+ *   - project scope: <cwd>/.pi/skills/
+ *
+ * CONFIG_DIR_NAME 默认为 ".pi"，由 pi-coding-agent 包的 package.json 决定，
+ * 但未从包中导出，此处硬编码 ".pi" 与默认值一致。
+ */
+function resolveSkillsRoot(scope: "global" | "project", cwd: string): string {
+  return scope === "global"
+    ? path.join(getAgentDir(), "skills")
+    : path.resolve(cwd, ".pi", "skills");
+}
+
 function cleanAnsi(value: string): string {
   return value.replace(ANSI_PATTERN, "");
 }
@@ -564,6 +693,50 @@ export function validatePackageSpec(packageSpec: string): void {
       400,
     );
   }
+}
+
+export function validateSkillName(name: string): void {
+  // 允许：小写字母、数字、连字符；不以连字符开头；长度 1-64
+  if (
+    name.length === 0 ||
+    name.length > 64 ||
+    name.startsWith("-") ||
+    !/^[a-z0-9][a-z0-9-]*$/.test(name)
+  ) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "skill name must be 1-64 chars, lowercase alphanumeric and hyphens, not starting with a hyphen",
+      400,
+    );
+  }
+  // 防止路径遍历
+  if (name.includes("..") || name.includes("/") || name.includes("\\")) {
+    throw new AppError("VALIDATION_ERROR", "Invalid skill name.", 400);
+  }
+}
+
+function parseSkillNameFromContent(
+  content: string,
+  fallback: string,
+): string {
+  // 尝试从 frontmatter 中提取 name 字段
+  const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (match) {
+    const frontmatter = match[1];
+    const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
+    if (nameMatch) {
+      let name = nameMatch[1].trim();
+      // 去除 YAML 字符串引号
+      if (
+        (name.startsWith('"') && name.endsWith('"')) ||
+        (name.startsWith("'") && name.endsWith("'"))
+      ) {
+        name = name.slice(1, -1);
+      }
+      return name;
+    }
+  }
+  return fallback;
 }
 
 export function buildInstallArgs(

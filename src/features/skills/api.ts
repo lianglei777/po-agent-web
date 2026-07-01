@@ -1,5 +1,7 @@
 import type { ApiErrorResponse } from "@/contracts/common";
 import type {
+  CreateLocalSkillRequest,
+  CreateLocalSkillResponse,
   InstallSkillRequest,
   InstallSkillResponse,
   RemoveSkillRequest,
@@ -55,6 +57,18 @@ export async function installSkill(
   signal?: AbortSignal,
 ): Promise<InstallSkillResponse> {
   return requestJson("/api/skills/install", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export async function createLocalSkill(
+  input: CreateLocalSkillRequest,
+  signal?: AbortSignal,
+): Promise<CreateLocalSkillResponse> {
+  return requestJson("/api/skills/local", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),

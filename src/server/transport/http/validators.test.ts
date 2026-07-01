@@ -4,6 +4,7 @@ import {
   parseCreateAgent,
   parseModelsConfig,
   parseProjectPath,
+  parseSkillCreateLocal,
   parseSkillInstall,
   parseSkillRemove,
 } from "./validators";
@@ -78,6 +79,36 @@ describe("agent HTTP validation", () => {
     expect(() => parseSkillRemove({ skillId: "abc" })).toThrow(
       "cwd must be a non-empty string",
     );
+  });
+
+  it("parses local skill import requests", () => {
+    expect(
+      parseSkillCreateLocal({
+        sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+        scope: "project",
+        cwd: "C:\\work",
+      }),
+    ).toEqual({
+      sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+      scope: "project",
+      cwd: "C:\\work",
+    });
+    expect(
+      parseSkillCreateLocal({
+        sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+        scope: "global",
+      }),
+    ).toEqual({
+      sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+      scope: "global",
+      cwd: undefined,
+    });
+    expect(() =>
+      parseSkillCreateLocal({ sourceFilePath: "", scope: "project" }),
+    ).toThrow("sourceFilePath must be a non-empty string");
+    expect(() =>
+      parseSkillCreateLocal({ sourceFilePath: "x", scope: "bad" }),
+    ).toThrow("scope must be global or project");
   });
 
   it("sanitizes protocol-specific model compatibility fields", () => {

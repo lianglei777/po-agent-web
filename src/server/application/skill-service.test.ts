@@ -72,4 +72,44 @@ describe("SkillService", () => {
       service.remove({ cwd: path.resolve("C:\\outside"), skillId: "x" }),
     ).rejects.toMatchObject({ status: 403 });
   });
+
+  it("resolves importLocal cwd through the workspace root check", async () => {
+    const importLocal = vi.fn().mockResolvedValue({ created: true, skills: [] });
+    const root = path.resolve("C:\\workspace");
+    const service = new SkillService(
+      { importLocal } as unknown as SkillProvider,
+      { listRoots: async () => [root], addRoot: vi.fn() },
+    );
+
+    await service.importLocal({
+      sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+      scope: "project",
+      cwd: root,
+    });
+    expect(importLocal).toHaveBeenCalledWith({
+      sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+      scope: "project",
+      cwd: root,
+    });
+
+    // global scope 不校验 cwd
+    await service.importLocal({
+      sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+      scope: "global",
+    });
+    expect(importLocal).toHaveBeenLastCalledWith({
+      sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+      scope: "global",
+      cwd: undefined,
+    });
+
+    // 非注册根拒绝
+    await expect(
+      service.importLocal({
+        sourceFilePath: "D:\\my-skills\\review\\SKILL.md",
+        scope: "project",
+        cwd: path.resolve("C:\\outside"),
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+  });
 });

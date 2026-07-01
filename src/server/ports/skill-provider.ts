@@ -1,4 +1,6 @@
 import type {
+  ImportLocalSkillInput,
+  ImportLocalSkillResult,
   InstallSkillInput,
   InstallSkillResult,
   RemoveSkillInput,
@@ -35,4 +37,13 @@ export interface SkillProvider {
    * 仅支持 project scope 的技能；其他 scope 的技能应在调用前由上层过滤。
    */
   remove(input: RemoveSkillInput): Promise<SkillLoadResult>;
+  /**
+   * 导入本地 skill 文件。
+   *
+   * 读取指定路径的 skill 文件，解析 frontmatter 中的 name，复制到
+   * .pi/skills/<name>/SKILL.md（项目级）或 ~/.pi/agent/skills/<name>/SKILL.md（全局）。
+   * 此操作有副作用（会读取和写入文件），
+   * 需保留用户反馈和错误状态。
+   */
+  importLocal(input: ImportLocalSkillInput): Promise<ImportLocalSkillResult>;
 }
