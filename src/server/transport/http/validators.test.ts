@@ -38,6 +38,16 @@ describe("agent HTTP validation", () => {
     ).toThrow("message or images must be provided");
   });
 
+  it.each(["set_auto_compaction", "set_auto_retry"] as const)(
+    "parses %s commands",
+    (type) => {
+      expect(parseAgentCommand({ type, enabled: true })).toEqual({
+        type,
+        enabled: true,
+      });
+    },
+  );
+
   it("accepts the skills market package contract", () => {
     expect(
       parseSkillInstall({

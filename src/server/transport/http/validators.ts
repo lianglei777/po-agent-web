@@ -1,11 +1,11 @@
 import {
   THINKING_LEVELS,
   type AgentCommand,
+  type CreateAgentRequest,
   type ImageInput,
   type ThinkingLevel,
-} from "@/server/domain/agent-command";
+} from "@/contracts/agent";
 import { AppError } from "@/server/domain/app-error";
-import type { CreateAgentRequest } from "@/server/application/agent-service";
 import type { InstallSkillInput, RemoveSkillInput } from "@/server/domain/skill";
 import type {
   DiscoverModelsInput,

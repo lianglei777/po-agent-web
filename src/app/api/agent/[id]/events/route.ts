@@ -1,6 +1,6 @@
+import type { AgentEvent } from "@/contracts/agent";
 import { container } from "@/server/composition/container";
 import { createSseResponse } from "@/server/transport/sse/sse-stream";
-import type { AgentEvent } from "@/server/domain/agent-event";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

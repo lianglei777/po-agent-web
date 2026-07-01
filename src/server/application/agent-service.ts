@@ -1,8 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type {
-  AgentCommand,
-  ThinkingLevel,
-} from "@/server/domain/agent-command";
+  AgentCommandResponse,
+  CreateAgentRequest,
+  CreateAgentResponse,
+  ForkAgentResponse,
+} from "@/contracts/agent";
+import type { AgentCommand } from "@/server/domain/agent-command";
 import { AppError } from "@/server/domain/app-error";
 import type { AgentEvent } from "@/server/domain/agent-event";
 import type {
@@ -12,22 +15,6 @@ import type {
 } from "@/server/ports/agent-runtime";
 import type { WorkspaceRootProvider } from "@/server/ports/file-system";
 import type { SessionRepository } from "@/server/ports/session-repository";
-
-/**
- * 创建 Agent 会话的请求参数。
- */
-export interface CreateAgentRequest {
-  /** 工作目录 */
-  cwd: string;
-  /** 模型提供者（可选） */
-  provider?: string;
-  /** 模型标识（可选） */
-  modelId?: string;
-  /** 思考级别（可选） */
-  thinkingLevel?: ThinkingLevel;
-  /** 允许使用的工具名称列表（可选） */
-  toolNames?: string[];
-}
 
 /**
  * Agent 会话应用服务。
@@ -59,7 +46,7 @@ export class AgentService {
    */
   async create(
     input: CreateAgentRequest,
-  ): Promise<{ sessionId: string }> {
+  ): Promise<CreateAgentResponse> {
     this.roots.addRoot(input.cwd);
     const startKey = `new:${randomUUID()}`;
     const runtime = await this.runtimes.getOrStart(startKey, () =>
@@ -98,26 +85,25 @@ export class AgentService {
    * @param command - 要执行的命令
    * @returns 命令执行结果
    */
-  async execute<T>(
+  async execute(
     sessionId: string,
     command: AgentCommand,
-  ): Promise<T> {
+  ): Promise<AgentCommandResponse> {
     const runtime = await this.getOrRestore(sessionId);
     this.runtimes.touch(sessionId);
 
     if (command.type === "prompt") {
       this.runInBackground(runtime, command);
-      return { accepted: true } as T;
+      return { accepted: true };
     }
     if (command.type === "fork") {
-      const result = await runtime.execute<{
-        sessionId: string;
-        sessionFile: string;
-      }>(command);
+      const result = await runtime.execute<ForkAgentResponse>(command);
       this.runtimes.destroy(sessionId);
-      return result as T;
+      return result;
     }
-    return runtime.execute<T>(command);
+    return (await runtime.execute<AgentCommandResponse | undefined>(command)) ?? {
+      success: true,
+    };
   }
 
   /**

@@ -1,5 +1,5 @@
+import type { ApiErrorResponse } from "@/contracts/common";
 import { AppError } from "@/server/domain/app-error";
-import type { ApiResult } from "@/server/transport/http/api-result";
 
 export function json<T>(data: T, init?: ResponseInit): Response {
   return Response.json(data, init);
@@ -22,7 +22,7 @@ export function errorResponse(error: unknown): Response {
           error instanceof Error ? error.message : "Internal server error",
           500,
         );
-  const body: ApiResult<never> = {
+  const body: ApiErrorResponse = {
     success: false,
     error: {
       code: appError.code,
