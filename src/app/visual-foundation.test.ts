@@ -31,30 +31,23 @@ const agentWorkspace = readFileSync(
 );
 
 describe("visual foundation contract", () => {
-  test("defines the approved Adaptive Workbench and Deep Focus tokens", () => {
-    expect(css).toContain("--bg: #f1f3f2");
-    expect(css).toContain("--bg-panel: #f8f9f8");
-    expect(css).toContain("--bg-elevated: #fbfcfb");
-    expect(css).toContain("--bg-selected: #e2e9e5");
-    expect(css).toContain("--text: #151816");
-    expect(css).toContain("--text-muted: #53605b");
-    expect(css).toContain("--text-dim: #66716c");
-    expect(css).toContain("--border-subtle: #d8ddda");
-    expect(css).toContain("--border-strong: #aab3ae");
-    expect(css).toContain("--accent: #17624b");
+  test("defines the approved Agent Mint tokens", () => {
+    expect(css).toContain("--bg: #fbfbf8");
+    expect(css).toContain("--bg-panel: #ffffff");
+    expect(css).toContain("--bg-elevated: #ffffff");
+    expect(css).toContain("--bg-selected: #e8f5ee");
+    expect(css).toContain("--text: #0a0a0a");
+    expect(css).toContain("--text-muted: #3f3f46");
+    expect(css).toContain("--text-dim: #71717a");
+    expect(css).toContain("--border-subtle: #e7e5df");
+    expect(css).toContain("--border-strong: #c9c4b8");
+    expect(css).toContain("--accent: #22e68a");
+    expect(css).toContain("--accent-deep: #0d6b42");
     expect(css).toContain("--primary-foreground: #ffffff");
 
-    expect(css).toContain("--bg: #121514");
-    expect(css).toContain("--bg-panel: #181b1a");
-    expect(css).toContain("--bg-elevated: #1f2421");
-    expect(css).toContain("--bg-selected: #26312c");
-    expect(css).toContain("--text: #eef1ed");
-    expect(css).toContain("--text-muted: #a8b0aa");
-    expect(css).toContain("--text-dim: #7b857f");
-    expect(css).toContain("--border-subtle: #2d332f");
-    expect(css).toContain("--border-strong: #57625c");
-    expect(css).toContain("--accent: #8bc7b0");
-    expect(css).toContain("--primary-foreground: #102019");
+    // 暗色主题已被移除
+    expect(css).not.toContain("html.dark");
+    expect(css).not.toContain("color-scheme: dark");
   });
 
   test("registers approved display fonts without replacing the UI font", () => {
@@ -95,12 +88,12 @@ describe("visual foundation contract", () => {
     expect(css).toContain("overflow-y: hidden");
   });
 
-  test("keeps the design sidecar synchronized with the approved themes", () => {
-    expect(designSidecar).toContain('"canonical": "#f1f3f2"');
-    expect(designSidecar).toContain('"canonical": "#17624b"');
-    expect(designSidecar).toContain("Adaptive Workbench");
-    expect(designSidecar).toContain("Deep Focus");
+  test("keeps the design sidecar synchronized with the approved theme", () => {
+    expect(designSidecar).toContain('"canonical": "#fbfbf8"');
+    expect(designSidecar).toContain('"canonical": "#22e68a"');
+    expect(designSidecar).toContain("Agent Mint");
+    expect(designSidecar).not.toContain("Deep Focus");
+    expect(designSidecar).not.toContain("Adaptive Workbench");
     expect(designSidecar).not.toContain("rounded-20px");
-    expect(designSidecar).not.toContain("Warm Paper");
   });
 });

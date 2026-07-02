@@ -592,7 +592,7 @@ function failureSummary(
 
 function Markdown({ text }: { text: string }) {
   return (
-    <div className="text-sm leading-[1.7] text-primary [&_a]:text-accent [&_a]:underline [&_blockquote]:border-l [&_blockquote]:border-line-subtle [&_blockquote]:pl-3 [&_code]:font-ui-mono [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-3 [&_table]:w-full [&_td]:border [&_td]:border-line-subtle [&_td]:p-2 [&_th]:border [&_th]:border-line-subtle [&_th]:p-2 [&_ul]:my-3 [&_ul]:pl-6">
+    <div className="text-sm leading-[1.7] text-primary [&_a]:text-accent-deep [&_a]:underline [&_blockquote]:border-l [&_blockquote]:border-line-subtle [&_blockquote]:pl-3 [&_code]:font-ui-mono [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-3 [&_table]:w-full [&_td]:border [&_td]:border-line-subtle [&_td]:p-2 [&_th]:border [&_th]:border-line-subtle [&_th]:p-2 [&_ul]:my-3 [&_ul]:pl-6">
       <ReactMarkdown
         components={{
           code({ className, children, ...props }) {

@@ -13,8 +13,9 @@ describe("shared UI visual contract", () => {
     }
   });
 
-  test("reserves shadows for floating surfaces", () => {
-    expect(read("card")).not.toContain("shadow-[var(--shadow");
+  test("reserves floating shadows and allows card resting shadow", () => {
+    expect(read("card")).toContain("shadow-[var(--shadow-card)]");
+    expect(read("card")).not.toContain("shadow-[var(--shadow-floating)]");
     expect(read("dialog")).toContain("shadow-[var(--shadow-floating)]");
     expect(read("tooltip")).toContain("shadow-[var(--shadow-floating)]");
     expect(read("select")).toContain("shadow-[var(--shadow-floating)]");

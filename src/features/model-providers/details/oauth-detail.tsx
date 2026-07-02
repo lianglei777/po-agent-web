@@ -165,7 +165,7 @@ export default function OAuthDetail({
             <button
               type="button"
               onClick={startLogin}
-              className="rounded-md bg-accent px-4 py-1.5 text-[12px] font-semibold text-primary-foreground"
+              className="rounded-md bg-primary px-4 py-1.5 text-[12px] font-semibold text-primary-foreground"
             >
               {t.models.login}
             </button>
@@ -254,7 +254,7 @@ function OAuthState({
     return (
       <div className="flex flex-col gap-2 text-[13px] text-muted">
         {state.instructions && <p>{state.instructions}</p>}
-        <a className="text-accent hover:underline" href={state.url} target="_blank" rel="noreferrer">
+        <a className="text-accent-deep hover:underline" href={state.url} target="_blank" rel="noreferrer">
           {t.models.openLoginPage}
         </a>
       </div>
@@ -267,7 +267,7 @@ function OAuthState({
         <code className="self-start rounded border border-line px-4 py-2 text-[16px] font-bold">
           {state.userCode}
         </code>
-        <a className="text-accent hover:underline" href={state.verificationUri} target="_blank" rel="noreferrer">
+        <a className="text-accent-deep hover:underline" href={state.verificationUri} target="_blank" rel="noreferrer">
           {state.verificationUri}
         </a>
       </div>
@@ -290,7 +290,7 @@ function OAuthState({
             type="button"
             disabled={!canSubmit}
             onClick={() => submit(state.token, input)}
-            className="rounded-md bg-accent px-3 py-1.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50"
+            className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50"
           >
             {t.models.submit}
           </button>

@@ -1,68 +1,68 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-06-22T13:34:00.000+08:00",
+  "generatedAt": "2026-07-02T09:30:00.000+08:00",
   "title": "Design System: Po Agent Web",
   "extensions": {
     "colorMeta": {
       "canvas": {
         "role": "neutral",
-        "displayName": "Adaptive Canvas",
-        "canonical": "#f1f3f2",
-        "tonalRamp": ["#121514", "#29302c", "#53605b", "#66716c", "#aab3ae", "#d8ddda", "#f1f3f2", "#fbfcfb"]
+        "displayName": "Warm Paper",
+        "canonical": "#fbfbf8",
+        "tonalRamp": ["#0a0a0a", "#3f3f46", "#71717a", "#a1a1aa", "#c9c4b8", "#e7e5df", "#f4f4f0", "#fbfbf8"]
       },
       "panel": {
         "role": "neutral",
-        "displayName": "Workbench Panel",
-        "canonical": "#f8f9f8",
-        "tonalRamp": ["#181b1a", "#29302c", "#57625c", "#7f8983", "#a8b0aa", "#d8ddda", "#f1f3f2", "#f8f9f8"]
+        "displayName": "Pure Panel",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#0a0a0a", "#3f3f46", "#71717a", "#a1a1aa", "#c9c4b8", "#e7e5df", "#f7f7f4", "#ffffff"]
       },
       "hover": {
         "role": "neutral",
-        "displayName": "Pine Mist Hover",
-        "canonical": "#e8ece9",
-        "tonalRamp": ["#121514", "#26312c", "#53605b", "#66716c", "#aab3ae", "#d8ddda", "#e8ece9", "#fbfcfb"]
+        "displayName": "Warm Hover",
+        "canonical": "#f4f4f0",
+        "tonalRamp": ["#0a0a0a", "#3f3f46", "#71717a", "#a1a1aa", "#c9c4b8", "#e7e5df", "#f4f4f0", "#fbfbf8"]
       },
       "selected": {
         "role": "neutral",
-        "displayName": "Selected Pine Mist",
-        "canonical": "#e2e9e5",
-        "tonalRamp": ["#121514", "#26312c", "#53605b", "#66716c", "#aab3ae", "#d8ddda", "#e2e9e5", "#fbfcfb"]
+        "displayName": "Mint Selected",
+        "canonical": "#e8f5ee",
+        "tonalRamp": ["#0a0a0a", "#0d6b42", "#16c978", "#22e68a", "#8af0bb", "#ddfbea", "#e8f5ee", "#fbfbf8"]
       },
       "border": {
         "role": "neutral",
-        "displayName": "Titanium Line",
-        "canonical": "#d8ddda",
-        "tonalRamp": ["#121514", "#2d332f", "#57625c", "#66716c", "#aab3ae", "#d8ddda", "#edf0ee", "#fbfcfb"]
+        "displayName": "Warm Line",
+        "canonical": "#e7e5df",
+        "tonalRamp": ["#0a0a0a", "#3f3f46", "#71717a", "#a1a1aa", "#c9c4b8", "#e7e5df", "#f4f4f0", "#fbfbf8"]
       },
       "ink": {
         "role": "neutral",
-        "displayName": "Deep Ink",
-        "canonical": "#151816",
-        "tonalRamp": ["#0d0f0e", "#151816", "#29302c", "#53605b", "#66716c", "#a8b0aa", "#d8ddda", "#eef1ed"]
+        "displayName": "High Contrast Ink",
+        "canonical": "#0a0a0a",
+        "tonalRamp": ["#0a0a0a", "#3f3f46", "#71717a", "#a1a1aa", "#c9c4b8", "#e7e5df", "#f4f4f0", "#fbfbf8"]
       },
       "muted": {
         "role": "neutral",
-        "displayName": "Cool Graphite",
-        "canonical": "#53605b",
-        "tonalRamp": ["#121514", "#29302c", "#3e4944", "#53605b", "#66716c", "#a8b0aa", "#d8ddda", "#eef1ed"]
+        "displayName": "Zinc Muted",
+        "canonical": "#3f3f46",
+        "tonalRamp": ["#0a0a0a", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#f4f4f0"]
       },
       "accent": {
         "role": "primary",
-        "displayName": "Pine Focus",
-        "canonical": "#17624b",
-        "tonalRamp": ["#071c15", "#0d3327", "#104d3a", "#17624b", "#3f806b", "#72a994", "#a7d0c0", "#dceee7"]
+        "displayName": "Agent Mint",
+        "canonical": "#22e68a",
+        "tonalRamp": ["#0d6b42", "#16c978", "#22e68a", "#5cf0a8", "#8af0bb", "#bdf7d5", "#ddfbea", "#e8f5ee"]
       },
-      "dark-canvas": {
-        "role": "neutral",
-        "displayName": "Deep Focus Charcoal",
-        "canonical": "#121514",
-        "tonalRamp": ["#080a09", "#121514", "#181b1a", "#242a27", "#29302c", "#57625c", "#a8b0aa", "#eef1ed"]
-      },
-      "dark-accent": {
+      "accent-deep": {
         "role": "primary",
-        "displayName": "Deep Focus Mint",
-        "canonical": "#8bc7b0",
-        "tonalRamp": ["#102019", "#1c4033", "#356a57", "#568f77", "#8bc7b0", "#a2d7c3", "#c8e8dc", "#edf8f4"]
+        "displayName": "Deep Mint",
+        "canonical": "#0d6b42",
+        "tonalRamp": ["#063a23", "#0d6b42", "#16c978", "#22e68a", "#5cf0a8", "#8af0bb", "#bdf7d5", "#ddfbea"]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Soft Mint",
+        "canonical": "#ddfbea",
+        "tonalRamp": ["#0d6b42", "#16c978", "#22e68a", "#8af0bb", "#bdf7d5", "#ddfbea", "#e8f5ee", "#f0fdf4"]
       }
     },
     "typographyMeta": {
@@ -81,9 +81,14 @@
     },
     "shadows": [
       {
+        "name": "card",
+        "value": "0 1px 3px rgba(10, 10, 10, 0.04)",
+        "purpose": "Subtle resting elevation for cards and panels."
+      },
+      {
         "name": "floating",
-        "value": "0 2px 8px rgba(21, 24, 22, 0.12)",
-        "purpose": "Dialogs, dropdowns, selects, and tooltips only."
+        "value": "0 4px 16px rgba(10, 10, 10, 0.08)",
+        "purpose": "Dialogs, dropdowns, selects, and tooltips."
       }
     ],
     "motion": [
@@ -115,9 +120,9 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Pine focus action with a compact 6px radius and visible focus ring.",
+      "description": "Black primary action with high-contrast white text and visible focus ring.",
       "html": "<button class=\"ds-btn-primary\">Send</button>",
-      "css": ".ds-btn-primary { display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:8px 16px;border:0;border-radius:6px;background:var(--accent,#17624b);color:var(--primary-foreground,#fff);font:500 14px ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms,transform 150ms; }.ds-btn-primary:hover{background:var(--accent-hover,#104d3a)}.ds-btn-primary:focus-visible{outline:2px solid var(--ring,#17624b);outline-offset:2px}.ds-btn-primary:active{transform:translateY(1px)}"
+      "css": ".ds-btn-primary { display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:8px 16px;border:0;border-radius:8px;background:var(--primary,#0a0a0a);color:var(--primary-foreground,#fff);font:500 14px ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms,transform 150ms; }.ds-btn-primary:hover{background:color-mix(in srgb,var(--primary,#0a0a0a) 90%,transparent)}.ds-btn-primary:focus-visible{outline:2px solid var(--ring,#0a0a0a);outline-offset:2px}.ds-btn-primary:active{transform:translateY(1px)}"
     },
     {
       "name": "Outline Button",
@@ -125,7 +130,7 @@
       "refersTo": "button-outline",
       "description": "Secondary action with a quiet panel surface and structural border.",
       "html": "<button class=\"ds-btn-outline\">Review changes</button>",
-      "css": ".ds-btn-outline { display:inline-flex;align-items:center;justify-content:center;height:36px;padding:8px 12px;border:1px solid var(--border-subtle,#d8ddda);border-radius:6px;background:var(--card,#f8f9f8);color:var(--text,#151816);font:500 14px ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms,border-color 150ms; }.ds-btn-outline:hover{background:var(--bg-hover,#e8ece9);border-color:var(--border-strong,#aab3ae)}.ds-btn-outline:focus-visible{outline:2px solid var(--ring,#17624b);outline-offset:2px}"
+      "css": ".ds-btn-outline { display:inline-flex;align-items:center;justify-content:center;height:36px;padding:8px 12px;border:1px solid var(--border-subtle,#e7e5df);border-radius:8px;background:var(--card,#ffffff);color:var(--text,#0a0a0a);font:500 14px ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms,border-color 150ms; }.ds-btn-outline:hover{background:var(--bg-hover,#f4f4f0);border-color:var(--border-strong,#c9c4b8)}.ds-btn-outline:focus-visible{outline:2px solid var(--ring,#0a0a0a);outline-offset:2px}"
     },
     {
       "name": "Input",
@@ -133,50 +138,53 @@
       "refersTo": "input",
       "description": "Compact field with readable placeholder and semantic focus.",
       "html": "<input class=\"ds-input\" placeholder=\"Select project...\" />",
-      "css": ".ds-input { width:100%;height:36px;padding:4px 12px;border:1px solid var(--border-subtle,#d8ddda);border-radius:6px;background:transparent;color:var(--text,#151816);font:14px ui-sans-serif,system-ui,sans-serif;outline:none; }.ds-input::placeholder{color:var(--text-muted,#53605b)}.ds-input:hover{border-color:var(--border-strong,#aab3ae)}.ds-input:focus-visible{border-color:var(--ring,#17624b);box-shadow:0 0 0 2px color-mix(in srgb,var(--ring,#17624b) 40%,transparent)}"
+      "css": ".ds-input { width:100%;height:36px;padding:4px 12px;border:1px solid var(--border-subtle,#e7e5df);border-radius:8px;background:transparent;color:var(--text,#0a0a0a);font:14px ui-sans-serif,system-ui,sans-serif;outline:none; }.ds-input::placeholder{color:var(--text-muted,#3f3f46)}.ds-input:hover{border-color:var(--border-strong,#c9c4b8)}.ds-input:focus-visible{border-color:var(--ring,#0a0a0a);box-shadow:0 0 0 2px color-mix(in srgb,var(--ring,#0a0a0a) 40%,transparent)}"
     },
     {
       "name": "Chat Composer",
       "kind": "custom",
       "refersTo": "composer",
-      "description": "Persistent structural input surface with a 6px radius and no resting shadow.",
+      "description": "Persistent structural input surface with an 8px radius and no resting shadow.",
       "html": "<div class=\"ds-composer\"><textarea class=\"ds-composer-input\" placeholder=\"Ask Pi to build, explain, or fix something...\"></textarea></div>",
-      "css": ".ds-composer{overflow:hidden;border:1px solid var(--border-strong,#aab3ae);border-radius:6px;background:var(--card,#f8f9f8);transition:border-color 200ms,box-shadow 200ms}.ds-composer:focus-within{border-color:var(--ring,#17624b);box-shadow:0 0 0 2px color-mix(in srgb,var(--ring,#17624b) 20%,transparent)}.ds-composer-input{width:100%;min-height:72px;padding:16px;border:0;background:transparent;color:var(--text,#151816);font:15px/1.6 ui-sans-serif,system-ui,sans-serif;resize:none;outline:none}.ds-composer-input::placeholder{color:var(--text-muted,#53605b)}"
+      "css": ".ds-composer{overflow:hidden;border:1px solid var(--border-strong,#c9c4b8);border-radius:8px;background:var(--card,#ffffff);transition:border-color 200ms,box-shadow 200ms}.ds-composer:focus-within{border-color:var(--ring,#0a0a0a);box-shadow:0 0 0 2px color-mix(in srgb,var(--ring,#0a0a0a) 20%,transparent)}.ds-composer-input{width:100%;min-height:72px;padding:16px;border:0;background:transparent;color:var(--text,#0a0a0a);font:15px/1.6 ui-sans-serif,system-ui,sans-serif;resize:none;outline:none}.ds-composer-input::placeholder{color:var(--text-muted,#3f3f46)}"
     }
   ],
   "narrative": {
-    "northStar": "The Focused Desk",
-    "overview": "Po Agent Web is a focused desk for working with an AI coding agent. Adaptive Workbench provides cool neutral light surfaces with restrained pine focus; Deep Focus provides charcoal dark surfaces with a mint focus color. The themes share structure but are tuned independently. Hierarchy comes from tone, spacing, and border rather than decorative effects.",
+    "northStar": "The Mint Desk",
+    "overview": "Po Agent Web is a focused desk for working with an AI coding agent. The Agent Mint theme provides warm neutral light surfaces with a fresh mint-green accent for state and selection, and black primary actions for high-contrast CTA clarity. Hierarchy comes from tone, spacing, border, and subtle card elevation rather than decorative effects.",
     "keyCharacteristics": [
-      "Adaptive Workbench light theme and Deep Focus dark theme.",
-      "Neutral-first color with accent reserved for action, focus, selection, and live state.",
-      "Flat-by-default elevation; shadows only for genuine floating surfaces.",
-      "Compact 4px, 6px, and 8px radius vocabulary.",
+      "Single Agent Mint light theme with warm neutral surfaces.",
+      "Mint-green accent reserved for state, selection, focus, and live agent indicators.",
+      "Black primary actions for high-contrast CTA clarity.",
+      "Gentle card elevation with resting shadow; floating surfaces use stronger shadows.",
+      "Compact 6px, 8px, and 12px radius vocabulary.",
       "Short state-driven motion with reduced-motion support."
     ],
     "rules": [
       {
-        "name": "The Neutral First Rule",
-        "body": "Accent color is reserved for primary actions, focus, selection, and live agent state; it is never decorative.",
+        "name": "The Mint State Rule",
+        "body": "Accent color is reserved for state, selection, focus, and live agent indicators; primary actions use black. Accent text uses accent-deep to ensure WCAG AA contrast.",
         "section": "colors"
       },
       {
-        "name": "The Tonal First Rule",
-        "body": "Surfaces are flat at rest. Shadows appear only when an element genuinely floats above the content plane.",
+        "name": "The Gentle Elevation Rule",
+        "body": "Cards use a subtle resting shadow. Stronger shadows appear only for genuine floating surfaces like dialogs and dropdowns.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do keep the light canvas cool neutral and the dark canvas charcoal.",
-      "Do use accent for primary actions, current selection, focus, and live state only.",
-      "Do rely on tone and border for hierarchy before reaching for shadow.",
+      "Do keep the canvas warm neutral and panels pure white.",
+      "Do use mint accent for state, selection, focus, and live indicators only.",
+      "Do use black for primary action buttons.",
+      "Do use accent-deep for accent-colored text and links.",
+      "Do rely on tone, border, and subtle shadows for hierarchy.",
       "Do keep keyboard focus visible and support reduced motion."
     ],
     "donts": [
       "Don't use chatty mascots, emoji overload, or bubbly rounded everything.",
       "Don't use gradient text, glassmorphism, or purple-blue gradients.",
-      "Don't use neon accents or high-chroma gamer dark mode.",
-      "Don't use shadows as the default state for every container.",
+      "Don't use neon accents or high-chroma gamer styling.",
+      "Don't use bright accent color for text without checking WCAG AA contrast.",
       "Don't use side-stripe borders greater than 1px as a colored accent."
     ]
   }

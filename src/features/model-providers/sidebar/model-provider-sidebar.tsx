@@ -144,7 +144,7 @@ export function ModelProviderSidebar({
                       {model.id || t.models.newModel}
                     </span>
                     {model.reasoning && (
-                      <span className="ml-auto text-[11px] text-accent">T</span>
+                      <span className="ml-auto text-[11px] text-accent-deep">T</span>
                     )}
                   </NavButton>
                 ))}

@@ -26,8 +26,6 @@ export const zh = {
     conversationMinimap: "对话导航",
     hideSidebar: "隐藏侧边栏",
     showSidebar: "显示侧边栏",
-    useDarkTheme: "使用深色主题",
-    useLightTheme: "使用浅色主题",
     hideFilePanel: "隐藏文件面板",
     showFilePanel: "显示文件面板",
     branches: "分支",

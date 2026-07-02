@@ -24,8 +24,6 @@ export const en = {
     conversationMinimap: "Conversation minimap",
     hideSidebar: "Hide sidebar",
     showSidebar: "Show sidebar",
-    useDarkTheme: "Use dark theme",
-    useLightTheme: "Use light theme",
     hideFilePanel: "Hide file panel",
     showFilePanel: "Show file panel",
     branches: "Branches",

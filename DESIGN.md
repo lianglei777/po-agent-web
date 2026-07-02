@@ -1,51 +1,36 @@
 ---
 name: Po Agent Web
-description: A precise, calm developer workspace built from independently tuned cool-light and charcoal-dark themes, restrained accent color, and linear structure.
+description: A clean, lightweight developer workspace built on a warm-light canvas with mint-green accents, black primary actions, and linear structure.
 colors:
   light:
-    canvas: "#f1f3f2"
-    panel: "#f8f9f8"
-    elevated: "#fbfcfb"
-    subtle: "#edf0ee"
-    hover: "#e8ece9"
-    selected: "#e2e9e5"
-    text: "#151816"
-    muted: "#53605b"
-    dim: "#66716c"
-    borderSubtle: "#d8ddda"
-    borderStrong: "#aab3ae"
-    borderEmphasis: "#17624b"
-    accent: "#17624b"
-    accentForeground: "#ffffff"
-    destructive: "#a63f38"
-    success: "#346b4d"
-    warning: "#815b18"
-  dark:
-    canvas: "#121514"
-    panel: "#181b1a"
-    elevated: "#1f2421"
-    subtle: "#242a27"
-    hover: "#29302c"
-    selected: "#26312c"
-    text: "#eef1ed"
-    muted: "#a8b0aa"
-    dim: "#7b857f"
-    borderSubtle: "#2d332f"
-    borderStrong: "#57625c"
-    borderEmphasis: "#8bc7b0"
-    accent: "#8bc7b0"
-    accentForeground: "#102019"
-    destructive: "#e07a73"
-    success: "#78b28f"
-    warning: "#d2a65a"
+    canvas: "#fbfbf8"
+    panel: "#ffffff"
+    elevated: "#ffffff"
+    subtle: "#f7f7f4"
+    hover: "#f4f4f0"
+    selected: "#e8f5ee"
+    text: "#0a0a0a"
+    muted: "#3f3f46"
+    dim: "#71717a"
+    borderSubtle: "#e7e5df"
+    borderStrong: "#c9c4b8"
+    borderEmphasis: "#22e68a"
+    accent: "#22e68a"
+    accentHover: "#16c978"
+    accentDeep: "#0d6b42"
+    accentSoft: "#ddfbea"
+    accentForeground: "#0a0a0a"
+    destructive: "#ef4444"
+    success: "#22c55e"
+    warning: "#f59e0b"
 typography:
   display: "Noto Serif SC, Playfair Display, Georgia, serif"
   ui: "Inter, ui-sans-serif, system-ui, sans-serif"
   mono: "Noto Sans Mono, JetBrains Mono, Fira Code, Consolas, monospace"
 radius:
-  small: "4px"
-  control: "6px"
-  floating: "8px"
+  small: "6px"
+  control: "8px"
+  floating: "12px"
 motion:
   fast: "150ms"
   standard: "200ms"
@@ -56,15 +41,15 @@ motion:
 
 ## Direction
 
-The interface is a focused desktop developer tool, not a marketing surface. Preserve its project-centered navigation and established workflows without requiring every panel to remain visible. The light theme is Adaptive Workbench: cool neutral surfaces with a restrained pine-green focus color. The dark theme is Deep Focus: charcoal surfaces with a mint focus color. The themes share semantic roles but are tuned independently rather than mechanically inverted.
+The interface is a focused desktop developer tool, not a marketing surface. Preserve its project-centered navigation and established workflows without requiring every panel to remain visible. The theme is Agent Mint: warm neutral light surfaces with a fresh mint-green accent for state and selection, and black primary actions for high-contrast CTA clarity. The single light theme keeps the workspace bright, breathable, and trustworthy.
 
 ## Workspace architecture
 
-- Left navigation owns New chat, Model Provider, Skills, projects, sessions, theme, and locale.
+- Left navigation owns New chat, Model Provider, Skills, projects, sessions, and locale.
 - The central workspace switches views while Chat remains mounted.
 - The right File Workspace is user-opened, resizable, and hidden on configuration views without losing state.
 - The minimum supported viewport width is 1024px; there is no mobile-specific layout.
-- Keep the existing light/dark semantic palette and use accent only for focus, selection, primary action, and live state.
+- Use the Agent Mint semantic palette with accent reserved for focus, selection, live state, and status indicators.
 
 ## Token architecture
 
@@ -95,12 +80,12 @@ Do not use thick colored side stripes, repeated heavy rules, decorative grids, n
 
 ## Shape and elevation
 
-- Small icon controls: 4px.
-- Buttons, inputs, textareas, and inline controls: 6px.
-- Dialogs and floating surfaces: 8px.
+- Small icon controls: 6px.
+- Buttons, inputs, textareas, and inline controls: 8px.
+- Cards, panels, and floating surfaces: 12px.
 - Pills and circles are reserved for badges, status dots, and switch tracks.
-- Ordinary panels, cards, lists, messages, and the Composer are shadowless.
-- Only genuine floating surfaces use `0 2px 8px` low-opacity shadows.
+- Cards use a subtle resting shadow (`--shadow-card`) for gentle elevation.
+- Genuine floating surfaces (Dialogs, Dropdowns, Tooltips) use `--shadow-floating`.
 
 ## Component states
 
@@ -115,7 +100,7 @@ Every interactive component must account for default, hover, focus-visible, acti
 
 ## Color usage
 
-Neutral first. Accent color is reserved for primary actions, focus, selection, and live agent state; it is never decorative.
+Mint accent for state. The accent color (`#22e68a`) is reserved for focus, selection, live agent state, and status indicators. Primary actions use black (`--text`) for high-contrast CTA clarity. Use `--accent-deep` (`#0d6b42`) for accent-colored text and links to ensure WCAG AA contrast.
 
 ## Chat execution process
 
@@ -134,7 +119,7 @@ Neutral first. Accent color is reserved for primary actions, focus, selection, a
 - The safe action receives default focus in destructive confirmations.
 - Provider deletion, model removal, API key removal, and OAuth disconnect require confirmation.
 - Session deletion uses the standard destructive confirmation Dialog and names the session being deleted.
-- Dangerous buttons use specific verbs rather than a generic “Confirm”.
+- Dangerous buttons use specific verbs rather than a generic "Confirm".
 
 ## Motion
 
@@ -146,16 +131,15 @@ Neutral first. Accent color is reserved for primary actions, focus, selection, a
 
 ## Do
 
-- Preserve light/dark theme behavior and tune both themes independently.
+- Use the Agent Mint light theme consistently across the workspace.
 - Prefer semantic tokens and shared primitives.
 - Keep focus visible, keyboard paths intact, and labels accessible.
-- Use semantic colors only for state.
-- Verify 1024px, 1440px, and 1920px desktop widths in both languages and themes.
+- Use accent for state, selection, focus, and live indicators; use black for primary actions.
+- Verify 1024px, 1440px, and 1920px desktop widths in both languages.
 
 ## Do not
 
 - Do not use gradients, glassmorphism, neon, decorative textures, or marketing-page patterns.
 - Do not apply serif type to buttons, navigation, forms, lists, or long chat content.
-- Do not use 12–32px card radii or wide soft shadows.
 - Do not create cards for every piece of information.
 - Do not silently change business logic, API contracts, or operation paths.

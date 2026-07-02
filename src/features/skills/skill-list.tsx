@@ -60,7 +60,7 @@ export function SkillList({
                   {skill.disableModelInvocation ? (
                     <Terminal className="size-3.5 text-dim" />
                   ) : (
-                    <Bot className="size-3.5 text-accent" />
+                    <Bot className="size-3.5 text-accent-deep" />
                   )}
                 </span>
                 <span className="min-w-0 flex-1">

@@ -26,9 +26,8 @@ describe("workspace sidebar", () => {
     );
   });
 
-  it("keeps theme and locale as bottom icon controls", () => {
+  it("keeps locale as the bottom icon control", () => {
     expect(source).toContain("mt-auto");
-    expect(source).toContain("onToggleTheme");
     expect(source).toContain("setLocale(nextLocale)");
     expect(source).toContain("<TooltipContent");
   });

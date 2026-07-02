@@ -253,7 +253,7 @@ function SessionRow({
           <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-px rounded-md bg-panel/85 pl-1 opacity-0 pointer-events-none shadow-sm backdrop-blur-sm transition-opacity duration-[var(--motion-fast)] group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
             <Button
               aria-label={`${t.sessions.rename} ${title}`}
-              className="size-7 hover:text-accent"
+              className="size-7 hover:text-accent-deep"
               onClick={(event) => {
                 event.stopPropagation();
                 setEditing(true);

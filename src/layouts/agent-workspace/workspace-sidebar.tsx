@@ -1,9 +1,7 @@
 import {
   Cpu,
   MessageSquarePlus,
-  Moon,
   Sparkles,
-  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,21 +18,17 @@ import type { WorkspaceView } from "./workspace-navigation";
 
 export type WorkspaceSidebarProps = {
   activeView: WorkspaceView;
-  dark: boolean;
   onNewChat: () => void;
   onOpenModelProvider: () => void;
   onOpenSkills: () => void;
-  onToggleTheme: () => void;
   sessionProps: SessionSidebarProps;
 };
 
 export function WorkspaceSidebar({
   activeView,
-  dark,
   onNewChat,
   onOpenModelProvider,
   onOpenSkills,
-  onToggleTheme,
   sessionProps,
 }: WorkspaceSidebarProps) {
   const { locale, setLocale, t } = useI18n();
@@ -99,25 +93,6 @@ export function WorkspaceSidebar({
       <SessionSidebar {...sessionProps} />
 
       <div className="mt-auto flex gap-1 border-t border-line-subtle pt-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              aria-label={
-                dark ? t.workspace.useLightTheme : t.workspace.useDarkTheme
-              }
-              aria-pressed={dark}
-              onClick={onToggleTheme}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              {dark ? <Sun /> : <Moon />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {dark ? t.workspace.useLightTheme : t.workspace.useDarkTheme}
-          </TooltipContent>
-        </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

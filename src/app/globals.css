@@ -17,6 +17,8 @@
   --color-dim: var(--text-dim);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-soft: var(--accent-soft);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -35,9 +37,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
   --font-ui-mono: var(--font-noto-mono), "JetBrains Mono", "Fira Code",
     Consolas, ui-monospace, "PingFang SC", "Microsoft YaHei", monospace;
   --font-display: var(--font-display-cjk), var(--font-display-latin), Georgia,
@@ -45,21 +47,23 @@
 }
 
 :root {
-  --bg: #f1f3f2;
-  --bg-panel: #f8f9f8;
-  --bg-elevated: #fbfcfb;
-  --bg-subtle: #edf0ee;
-  --bg-hover: #e8ece9;
-  --bg-selected: #e2e9e5;
-  --border-subtle: #d8ddda;
-  --border-strong: #aab3ae;
-  --border-emphasis: #17624b;
+  --bg: #fbfbf8;
+  --bg-panel: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f7f7f4;
+  --bg-hover: #f4f4f0;
+  --bg-selected: #e8f5ee;
+  --border-subtle: #e7e5df;
+  --border-strong: #c9c4b8;
+  --border-emphasis: #22e68a;
   --border: var(--border-subtle);
-  --text: #151816;
-  --text-muted: #53605b;
-  --text-dim: #66716c;
-  --accent: #17624b;
-  --accent-hover: #104d3a;
+  --text: #0a0a0a;
+  --text-muted: #3f3f46;
+  --text-dim: #71717a;
+  --accent: #22e68a;
+  --accent-hover: #16c978;
+  --accent-deep: #0d6b42;
+  --accent-soft: #ddfbea;
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--bg-panel);
@@ -67,76 +71,30 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text);
   --primary-foreground: #ffffff;
-  --secondary: #e7ebe8;
-  --secondary-foreground: #151816;
+  --secondary: #f4f4f0;
+  --secondary-foreground: #0a0a0a;
   --muted-foreground: var(--text-muted);
-  --accent-foreground: var(--text);
-  --destructive: #a63f38;
+  --accent-foreground: #0a0a0a;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --success: #346b4d;
-  --warning: #815b18;
-  --disabled-surface: #e6e9e7;
-  --disabled-text: #69736e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --disabled-surface: #f0f0ec;
+  --disabled-text: #a1a1aa;
   --input: var(--border);
-  --ring: #17624b;
-  --radius: 0.875rem;
-  --user-bg: #e7ece9;
-  --assistant-bg: #f8f9f8;
-  --tool-bg: #edf0ee;
+  --ring: #0a0a0a;
+  --radius: 0.75rem;
+  --user-bg: #f4f4f0;
+  --assistant-bg: #ffffff;
+  --tool-bg: #f7f7f4;
   --motion-fast: 150ms;
   --motion-standard: 200ms;
   --motion-slow: 220ms;
-  --shadow-floating: 0 2px 8px rgba(23, 23, 23, 0.12);
-  --shadow-soft: 0 1px 2px rgba(23, 23, 23, 0.05),
-    0 10px 30px rgba(23, 23, 23, 0.05);
+  --shadow-floating: 0 4px 16px rgba(10, 10, 10, 0.08);
+  --shadow-soft: 0 1px 2px rgba(10, 10, 10, 0.04),
+    0 10px 30px rgba(10, 10, 10, 0.04);
+  --shadow-card: 0 1px 3px rgba(10, 10, 10, 0.04);
   color-scheme: light;
-}
-
-html.dark {
-  --bg: #121514;
-  --bg-panel: #181b1a;
-  --bg-elevated: #1f2421;
-  --bg-subtle: #242a27;
-  --bg-hover: #29302c;
-  --bg-selected: #26312c;
-  --border-subtle: #2d332f;
-  --border-strong: #57625c;
-  --border-emphasis: #8bc7b0;
-  --border: var(--border-subtle);
-  --text: #eef1ed;
-  --text-muted: #a8b0aa;
-  --text-dim: #7b857f;
-  --accent: #8bc7b0;
-  --accent-hover: #a2d7c3;
-  --background: var(--bg);
-  --foreground: var(--text);
-  --card: var(--bg-panel);
-  --card-foreground: var(--text);
-  --popover: var(--bg-elevated);
-  --popover-foreground: var(--text);
-  --primary-foreground: #102019;
-  --secondary: #242a27;
-  --secondary-foreground: #eef1ed;
-  --muted-foreground: var(--text-muted);
-  --accent-foreground: var(--text);
-  --destructive: #e07a73;
-  --destructive-foreground: #ffffff;
-  --success: #78b28f;
-  --warning: #d2a65a;
-  --disabled-surface: #202522;
-  --disabled-text: #7f8983;
-  --input: var(--border);
-  --ring: #8bc7b0;
-  --user-bg: #222a26;
-  --assistant-bg: #181b1a;
-  --tool-bg: #1f2421;
-  --motion-fast: 150ms;
-  --motion-standard: 200ms;
-  --motion-slow: 220ms;
-  --shadow-floating: 0 2px 8px rgba(0, 0, 0, 0.34);
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.2),
-    0 12px 32px rgba(0, 0, 0, 0.18);
-  color-scheme: dark;
 }
 
 * {

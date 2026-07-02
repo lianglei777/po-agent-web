@@ -53,7 +53,6 @@ type DraftSession = {
 export function AgentWorkspace() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [filePanelOpen, setFilePanelOpen] = useState(false);
-  const [dark, setDark] = useState(false);
   const [activeView, setActiveView] = useState<WorkspaceView>("chat");
   const [modelProviderDirty, setModelProviderDirty] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
@@ -94,21 +93,6 @@ export function AgentWorkspace() {
   );
 
   useEffect(() => {
-    const themeSync = window.setTimeout(() => {
-      const storedTheme = window.localStorage.getItem("pi-theme");
-      const shouldUseDark =
-        storedTheme === "dark" ||
-        (storedTheme === null &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-      setDark(shouldUseDark);
-      document.documentElement.classList.toggle("dark", shouldUseDark);
-    }, 0);
-
-    return () => window.clearTimeout(themeSync);
-  }, []);
-
-  useEffect(() => {
     const timer = window.setTimeout(() => {
       setInitialSessionId(
         new URLSearchParams(window.location.search).get("session"),
@@ -135,13 +119,6 @@ export function AgentWorkspace() {
 
     return () => observer.disconnect();
   }, [showFilePanel, sidebarOpen]);
-
-  function toggleTheme() {
-    const nextDark = !dark;
-    setDark(nextDark);
-    document.documentElement.classList.toggle("dark", nextDark);
-    window.localStorage.setItem("pi-theme", nextDark ? "dark" : "light");
-  }
 
   const requestNavigation = useCallback(
     (targetView: WorkspaceView, action: () => void) => {
@@ -314,7 +291,6 @@ export function AgentWorkspace() {
           <div className="flex h-full w-[var(--panel-width)] flex-col">
             <WorkspaceSidebar
               activeView={activeView}
-              dark={dark}
               onNewChat={() => {
                 if (!activeCwd) return;
                 requestNavigation("chat", () =>
@@ -329,7 +305,6 @@ export function AgentWorkspace() {
               onOpenSkills={() =>
                 requestNavigation("skills", () => setActiveView("skills"))
               }
-              onToggleTheme={toggleTheme}
               sessionProps={{
                 draftSession,
                 initialSessionId,
