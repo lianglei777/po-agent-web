@@ -11,11 +11,7 @@ import {
   PencilLine,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  vscDarkPlus,
-  vs,
-} from "react-syntax-highlighter/dist/esm/styles/prism";
+import dynamic from "next/dynamic";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +42,14 @@ import {
   type AssistantTurnPresentationItem,
 } from "./message-presentation";
 import styles from "./message-view.module.css";
+
+// 懒加载代码块组件，避免将 react-syntax-highlighter 打入主 bundle
+const CodeBlock = dynamic(() => import("./code-block").then((m) => m.CodeBlock), {
+  ssr: false,
+  loading: () => (
+    <div className="my-3 h-16 rounded-lg border border-line-subtle bg-[var(--tool-bg)]" />
+  ),
+});
 
 export function MessageList({
   messages,
@@ -615,40 +619,6 @@ function Markdown({ text }: { text: string }) {
       >
         {text}
       </ReactMarkdown>
-    </div>
-  );
-}
-
-function CodeBlock({ code, language }: { code: string; language: string }) {
-  const [copied, setCopied] = useState(false);
-  const { t } = useI18n();
-  const dark =
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark");
-  return (
-    <div className="my-3 overflow-hidden rounded-lg border border-line-subtle bg-[var(--tool-bg)]">
-      <div className="flex h-8 items-center border-b border-line-subtle px-3 text-[10px] text-muted">
-        <span>{language}</span>
-        <Button
-          className="ml-auto h-6 px-2 text-[10px]"
-          onClick={() => void copyText(code).then(() => {
-            setCopied(true);
-            window.setTimeout(() => setCopied(false), 1500);
-          })}
-          size="sm"
-          variant="ghost"
-        >
-          {copied ? t.chat.message.copied : t.chat.message.copy}
-        </Button>
-      </div>
-      <SyntaxHighlighter
-        customStyle={{ margin: 0, background: "transparent", fontSize: "12.5px" }}
-        language={language}
-        showLineNumbers
-        style={dark ? vscDarkPlus : vs}
-      >
-        {code}
-      </SyntaxHighlighter>
     </div>
   );
 }

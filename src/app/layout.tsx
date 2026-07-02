@@ -22,7 +22,7 @@ const notoSerifSc = Noto_Serif_SC({
 
 export const metadata: Metadata = {
   title: "Po Agent Web",
-  description: "A web interface for Po Agent Web",
+  description: "Local desktop workspace for the Pi coding agent — manage sessions, inspect files, and configure models.",
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="zh"
       className={`${notoSansMono.variable} ${playfairDisplay.variable} ${notoSerifSc.variable}`}
       suppressHydrationWarning
     >

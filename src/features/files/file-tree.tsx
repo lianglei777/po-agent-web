@@ -174,11 +174,24 @@ function FileNodes({
     return (
       <div key={path}>
         <div
+          aria-label={entry.name}
           className="group flex h-6 cursor-pointer items-center rounded-sm px-1 text-[11px] hover:bg-hover focus-within:bg-selected focus-within:text-primary"
           onClick={() =>
             entry.isDir ? void onToggle(path) : onOpenFile(path, entry.name)
           }
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              if (entry.isDir) {
+                void onToggle(path);
+              } else {
+                onOpenFile(path, entry.name);
+              }
+            }
+          }}
+          role="button"
           style={{ paddingLeft: `${6 + depth * 14}px` }}
+          tabIndex={0}
           title={path}
         >
           {entry.isDir ? (

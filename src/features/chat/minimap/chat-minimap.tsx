@@ -331,7 +331,8 @@ export function ChatMinimap({
         const nearest = index === nearestIndex;
         return (
           <span
-            className="absolute right-0 left-0 z-20 flex h-3 -translate-y-1/2 cursor-pointer items-center justify-center"
+            aria-hidden
+            className="absolute right-0 left-0 z-20 flex h-3 -translate-y-1/2 items-center justify-center"
             key={node.id}
             style={{ top: `${node.topRatio * 100}%` }}
           >

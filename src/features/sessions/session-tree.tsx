@@ -200,15 +200,9 @@ function SessionRow({
               : "border-transparent border-b border-b-line-subtle/60 hover:border-line-subtle hover:border-b-line-subtle hover:bg-hover"
         }`}
         onClick={() => onSelect(session)}
-        style={{ paddingLeft: `${4 + depth * 12}px` }}
+        style={{ paddingLeft: `${depth * 12}px` }}
         title={title}
       >
-        {selected ? (
-          <span
-            aria-hidden
-            className="ml-1 size-1.5 flex-none rounded-full bg-accent text-accent"
-          />
-        ) : null}
         {hasChildren ? (
           <Button
             aria-label={

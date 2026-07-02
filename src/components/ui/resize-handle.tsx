@@ -84,7 +84,7 @@ export function ResizeHandle({
       className={mergeClasses(
         isVertical
           ? "group relative z-20 h-px w-full flex-none cursor-row-resize bg-line-strong outline-none ring-offset-background before:absolute before:inset-x-0 before:-top-1 before:h-[9px] hover:bg-line-emphasis focus-visible:bg-line-emphasis focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 data-[dragging=true]:bg-line-emphasis"
-          : "group relative z-20 hidden w-px flex-none cursor-col-resize bg-line-strong outline-none ring-offset-background before:absolute before:inset-y-0 before:-left-1 before:w-[9px] hover:bg-line-emphasis focus-visible:bg-line-emphasis focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 data-[dragging=true]:bg-line-emphasis min-[641px]:block",
+          : "group relative z-20 w-px flex-none cursor-col-resize bg-line-strong outline-none ring-offset-background before:absolute before:inset-y-0 before:-left-1 before:w-[9px] hover:bg-line-emphasis focus-visible:bg-line-emphasis focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 data-[dragging=true]:bg-line-emphasis",
         className,
       )}
       data-dragging={dragging || undefined}
