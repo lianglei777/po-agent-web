@@ -139,9 +139,6 @@ export function ChatInput({
       : []),
   ];
 
-  const shortcut = running
-    ? t.chat.input.shortcutRunning
-    : t.chat.input.shortcutIdle;
   const compactDisabled = running || (!canCompact && !isCompacting);
   const compactTooltip = running
     ? t.chat.input.compactUnavailableWhileRunning
@@ -281,7 +278,6 @@ export function ChatInput({
 
           {/* 文字输入 textarea */}
           <Textarea
-            aria-describedby="composer-shortcut"
             aria-label={t.chat.input.messageLabel}
             className="min-h-[72px] max-h-[220px] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-4 pt-4 pb-2 text-[15px] leading-[1.6] shadow-none placeholder:text-dim focus-visible:border-0 focus-visible:ring-0"
             onChange={(event) => {
@@ -349,8 +345,41 @@ export function ChatInput({
                     {model.name} · {model.provider}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
+
+            {/* thinking */}
+            <CompactSelect
+              icon={<Brain />}
+              label={t.chat.input.thinking}
+              onValueChange={(value) =>
+                void changeThinkingMode(value as ThinkingMode)
+              }
+              options={thinkingOptions}
+              value={thinkingMode}
+            />
+
+            {/* compact */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <Button
+                    className="h-9 gap-1.5 px-2 text-xs"
+                    disabled={compactDisabled}
+                    onClick={() => void compact()}
+                    size="sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Minimize2 className="size-3.5" />
+                    {isCompacting
+                      ? t.chat.input.abortCompact
+                      : t.chat.input.compact}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">{compactTooltip}</TooltipContent>
+            </Tooltip>
 
             <div className="flex-1" />
 
@@ -414,51 +443,6 @@ export function ChatInput({
                 <span>{t.chat.input.send}</span>
               </Button>
             )}
-          </div>
-
-          <div className="flex min-h-9 items-center gap-1 border-t border-line-subtle bg-subtle px-2.5 text-[11px] text-muted">
-            <div className="flex items-center gap-1">
-              {/* thinking */}
-              <CompactSelect
-                icon={<Brain />}
-                label={t.chat.input.thinking}
-                onValueChange={(value) =>
-                  void changeThinkingMode(value as ThinkingMode)
-                }
-                options={thinkingOptions}
-                value={thinkingMode}
-              />
-
-              {/* compact */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <Button
-                      className="h-7 gap-1.5 px-2 text-[11px]"
-                      disabled={compactDisabled}
-                      onClick={() => void compact()}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <Minimize2 className="size-3.5" />
-                      {isCompacting
-                        ? t.chat.input.abortCompact
-                        : t.chat.input.compact}
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top">{compactTooltip}</TooltipContent>
-              </Tooltip>
-            </div>
-
-            {/* mobile 模式下 展示 settings 按钮 */}
-            <span
-              className="ml-auto truncate text-[11px] text-dim"
-              id="composer-shortcut"
-            >
-              {shortcut}
-            </span>
           </div>
         </div>
         <p className="mt-2 text-center text-[11px] leading-5 text-dim">
@@ -559,7 +543,7 @@ function CompactSelect({
     <Select onValueChange={onValueChange} value={value}>
       <SelectTrigger
         aria-label={label}
-        className="h-7 max-w-36 border-0 bg-transparent px-2 text-[11px] shadow-none hover:bg-hover"
+        className="h-9 max-w-36 border-0 bg-transparent px-2 text-xs shadow-none hover:bg-hover"
       >
         {icon}
         <span className="truncate">

@@ -19,8 +19,12 @@ describe("chat input visual contract", () => {
     expect(source).not.toContain("backdrop-blur");
   });
 
-  it("keeps primary and secondary controls in separate rows", () => {
-    expect(source).toContain("border-t border-line-subtle bg-subtle");
+  it("keeps composer controls in one compact toolbar", () => {
+    expect(source).toContain("flex min-h-12 items-center");
+    expect(source).not.toContain("border-t border-line-subtle bg-subtle");
+    expect(source).not.toContain("id=\"composer-shortcut\"");
+    expect(source).not.toContain("t.chat.input.shortcutIdle");
+    expect(source).not.toContain("t.chat.input.shortcutRunning");
     expect(source).toContain("t.chat.input.thinking");
     expect(source).not.toContain("t.chat.input.tools");
     expect(source).not.toContain("changeTools");

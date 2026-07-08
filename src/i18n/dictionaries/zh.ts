@@ -67,7 +67,7 @@ export const zh = {
     },
     input: {
       messageLabel: "消息",
-      placeholderIdle: "让 Pi 构建、解释或修复一些东西...",
+      placeholderIdle: "随心输入",
       placeholderRunning: "调整当前任务，或排队发送接下来的内容...",
       attachImages: "附加图片",
       imageUnsupported: "当前模型不支持图片输入。",
@@ -103,8 +103,6 @@ export const zh = {
       selectProjectBeforeStart: "先选择项目，然后开始会话。",
       eventStreamFailed: "无法连接 Agent 事件流。",
       retrying: "重试中",
-      shortcutRunning: "Enter 立即引导 - Shift+Enter 换行",
-      shortcutIdle: "Enter 发送 - Shift+Enter 换行",
       disclaimer: "AI也可能会犯错。请核查重要信息。",
     },
     message: {

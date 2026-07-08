@@ -65,7 +65,7 @@ export const en = {
     },
     input: {
       messageLabel: "Message",
-      placeholderIdle: "Ask Pi to build, explain, or fix something...",
+      placeholderIdle: "typing anything",
       placeholderRunning: "Adjust the current task or queue what comes next...",
       attachImages: "Attach images",
       imageUnsupported: "The selected model does not support image input.",
@@ -102,8 +102,6 @@ export const en = {
       selectProjectBeforeStart: "Select a project before starting a session.",
       eventStreamFailed: "Unable to connect to the agent event stream.",
       retrying: "Retrying",
-      shortcutRunning: "Enter to steer now - Shift+Enter for a new line",
-      shortcutIdle: "Enter to send - Shift+Enter for a new line",
       disclaimer: "AI can make mistakes. Please verify important information.",
     },
     message: {
