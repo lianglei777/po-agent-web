@@ -9,10 +9,6 @@ const designSidecar = readFileSync(
   `${root}/.impeccable/design.json`,
   "utf8",
 );
-const chatCenter = readFileSync(
-  `${root}/src/features/chat/chat-center.tsx`,
-  "utf8",
-);
 const chatInput = readFileSync(
   `${root}/src/features/chat/chat-input.tsx`,
   "utf8",
