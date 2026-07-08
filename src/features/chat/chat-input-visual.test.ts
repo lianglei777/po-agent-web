@@ -9,13 +9,13 @@ const source = readFileSync(
 
 describe("chat input visual contract", () => {
   it("keeps the composer structural and gives focus a semantic accent", () => {
-    expect(source).toContain("focus-within:border-ring");
+    expect(source).toContain("focus-within:border-line-strong");
     expect(source).toContain("focus-within:ring-2");
-    expect(source).toContain("focus-within:ring-ring/20");
+    expect(source).toContain("focus-within:ring-ring/10");
     expect(source).toContain(
-      "overflow-hidden rounded-lg border bg-elevated",
+      "rounded-3xl border border-line-strong bg-elevated shadow-[var(--shadow-soft)]",
     );
-    expect(source).not.toContain("shadow-[var(--shadow-soft)]");
+    expect(source).not.toContain("rounded-lg border bg-elevated");
     expect(source).not.toContain("backdrop-blur");
   });
 
@@ -48,5 +48,11 @@ describe("chat input visual contract", () => {
     expect(source).toContain('className="inline-flex"');
     expect(source).toContain("t.chat.input.alreadyCompacted");
     expect(source).toContain("t.chat.input.compactUnavailableWhileRunning");
+  });
+
+  it("uses a compact round idle send button", () => {
+    expect(source).toContain('className="size-9 rounded-full"');
+    expect(source).toContain('size="icon"');
+    expect(source).toContain("aria-label={t.chat.input.sendMessage}");
   });
 });

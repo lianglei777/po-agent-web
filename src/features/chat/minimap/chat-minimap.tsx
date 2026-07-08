@@ -233,7 +233,7 @@ export function ChatMinimap({
   return (
     <div
       aria-label={t.workspace.conversationMinimap}
-      className="relative w-9 flex-shrink-0 touch-none select-none overflow-visible border-l border-line-subtle bg-panel"
+      className="relative w-7 flex-shrink-0 touch-none select-none overflow-visible border-l border-line-subtle bg-canvas/70"
       onPointerCancel={(event) => {
         draggingRef.current = false;
         setHoverMessage(null);
@@ -315,11 +315,11 @@ export function ChatMinimap({
       role="presentation"
     >
       {/* Minimap center line */}
-      <div className="absolute top-0 bottom-0 left-1/2 z-0 w-px -translate-x-1/2 bg-line" />
+      <div className="absolute top-0 bottom-0 left-1/2 z-0 w-px -translate-x-1/2 bg-line-subtle" />
 
       {/* scroll bar */}
       <div
-        className="pointer-events-none absolute right-0 left-0 z-10 border-y border-line-strong/30 bg-selected/60"
+        className="pointer-events-none absolute right-0 left-0 z-10 border-y border-line-strong/20 bg-line-strong/35"
         style={{
           height: `${metrics.viewportRatio * 100}%`,
           top: `${metrics.viewportTopRatio * 100}%`,
@@ -339,8 +339,8 @@ export function ChatMinimap({
             <span
               className={
                 node.role === "user"
-                  ? "size-2 flex-shrink-0 rounded-[2px] border-[1.5px] border-accent/70 bg-accent/20 transition-transform"
-                  : "size-1.5 flex-shrink-0 rounded-full border-[1.5px] border-dim/50 bg-dim/15 transition-transform"
+                  ? "size-2 flex-shrink-0 rounded-[2px] border-[1.5px] border-dim/55 bg-dim/10 transition-transform"
+                  : "size-1.5 flex-shrink-0 rounded-full border-[1.5px] border-dim/45 bg-dim/10 transition-transform"
               }
               style={{ transform: nearest ? "scale(1.6)" : "scale(1)" }}
             />

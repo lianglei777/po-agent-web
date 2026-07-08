@@ -231,8 +231,8 @@ export function ChatInput({
         ) : null}
 
         <div
-          className={`overflow-hidden rounded-lg border bg-elevated transition-[border-color,box-shadow] duration-[var(--motion-standard)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 ${
-            running ? "border-warning" : "border-line-strong"
+          className={`overflow-hidden rounded-3xl border border-line-strong bg-elevated shadow-[var(--shadow-soft)] transition-[border-color,box-shadow] duration-[var(--motion-standard)] focus-within:border-line-strong focus-within:ring-2 focus-within:ring-ring/10 ${
+            running ? "border-warning/50" : "border-line-strong"
           }`}
         >
           {running && agentPhase ? (
@@ -279,7 +279,7 @@ export function ChatInput({
           {/* 文字输入 textarea */}
           <Textarea
             aria-label={t.chat.input.messageLabel}
-            className="min-h-[72px] max-h-[220px] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-4 pt-4 pb-2 text-[15px] leading-[1.6] shadow-none placeholder:text-dim focus-visible:border-0 focus-visible:ring-0"
+            className="min-h-[72px] max-h-[220px] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-5 pt-4 pb-2 text-[15px] leading-[1.6] shadow-none placeholder:text-dim focus-visible:border-0 focus-visible:ring-0"
             onChange={(event) => {
               setDraft(event.target.value);
               resizeTextarea();
@@ -296,7 +296,7 @@ export function ChatInput({
             value={draft}
           />
 
-          <div className="flex min-h-12 items-center gap-1.5 px-2.5 pb-2">
+          <div className="flex min-h-12 items-center gap-1.5 px-3 pb-3">
             <input
               accept="image/*"
               className="hidden"
@@ -433,14 +433,13 @@ export function ChatInput({
               // send button
               <Button
                 aria-label={t.chat.input.sendMessage}
-                className="h-9 min-w-24 px-4 text-xs"
+                className="size-9 rounded-full"
                 disabled={!canSubmit}
                 onClick={() => void submit()}
-                size="sm"
+                size="icon"
                 type="button"
               >
                 <Send />
-                <span>{t.chat.input.send}</span>
               </Button>
             )}
           </div>

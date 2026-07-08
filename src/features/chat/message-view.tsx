@@ -47,7 +47,7 @@ import styles from "./message-view.module.css";
 const CodeBlock = dynamic(() => import("./code-block").then((m) => m.CodeBlock), {
   ssr: false,
   loading: () => (
-    <div className="my-3 h-16 rounded-lg border border-line-subtle bg-[var(--tool-bg)]" />
+    <div className="my-3 h-16 rounded-2xl border border-line-subtle bg-[var(--tool-bg)]" />
   ),
 });
 
@@ -189,7 +189,7 @@ function UserMessageView({
       : message.content;
   return (
     <div className="flex flex-col items-end">
-      <div className="max-w-[76%] rounded-lg border border-line-subtle bg-[var(--user-bg)] px-3.5 py-2.5 text-sm leading-[1.65] break-words whitespace-pre-wrap">
+      <div className="max-w-[72%] rounded-3xl bg-[var(--user-bg)] px-4 py-2.5 text-sm leading-[1.65] break-words whitespace-pre-wrap">
         <div className="flex flex-wrap gap-2">
 
           {/* image content */}
@@ -346,7 +346,7 @@ function AssistantTurnView({
                   <summary className="cursor-pointer text-xs font-medium text-muted hover:text-primary">
                     {t.chat.error.technicalDetails}
                   </summary>
-                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border border-line-subtle bg-[var(--tool-bg)] p-2 font-ui-mono text-[11px] text-muted">
+                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-2xl border border-line-subtle bg-[var(--tool-bg)] p-2 font-ui-mono text-[11px] text-muted">
                     {error.technicalMessage}
                   </pre>
                   <Button
@@ -596,7 +596,7 @@ function failureSummary(
 
 function Markdown({ text }: { text: string }) {
   return (
-    <div className="text-sm leading-[1.7] text-primary [&_a]:text-accent-deep [&_a]:underline [&_blockquote]:border-l [&_blockquote]:border-line-subtle [&_blockquote]:pl-3 [&_code]:font-ui-mono [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-3 [&_table]:w-full [&_td]:border [&_td]:border-line-subtle [&_td]:p-2 [&_th]:border [&_th]:border-line-subtle [&_th]:p-2 [&_ul]:my-3 [&_ul]:pl-6">
+    <div className="text-sm leading-[1.7] text-primary [&_a]:text-accent-deep [&_a]:underline [&_blockquote]:border-l [&_blockquote]:border-line-subtle [&_blockquote]:pl-3 [&_code]:rounded [&_code]:font-ui-mono [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-3 [&_table]:w-full [&_td]:border [&_td]:border-line-subtle [&_td]:p-2 [&_th]:border [&_th]:border-line-subtle [&_th]:p-2 [&_ul]:my-3 [&_ul]:pl-6">
       <ReactMarkdown
         components={{
           code({ className, children, ...props }) {

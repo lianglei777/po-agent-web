@@ -56,6 +56,15 @@ describe("chat execution process visual contract", () => {
     expect(styles).toContain("border-top: 1px solid var(--border-subtle);");
   });
 
+  it("uses ChatGPT-like neutral message and tool surfaces", () => {
+    expect(source).toContain("max-w-[72%] rounded-3xl bg-[var(--user-bg)]");
+    expect(source).toContain(
+      "rounded-2xl border border-line-subtle bg-[var(--tool-bg)]",
+    );
+    expect(source).toContain("[&_code]:rounded");
+    expect(source).not.toContain("border border-line-subtle bg-[var(--user-bg)]");
+  });
+
   it("does not render internal compaction summaries", () => {
     expect(source).not.toContain("function CompactionSummaryView");
     expect(source).not.toContain("<CompactionSummaryView");
