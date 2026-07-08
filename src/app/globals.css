@@ -47,23 +47,23 @@
 }
 
 :root {
-  --bg: #fbfbf8;
-  --bg-panel: #ffffff;
+  --bg: #ffffff;
+  --bg-panel: #f7f7f8;
   --bg-elevated: #ffffff;
-  --bg-subtle: #f7f7f4;
-  --bg-hover: #f4f4f0;
-  --bg-selected: #e8f5ee;
-  --border-subtle: #e7e5df;
-  --border-strong: #c9c4b8;
-  --border-emphasis: #22e68a;
+  --bg-subtle: #f7f7f8;
+  --bg-hover: #ececf1;
+  --bg-selected: #ececf1;
+  --border-subtle: #ececf1;
+  --border-strong: #d9d9e3;
+  --border-emphasis: #10a37f;
   --border: var(--border-subtle);
-  --text: #0a0a0a;
-  --text-muted: #3f3f46;
-  --text-dim: #71717a;
-  --accent: #22e68a;
-  --accent-hover: #16c978;
-  --accent-deep: #0d6b42;
-  --accent-soft: #ddfbea;
+  --text: #0d0d0d;
+  --text-muted: #565869;
+  --text-dim: #8e8ea0;
+  --accent: #10a37f;
+  --accent-hover: #0e8f70;
+  --accent-deep: #08755f;
+  --accent-soft: #e6f4ef;
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--bg-panel);
@@ -71,29 +71,28 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text);
   --primary-foreground: #ffffff;
-  --secondary: #f4f4f0;
-  --secondary-foreground: #0a0a0a;
+  --secondary: #f7f7f8;
+  --secondary-foreground: #0d0d0d;
   --muted-foreground: var(--text-muted);
-  --accent-foreground: #0a0a0a;
-  --destructive: #ef4444;
+  --accent-foreground: #0d0d0d;
+  --destructive: #d92d20;
   --destructive-foreground: #ffffff;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --disabled-surface: #f0f0ec;
-  --disabled-text: #a1a1aa;
+  --success: #12b76a;
+  --warning: #b54708;
+  --disabled-surface: #f4f4f4;
+  --disabled-text: #b4b4b4;
   --input: var(--border);
-  --ring: #0a0a0a;
-  --radius: 0.75rem;
-  --user-bg: #f4f4f0;
+  --ring: #0d0d0d;
+  --radius: 1rem;
+  --user-bg: #f7f7f8;
   --assistant-bg: #ffffff;
-  --tool-bg: #f7f7f4;
+  --tool-bg: #f7f7f8;
   --motion-fast: 150ms;
   --motion-standard: 200ms;
   --motion-slow: 220ms;
-  --shadow-floating: 0 4px 16px rgba(10, 10, 10, 0.08);
-  --shadow-soft: 0 1px 2px rgba(10, 10, 10, 0.04),
-    0 10px 30px rgba(10, 10, 10, 0.04);
-  --shadow-card: 0 1px 3px rgba(10, 10, 10, 0.04);
+  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.10);
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.06);
+  --shadow-card: none;
   color-scheme: light;
 }
 

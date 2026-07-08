@@ -1,28 +1,28 @@
 ---
 name: Po Agent Web
-description: A clean, lightweight developer workspace built on a warm-light canvas with mint-green accents, black primary actions, and linear structure.
+description: A clean, lightweight developer workspace built on a ChatGPT-like neutral light canvas with restrained state accents and linear structure.
 colors:
   light:
-    canvas: "#fbfbf8"
-    panel: "#ffffff"
+    canvas: "#ffffff"
+    panel: "#f7f7f8"
     elevated: "#ffffff"
-    subtle: "#f7f7f4"
-    hover: "#f4f4f0"
-    selected: "#e8f5ee"
-    text: "#0a0a0a"
-    muted: "#3f3f46"
-    dim: "#71717a"
-    borderSubtle: "#e7e5df"
-    borderStrong: "#c9c4b8"
-    borderEmphasis: "#22e68a"
-    accent: "#22e68a"
-    accentHover: "#16c978"
-    accentDeep: "#0d6b42"
-    accentSoft: "#ddfbea"
-    accentForeground: "#0a0a0a"
-    destructive: "#ef4444"
-    success: "#22c55e"
-    warning: "#f59e0b"
+    subtle: "#f7f7f8"
+    hover: "#ececf1"
+    selected: "#ececf1"
+    text: "#0d0d0d"
+    muted: "#565869"
+    dim: "#8e8ea0"
+    borderSubtle: "#ececf1"
+    borderStrong: "#d9d9e3"
+    borderEmphasis: "#10a37f"
+    accent: "#10a37f"
+    accentHover: "#0e8f70"
+    accentDeep: "#08755f"
+    accentSoft: "#e6f4ef"
+    accentForeground: "#0d0d0d"
+    destructive: "#d92d20"
+    success: "#12b76a"
+    warning: "#b54708"
 typography:
   display: "Noto Serif SC, Playfair Display, Georgia, serif"
   ui: "Inter, ui-sans-serif, system-ui, sans-serif"
@@ -41,7 +41,7 @@ motion:
 
 ## Direction
 
-The interface is a focused desktop developer tool, not a marketing surface. Preserve its project-centered navigation and established workflows without requiring every panel to remain visible. The theme is Agent Mint: warm neutral light surfaces with a fresh mint-green accent for state and selection, and black primary actions for high-contrast CTA clarity. The single light theme keeps the workspace bright, breathable, and trustworthy.
+The interface is a focused desktop developer tool, not a marketing surface. Preserve its project-centered navigation and established workflows without requiring every panel to remain visible. The theme is ChatGPT-like Neutral Light: a white canvas, soft gray sidebars and controls, restrained boundaries, and black primary actions for high-contrast CTA clarity. Green is a state accent only, not the main visual identity.
 
 ## Workspace architecture
 
@@ -49,7 +49,7 @@ The interface is a focused desktop developer tool, not a marketing surface. Pres
 - The central workspace switches views while Chat remains mounted.
 - The right File Workspace is user-opened, resizable, and hidden on configuration views without losing state.
 - The minimum supported viewport width is 1024px; there is no mobile-specific layout.
-- Use the Agent Mint semantic palette with accent reserved for focus, selection, live state, and status indicators.
+- Use the ChatGPT-like neutral semantic palette with accent reserved for focus, live state, and status indicators.
 
 ## Token architecture
 
@@ -73,7 +73,7 @@ Feature components must consume semantic tokens or shared primitives. Do not int
 Use three boundary roles:
 
 1. `border-subtle` for internal dividers, rows, form groups, and message details.
-2. `border-strong` for primary panels, toolbars, composer boundaries, and selected structure.
+2. `border-strong` for composer boundaries and controls that need stronger structure.
 3. A complete `border-strong` frame plus `shadow-floating` for Dialogs, Dropdowns, Select content, Tooltips, and Popovers.
 
 Do not use thick colored side stripes, repeated heavy rules, decorative grids, noise, or textured backgrounds.
@@ -84,7 +84,7 @@ Do not use thick colored side stripes, repeated heavy rules, decorative grids, n
 - Buttons, inputs, textareas, and inline controls: 8px.
 - Cards, panels, and floating surfaces: 12px.
 - Pills and circles are reserved for badges, status dots, and switch tracks.
-- Cards use a subtle resting shadow (`--shadow-card`) for gentle elevation.
+- Cards are flat by default and rely on tone, spacing, and border for hierarchy.
 - Genuine floating surfaces (Dialogs, Dropdowns, Tooltips) use `--shadow-floating`.
 
 ## Component states
@@ -100,7 +100,7 @@ Every interactive component must account for default, hover, focus-visible, acti
 
 ## Color usage
 
-Mint accent for state. The accent color (`#22e68a`) is reserved for focus, selection, live agent state, and status indicators. Primary actions use black (`--text`) for high-contrast CTA clarity. Use `--accent-deep` (`#0d6b42`) for accent-colored text and links to ensure WCAG AA contrast.
+Accent green is for state only. The accent color (`#10a37f`) is reserved for focus, live agent state, success-adjacent status, and explicit status indicators. Selected navigation and passive highlights use neutral gray. Primary actions use black (`--text`) for high-contrast CTA clarity. Use `--accent-deep` (`#08755f`) for accent-colored text and links to ensure WCAG AA contrast.
 
 ## Chat execution process
 
@@ -131,10 +131,10 @@ Mint accent for state. The accent color (`#22e68a`) is reserved for focus, selec
 
 ## Do
 
-- Use the Agent Mint light theme consistently across the workspace.
+- Use the ChatGPT-like neutral light theme consistently across the workspace.
 - Prefer semantic tokens and shared primitives.
 - Keep focus visible, keyboard paths intact, and labels accessible.
-- Use accent for state, selection, focus, and live indicators; use black for primary actions.
+- Use accent for state, focus, and live indicators; use black for primary actions.
 - Verify 1024px, 1440px, and 1920px desktop widths in both languages.
 
 ## Do not

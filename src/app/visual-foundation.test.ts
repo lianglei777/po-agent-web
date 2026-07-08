@@ -31,19 +31,26 @@ const agentWorkspace = readFileSync(
 );
 
 describe("visual foundation contract", () => {
-  test("defines the approved Agent Mint tokens", () => {
-    expect(css).toContain("--bg: #fbfbf8");
-    expect(css).toContain("--bg-panel: #ffffff");
+  test("defines the approved ChatGPT-like neutral light tokens", () => {
+    expect(css).toContain("--bg: #ffffff");
+    expect(css).toContain("--bg-panel: #f7f7f8");
     expect(css).toContain("--bg-elevated: #ffffff");
-    expect(css).toContain("--bg-selected: #e8f5ee");
-    expect(css).toContain("--text: #0a0a0a");
-    expect(css).toContain("--text-muted: #3f3f46");
-    expect(css).toContain("--text-dim: #71717a");
-    expect(css).toContain("--border-subtle: #e7e5df");
-    expect(css).toContain("--border-strong: #c9c4b8");
-    expect(css).toContain("--accent: #22e68a");
-    expect(css).toContain("--accent-deep: #0d6b42");
+    expect(css).toContain("--bg-subtle: #f7f7f8");
+    expect(css).toContain("--bg-hover: #ececf1");
+    expect(css).toContain("--bg-selected: #ececf1");
+    expect(css).toContain("--text: #0d0d0d");
+    expect(css).toContain("--text-muted: #565869");
+    expect(css).toContain("--text-dim: #8e8ea0");
+    expect(css).toContain("--border-subtle: #ececf1");
+    expect(css).toContain("--border-strong: #d9d9e3");
+    expect(css).toContain("--accent: #10a37f");
+    expect(css).toContain("--accent-deep: #08755f");
+    expect(css).toContain("--user-bg: #f7f7f8");
+    expect(css).toContain("--tool-bg: #f7f7f8");
     expect(css).toContain("--primary-foreground: #ffffff");
+    expect(css).toContain("color-scheme: light");
+    expect(css).not.toContain("--bg: #fbfbf8");
+    expect(css).not.toContain("--bg-selected: #e8f5ee");
 
     // 暗色主题已被移除
     expect(css).not.toContain("html.dark");
@@ -66,7 +73,6 @@ describe("visual foundation contract", () => {
   });
 
   test("applies the visual foundation to the chat sample", () => {
-    expect(chatCenter).toContain("text-display");
     expect(topBar).toContain("truncate text-xs font-medium text-primary");
     expect(chatInput).not.toContain("rounded-[20px]");
     expect(chatInput).not.toContain("linear-gradient");
@@ -89,9 +95,9 @@ describe("visual foundation contract", () => {
   });
 
   test("keeps the design sidecar synchronized with the approved theme", () => {
-    expect(designSidecar).toContain('"canonical": "#fbfbf8"');
-    expect(designSidecar).toContain('"canonical": "#22e68a"');
-    expect(designSidecar).toContain("Agent Mint");
+    expect(designSidecar).toContain('"canonical": "#ffffff"');
+    expect(designSidecar).toContain('"canonical": "#10a37f"');
+    expect(designSidecar).toContain("ChatGPT-like neutral light");
     expect(designSidecar).not.toContain("Deep Focus");
     expect(designSidecar).not.toContain("Adaptive Workbench");
     expect(designSidecar).not.toContain("rounded-20px");
