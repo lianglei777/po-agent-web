@@ -18,7 +18,7 @@ function AccordionItem({
   return (
     <AccordionPrimitive.Item
       className={mergeClasses(
-        "overflow-hidden rounded-lg border border-line-subtle bg-card",
+        "overflow-hidden rounded-2xl border border-line-subtle bg-[var(--tool-bg)]",
         className,
       )}
       data-slot="accordion-item"

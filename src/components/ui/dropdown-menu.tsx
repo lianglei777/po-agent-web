@@ -31,7 +31,7 @@ function DropdownMenuContent({
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         className={mergeClasses(
-          "z-[1000] min-w-44 overflow-hidden rounded-lg border border-line-strong bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
+          "z-[1000] min-w-44 overflow-hidden rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
           className,
         )}
         data-slot="dropdown-menu-content"
@@ -193,7 +193,7 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       className={mergeClasses(
-        "z-[1000] min-w-40 overflow-hidden rounded-lg border border-line-strong bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
+        "z-[1000] min-w-40 overflow-hidden rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
         className,
       )}
       data-slot="dropdown-menu-sub-content"

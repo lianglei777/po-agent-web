@@ -23,7 +23,7 @@ function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={mergeClasses(
-        "flex h-8 items-center justify-between gap-2 rounded-md border border-line-subtle bg-card px-2.5 text-xs whitespace-nowrap text-foreground outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] hover:border-line-strong hover:bg-hover disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:ring-2 focus-visible:ring-ring/40 [&>span]:truncate [&_svg]:size-3.5 [&_svg]:opacity-60",
+        "flex h-8 items-center justify-between gap-2 rounded-full border border-line-strong bg-elevated px-2.5 text-xs whitespace-nowrap text-foreground outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] hover:border-line-strong hover:bg-hover disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:ring-2 focus-visible:ring-ring/20 [&>span]:truncate [&_svg]:size-3.5 [&_svg]:opacity-60",
         className,
       )}
       data-slot="select-trigger"
@@ -47,7 +47,7 @@ function SelectContent({
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         className={mergeClasses(
-          "relative z-[1000] max-h-80 min-w-[8rem] overflow-hidden rounded-lg border border-line-strong bg-popover text-popover-foreground shadow-[var(--shadow-floating)]",
+          "relative z-[1000] max-h-80 min-w-[8rem] overflow-hidden rounded-2xl border border-line-subtle bg-popover text-popover-foreground shadow-[var(--shadow-floating)]",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
           className,
@@ -84,7 +84,7 @@ function SelectItem({
   return (
     <SelectPrimitive.Item
       className={mergeClasses(
-        "relative flex w-full cursor-default items-center rounded-md py-1.5 pr-8 pl-2 text-xs outline-none select-none focus:bg-selected focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex w-full cursor-default items-center rounded-md py-1.5 pr-8 pl-2 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
       )}
       data-slot="select-item"

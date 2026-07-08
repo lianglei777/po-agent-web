@@ -7,14 +7,17 @@ const read = (name: string) =>
   readFileSync(`${root}/src/components/ui/${name}.tsx`, "utf8");
 
 describe("shared UI visual contract", () => {
-  test("keeps controls within the approved radius scale", () => {
-    for (const name of ["button", "input", "textarea", "select", "dialog"]) {
-      expect(read(name)).not.toMatch(/rounded-(xl|2xl|3xl)|rounded-\[20px\]/);
-    }
+  test("uses the ChatGPT-like rounded control scale", () => {
+    expect(read("button")).toContain("rounded-full");
+    expect(read("input")).toContain("rounded-xl");
+    expect(read("textarea")).toContain("rounded-xl");
+    expect(read("select")).toContain("rounded-full");
+    expect(read("dialog")).toContain("rounded-lg");
+    expect(read("button")).not.toContain("active:translate-y-px");
   });
 
-  test("reserves floating shadows and allows card resting shadow", () => {
-    expect(read("card")).toContain("shadow-[var(--shadow-card)]");
+  test("reserves shadows for floating surfaces", () => {
+    expect(read("card")).toContain("shadow-none");
     expect(read("card")).not.toContain("shadow-[var(--shadow-floating)]");
     expect(read("dialog")).toContain("shadow-[var(--shadow-floating)]");
     expect(read("tooltip")).toContain("shadow-[var(--shadow-floating)]");
@@ -42,14 +45,21 @@ describe("shared UI visual contract", () => {
     const input = read("input");
     const textarea = read("textarea");
     const select = read("select");
+    const badge = read("badge");
 
-    expect(button).toContain("focus-visible:ring-ring/40");
-    expect(button).toContain("active:translate-y-px");
+    expect(button).toContain("focus-visible:ring-ring/20");
+    expect(button).toContain("active:scale-[0.98]");
     expect(button).toContain("disabled:border-transparent");
+    expect(button).toContain("default: \"bg-primary text-primary-foreground hover:bg-primary/85\"");
+    expect(button).toContain("bg-secondary text-secondary-foreground hover:bg-hover");
+    expect(button).toContain("ghost: \"text-muted-foreground hover:bg-hover hover:text-foreground\"");
     expect(input).toContain("hover:border-line-strong");
+    expect(input).toContain("bg-elevated");
     expect(input).toContain("placeholder:text-muted");
     expect(textarea).toContain("hover:border-line-strong");
+    expect(textarea).toContain("bg-elevated");
     expect(textarea).toContain("placeholder:text-muted");
-    expect(select).toContain("focus-visible:ring-ring/40");
+    expect(select).toContain("focus-visible:ring-ring/20");
+    expect(badge).not.toContain("bg-accent text-accent-foreground");
   });
 });
