@@ -12,6 +12,14 @@ const sessionsSource = readFileSync(
   ),
   "utf8",
 );
+const topBarSource = readFileSync(
+  fileURLToPath(new URL("./workspace-top-bar.tsx", import.meta.url)),
+  "utf8",
+);
+const workspaceSource = readFileSync(
+  fileURLToPath(new URL("./agent-workspace.tsx", import.meta.url)),
+  "utf8",
+);
 
 describe("workspace sidebar", () => {
   it("orders global actions before project sessions", () => {
@@ -43,5 +51,15 @@ describe("workspace sidebar", () => {
     expect(sessionsSource).not.toContain("FileExplorer");
     expect(sessionsSource).not.toContain("sessionPanelHeight");
     expect(sessionsSource).toContain("groupSessionsByProject");
+  });
+
+  it("uses neutral ChatGPT-like workspace surfaces", () => {
+    expect(source).toContain("bg-panel p-2");
+    expect(source).toContain(
+      'variant={activeView === "model-provider" ? "secondary" : "ghost"}',
+    );
+    expect(source).not.toContain("bg-selected");
+    expect(workspaceSource).toContain("bg-canvas");
+    expect(topBarSource).toContain("border-line-subtle bg-canvas");
   });
 });

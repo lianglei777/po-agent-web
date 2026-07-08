@@ -335,7 +335,7 @@ export function SessionSidebar({
                   </div>
                   {expanded ? (
                     group.nodes.length ? (
-                      <div className="ml-3 border-l border-line-subtle pl-1">
+                      <div className="ml-3 border-l border-line-subtle/70 pl-1">
                         <SessionTree
                           nodes={group.nodes}
                           onChanged={refresh}

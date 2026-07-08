@@ -52,7 +52,7 @@ export function WorkspaceTopBar({
         : sessionTitle ?? t.workspace.newChat;
 
   return (
-    <header className="flex h-10 flex-none items-center border-b border-line-subtle bg-panel">
+    <header className="flex h-10 flex-none items-center border-b border-line-subtle bg-canvas">
       <TopBarIconButton
         label={sidebarOpen ? t.workspace.hideSidebar : t.workspace.showSidebar}
         onClick={onToggleSidebar}

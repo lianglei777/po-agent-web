@@ -192,12 +192,12 @@ function SessionRow({
   return (
     <>
       <div
-        className={`group relative mx-1 flex h-[44px] min-w-0 cursor-pointer items-center rounded-md border pr-1 transition-colors duration-[var(--motion-fast)] focus-within:border-line-strong focus-within:bg-selected ${
+        className={`group relative mx-1 flex h-[44px] min-w-0 cursor-pointer items-center rounded-md border pr-1 transition-colors duration-[var(--motion-fast)] focus-within:bg-hover focus-within:ring-2 focus-within:ring-ring/10 ${
           selected
-            ? "border-line-strong bg-selected"
+            ? "border-transparent bg-selected"
             : hasChildren && !collapsed
-              ? "border-transparent hover:border-line-subtle hover:bg-hover"
-              : "border-transparent border-b border-b-line-subtle/60 hover:border-line-subtle hover:border-b-line-subtle hover:bg-hover"
+              ? "border-transparent hover:bg-hover"
+              : "border-transparent hover:bg-hover"
         }`}
         onClick={() => onSelect(session)}
         style={{ paddingLeft: `${depth * 12}px` }}
@@ -244,7 +244,7 @@ function SessionRow({
           ) : null}
         </div>
         {isDraft ? null : (
-          <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-px rounded-md bg-panel/85 pl-1 opacity-0 pointer-events-none shadow-sm backdrop-blur-sm transition-opacity duration-[var(--motion-fast)] group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
+          <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-px rounded-md bg-panel/90 pl-1 opacity-0 pointer-events-none shadow-sm transition-opacity duration-[var(--motion-fast)] group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
             <Button
               aria-label={`${t.sessions.rename} ${title}`}
               className="size-7 hover:text-accent-deep"
