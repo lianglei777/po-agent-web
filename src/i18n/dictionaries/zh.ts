@@ -61,10 +61,6 @@ export const zh = {
       addTest: "添加一个聚焦的回归测试",
       reviewChanges: "审查最新改动中的潜在风险",
     },
-    welcome: {
-      title: "我们要解决什么？",
-      description: "Pi 可以读取当前工作区、解释代码、完成修改并验证结果。",
-    },
     input: {
       messageLabel: "消息",
       placeholderIdle: "随心输入",

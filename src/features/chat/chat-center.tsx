@@ -272,30 +272,7 @@ function Welcome({
 
   return (
     <section className="grid min-h-[calc(100dvh-280px)] place-items-center px-3 py-12">
-      <div className="w-full max-w-xl text-center">
-        <div className="font-ui-mono text-xs font-semibold tracking-wide text-muted">
-          Po Agent Web
-        </div>
-        <h1 className="text-display mt-4 text-3xl text-primary">
-          {t.chat.welcome.title}
-        </h1>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
-          {t.chat.welcome.description}
-        </p>
-        <div className="mt-7 grid grid-cols-2 gap-2 text-left">
-          {starterPrompts.map((prompt) => (
-            <Button
-              className="h-auto min-h-12 justify-start whitespace-normal border-line-subtle bg-panel px-3 py-2.5 text-left text-xs leading-5 hover:border-line-strong hover:bg-selected"
-              key={prompt}
-              onClick={() => onSelectPrompt(prompt)}
-              type="button"
-              variant="outline"
-            >
-              {prompt}
-            </Button>
-          ))}
-        </div>
-      </div>
+      Po Agent Web
     </section>
   );
 }

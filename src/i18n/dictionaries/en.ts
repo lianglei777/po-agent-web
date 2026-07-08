@@ -59,10 +59,6 @@ export const en = {
       addTest: "Add a focused regression test",
       reviewChanges: "Review the latest changes for risks",
     },
-    welcome: {
-      title: "What should we work on?",
-      description: "Pi can inspect this workspace, explain code, make changes, and verify the result.",
-    },
     input: {
       messageLabel: "Message",
       placeholderIdle: "typing anything",
