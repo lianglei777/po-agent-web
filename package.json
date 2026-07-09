@@ -60,11 +60,13 @@
   "build": {
     "appId": "com.poagent.web",
     "productName": "Po Agent Web",
+    "icon": "build/icon.png",
     "directories": {
       "output": ".desktop-dist"
     },
     "files": [
       "desktop/**/*",
+      "build/icon.png",
       "package.json",
       "!node_modules/**/*"
     ],

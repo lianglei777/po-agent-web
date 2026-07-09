@@ -14,6 +14,7 @@ import {
 } from "./desktop-runtime.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const appIconPath = path.resolve(__dirname, "..", "build", "icon.png");
 
 let serverProcess;
 
@@ -97,6 +98,7 @@ async function createWindow() {
     minWidth: 1024,
     minHeight: 720,
     title: "Po Agent Web",
+    icon: appIconPath,
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,

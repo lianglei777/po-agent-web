@@ -78,3 +78,10 @@ test("desktop shell disables the default Electron menu bar", () => {
   assert.match(mainSource, /Menu\.setApplicationMenu\(null\)/);
   assert.match(mainSource, /autoHideMenuBar:\s*true/);
 });
+
+test("desktop shell uses the packaged app icon", () => {
+  const mainSource = readFileSync(new URL("./main.mjs", import.meta.url), "utf8");
+
+  assert.match(mainSource, /appIconPath/);
+  assert.match(mainSource, /icon:\s*appIconPath/);
+});

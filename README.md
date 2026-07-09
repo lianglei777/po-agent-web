@@ -160,6 +160,10 @@ composition/transport/domain <- app/api
 | [DESIGN.md](DESIGN.md) | 设计系统、色彩、排版、动效、组件状态 |
 | [AGENTS.md](AGENTS.md) | 开发规范、前后端规则、测试期望、变更纪律 |
 
+## Desktop
+
+Desktop packaging notes are in [docs/desktop.md](docs/desktop.md).
+
 ## License
 
 见 [LICENSE](LICENSE)。
