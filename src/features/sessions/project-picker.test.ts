@@ -24,7 +24,7 @@ describe("project picker interaction contract", () => {
     expect(picker).toContain('type="submit"');
     expect(picker).toContain("max-h-[calc(100vh-2rem)]");
     expect(picker).toContain("{!browseOpen ? (");
-    expect(picker).toContain("{!browseOpen ? (\n                <DialogDescription>");
+    expect(picker).toMatch(/!browseOpen\s\?\s\([\s\S]*<DialogDescription>/);
     expect(picker).toContain('setBrowseOpen((value) => !value)');
     expect(picker).not.toContain("result?.current ?? t.sessions.loadingDirectories");
     expect(picker).not.toContain("result?.breadcrumbs.map");
