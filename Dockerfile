@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1.7
+
+# npm 源，国内构建加速；切回官方：--build-arg NPM_REGISTRY=https://registry.npmjs.org
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+
+# ===== deps：安装依赖（利用层缓存） =====
+FROM node:22-bookworm-slim AS deps
+ARG NPM_REGISTRY
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm config set registry "${NPM_REGISTRY}" \
+ && npm ci --no-audit --no-fund
+
+# ===== builder：生产构建 =====
+FROM node:22-bookworm-slim AS builder
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# ===== runner：最小运行镜像 =====
+FROM node:22-bookworm-slim AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+# standalone server.js 需监听 0.0.0.0 才能从宿主机访问
+ENV HOSTNAME=0.0.0.0
+ENV PORT=51732
+# 凭证 / 模型配置 / 项目列表 / 会话历史都写这里，挂卷持久化
+ENV PI_CODING_AGENT_DIR=/data/pi-agent
+
+# standalone 产物：自带 server.js 与 trace 出来的 node_modules
+COPY --from=builder /app/.next/standalone ./
+# 客户端静态资源（JS chunk / CSS 等）
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 51732
+CMD ["node", "server.js"]

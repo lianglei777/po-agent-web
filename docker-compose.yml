@@ -1,0 +1,22 @@
+services:
+  po-agent-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NPM_REGISTRY: https://registry.npmmirror.com
+    image: po-agent-web:0.1.0
+    container_name: po-agent-web
+    ports:
+      - "51732:51732"
+    environment:
+      PI_CODING_AGENT_DIR: /data/pi-agent
+      PORT: "51732"
+      HOSTNAME: "0.0.0.0"
+    volumes:
+      # 持久化：登录凭证 / 模型配置 / 项目列表 / 会话历史
+      - po-agent-data:/data/pi-agent
+    restart: unless-stopped
+
+volumes:
+  po-agent-data:

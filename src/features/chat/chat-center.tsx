@@ -10,7 +10,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { ImagePlus } from "lucide-react";
-import BlurText from "@/components/react-bits/blur-text";
+// import BlurText from "@/components/react-bits/blur-text";
 import { useI18n } from "@/i18n/use-i18n";
 import { ChatInput } from "./chat-input";
 import { createChatMinimapEntries } from "./minimap/chat-minimap-adapter";
@@ -252,13 +252,7 @@ function Welcome() {
           <h1 className={styles.neonTitle}>{t.chat.welcome.headline}</h1>
           {!reduceMotion ? (
             <div aria-hidden="true" className={styles.bitsLayer}>
-              <BlurText
-                animateBy="letters"
-                className={`${styles.neonTitle} ${styles.bitsTitle} justify-center`}
-                delay={24}
-                direction="bottom"
-                text={t.chat.welcome.headline}
-              />
+          
             </div>
           ) : null}
         </div>

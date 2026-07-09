@@ -1,0 +1,26 @@
+services:
+  po-agent-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        NPM_REGISTRY: https://registry.npmmirror.com
+    image: po-agent-web:0.1.0-dev
+    container_name: po-agent-web-dev
+    ports:
+      - "51732:51732"
+    environment:
+      PI_CODING_AGENT_DIR: /data/pi-agent
+      PORT: "51732"
+      NODE_ENV: development
+    volumes:
+      # 源码挂载，改代码即热更新
+      - .:/app
+      # 用容器内安装的 node_modules，避免宿主机 node_modules 覆盖
+      - /app/node_modules
+      # 与生产共用数据卷，登录态/配置共享
+      - po-agent-data:/data/pi-agent
+    restart: unless-stopped
+
+volumes:
+  po-agent-data:
