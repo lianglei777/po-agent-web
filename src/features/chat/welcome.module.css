@@ -1,0 +1,134 @@
+.stage {
+  display: grid;
+  min-height: calc(100dvh - 280px);
+  width: 100%;
+  align-items: end;
+  justify-items: center;
+  overflow: hidden;
+  padding: 24px 16px clamp(52px, 12vh, 112px);
+}
+
+.terminalMark {
+  position: relative;
+  display: grid;
+  width: min(100%, 720px);
+  place-items: center;
+  padding-block: 18px;
+  isolation: isolate;
+}
+
+.terminalMark::before {
+  position: absolute;
+  inset-inline: 10%;
+  top: 50%;
+  z-index: -1;
+  height: 1px;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(16 163 127 / 0.44),
+    transparent
+  );
+}
+
+.terminalMark::after {
+  position: absolute;
+  inset-inline: 28%;
+  bottom: 10px;
+  height: 1px;
+  content: "";
+  background: rgb(255 61 242 / 0.28);
+  transform: skewX(-18deg);
+}
+
+.titleStack {
+  position: relative;
+  display: grid;
+  width: 100%;
+  place-items: center;
+}
+
+.neonTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 5.8vw, 88px);
+  font-weight: 650;
+  line-height: 0.95;
+  letter-spacing: 0;
+  color: var(--text);
+  max-width: 100%;
+  overflow-wrap: break-word;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow:
+    -1px 0 0 rgb(0 214 201 / 0.62),
+    1px 0 0 rgb(255 61 242 / 0.4),
+    0 10px 22px rgb(13 13 13 / 0.12);
+}
+
+.bitsLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.bitsTitle {
+  color: rgb(13 13 13 / 0.18);
+  text-shadow:
+    -2px 0 0 rgb(0 214 201 / 0.42),
+    2px 0 0 rgb(255 61 242 / 0.3);
+}
+
+.neonSlice {
+  position: absolute;
+  z-index: 1;
+  width: min(76%, 520px);
+  height: 8px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(0 214 201 / 0.38),
+    rgb(255 61 242 / 0.26),
+    transparent
+  );
+  opacity: 0.72;
+  transform: translateY(-4px) skewX(-16deg);
+  animation: welcome-slice 3.6s steps(1, end) infinite;
+}
+
+@keyframes welcome-slice {
+  0%,
+  82%,
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(-4px) skewX(-16deg);
+  }
+  83% {
+    clip-path: inset(0 0 42% 0);
+    transform: translate(-12px, -15px) skewX(-16deg);
+  }
+  84% {
+    clip-path: inset(58% 0 0 0);
+    transform: translate(10px, 14px) skewX(-16deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neonSlice {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .stage {
+    padding-inline: 8px;
+  }
+
+  .neonTitle {
+    font-size: clamp(30px, 8vw, 44px);
+  }
+}

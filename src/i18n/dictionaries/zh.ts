@@ -43,6 +43,9 @@ export const zh = {
   chat: {
     dragDropImages: "拖放图片以附加",
     loadingSession: "正在加载会话...",
+    welcome: {
+      headline: "Po Agent Web",
+    },
     error: {
       requestFailed: "模型请求失败。",
       authFailed: "模型服务拒绝了当前凭证。",

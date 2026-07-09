@@ -7,14 +7,16 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { ImagePlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import BlurText from "@/components/react-bits/blur-text";
 import { useI18n } from "@/i18n/use-i18n";
 import { ChatInput } from "./chat-input";
 import { createChatMinimapEntries } from "./minimap/chat-minimap-adapter";
 import { ChatMinimap } from "./minimap/chat-minimap";
 import { MessageList } from "./message-view";
+import styles from "./welcome.module.css";
 import type { ContextUsage, SessionStats, SessionTreeNode } from "./agent-types";
 import {
   type ChatSession,
@@ -73,6 +75,7 @@ export function ChatCenter({
   const [composerHeight, setComposerHeight] = useState(0);
   const dragCounter = useRef(0);
   const messageElementsRef = useRef<Map<string, HTMLElement>>(new Map());
+  const { activeLeafId, changeLeaf, running, tree } = controller;
 
   const minimapEntries = useMemo(
     () =>
@@ -103,19 +106,13 @@ export function ChatCenter({
   // 将分支状态传递给 WorkspaceTopBar
   useEffect(() => {
     onBranchState?.({
-      tree: controller.tree,
-      activeLeafId: controller.activeLeafId,
-      running: controller.running,
-      changeLeaf: (leafId) => controller.changeLeaf(leafId),
+      tree,
+      activeLeafId,
+      running,
+      changeLeaf: (leafId) => changeLeaf(leafId),
     });
     return () => onBranchState?.(null);
-  }, [
-    controller.tree,
-    controller.activeLeafId,
-    controller.running,
-    controller.changeLeaf,
-    onBranchState,
-  ]);
+  }, [activeLeafId, changeLeaf, onBranchState, running, tree]);
 
   useEffect(() => {
     if (!composerNode) return;
@@ -188,93 +185,104 @@ export function ChatCenter({
         <>
           <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="relative flex min-h-0 flex-1 overflow-hidden">
-            <div
-              className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none]"
-              ref={(node) => {
-                controller.setScrollerNode(node);
-                setScrollerNode(node);
-              }}
-            >
               <div
-                className="mx-auto min-h-full w-full max-w-[820px] px-4 pt-4 pb-[220px]"
+                className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none]"
                 ref={(node) => {
-                  controller.setContentNode(node);
-                  setContentNode(node);
+                  controller.setScrollerNode(node);
+                  setScrollerNode(node);
                 }}
               >
-                {!hasConversation ? (
-                  <Welcome
-                    onSelectPrompt={(prompt) => {
-                      controller.setDraft(prompt);
-                      window.requestAnimationFrame(() => {
-                        controller.textareaRef.current?.focus();
-                        controller.resizeTextarea();
-                      });
-                    }}
+                <div
+                  className={`min-h-full w-full px-4 pt-4 pb-[220px] ${
+                    hasConversation ? "mx-auto max-w-[820px]" : ""
+                  }`}
+                  ref={(node) => {
+                    controller.setContentNode(node);
+                    setContentNode(node);
+                  }}
+                >
+                  {!hasConversation ? <Welcome /> : null}
+
+                  <MessageList
+                    entryIds={controller.entryIds}
+                    forkingEntryId={controller.forkingEntryId}
+                    lastUserRef={controller.lastUserRef}
+                    messages={controller.messages}
+                    onEdit={(targetId, text) =>
+                      void controller.editFromHere(targetId, text)
+                    }
+                    onFork={(entryId) => void controller.fork(entryId)}
+                    highlightedMessageId={highlightedMessageId}
+                    onMessageElement={handleMessageElement}
+                    running={controller.running}
+                    streamingMessage={controller.stream.streamingMessage}
                   />
-                ) : null}
-                
-                {/* message list */}
-                <MessageList
-                  entryIds={controller.entryIds}
-                  forkingEntryId={controller.forkingEntryId}
-                  lastUserRef={controller.lastUserRef}
-                  messages={controller.messages}
-                  onEdit={(targetId, text) =>
-                    void controller.editFromHere(targetId, text)
-                  }
-                  onFork={(entryId) => void controller.fork(entryId)}
-                  highlightedMessageId={highlightedMessageId}
-                  onMessageElement={handleMessageElement}
-                  running={controller.running}
-                  streamingMessage={controller.stream.streamingMessage}
-                />
 
-
-                {controller.running ? <div className="h-[80vh]" /> : null}
+                  {controller.running ? <div className="h-[80vh]" /> : null}
+                </div>
               </div>
-            </div>
 
-            {/* chat mini map */}
-            <ChatMinimap
-              content={contentNode}
-              messageElementsRef={messageElementsRef}
-              messages={minimapEntries}
-              onHoverMessageChange={setHighlightedMessageId}
-              scroller={scrollerNode}
-              viewportInsets={minimapViewportInsets}
-            />
+              <ChatMinimap
+                content={contentNode}
+                messageElementsRef={messageElementsRef}
+                messages={minimapEntries}
+                onHoverMessageChange={setHighlightedMessageId}
+                scroller={scrollerNode}
+                viewportInsets={minimapViewportInsets}
+              />
             </div>
           </div>
 
-          {/* Error indicators */}
-          {/* Chat input */}
           <ChatInput {...controller} rootRef={setComposerNode} />
-
         </>
       )}
     </main>
   );
 }
 
-function Welcome({
-  onSelectPrompt,
-}: {
-  onSelectPrompt: (prompt: string) => void;
-}) {
+function Welcome() {
   const { t } = useI18n();
-  const starterPrompts = [
-    t.chat.starterPrompts.architecture,
-    t.chat.starterPrompts.fixBug,
-    t.chat.starterPrompts.addTest,
-    t.chat.starterPrompts.reviewChanges,
-  ];
+  const reduceMotion = usePrefersReducedMotion();
 
   return (
-    <section className="grid min-h-[calc(100dvh-280px)] place-items-center px-3 py-12">
-      Po Agent Web
+    <section className={styles.stage}>
+      <div className={styles.terminalMark}>
+        <span aria-hidden="true" className={styles.neonSlice} />
+        <div className={styles.titleStack}>
+          <h1 className={styles.neonTitle}>{t.chat.welcome.headline}</h1>
+          {!reduceMotion ? (
+            <div aria-hidden="true" className={styles.bitsLayer}>
+              <BlurText
+                animateBy="letters"
+                className={`${styles.neonTitle} ${styles.bitsTitle} justify-center`}
+                delay={24}
+                direction="bottom"
+                text={t.chat.welcome.headline}
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
     </section>
   );
+}
+
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    () => false,
+  );
+}
+
+function subscribeReducedMotion(callback: () => void) {
+  const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+  query.addEventListener("change", callback);
+  return () => query.removeEventListener("change", callback);
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function CenteredState({

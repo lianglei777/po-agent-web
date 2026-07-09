@@ -41,6 +41,9 @@ export const en = {
   chat: {
     dragDropImages: "Drop images to attach",
     loadingSession: "Loading session...",
+    welcome: {
+      headline: "Po Agent Web",
+    },
     error: {
       requestFailed: "The model request failed.",
       authFailed: "The model service rejected the configured credentials.",
