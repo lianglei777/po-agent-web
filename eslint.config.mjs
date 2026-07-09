@@ -242,10 +242,12 @@ const eslintConfig = defineConfig([
     ".agents/**",
     ".claude/**",
     ".codex/**",
+    ".desktop-dist/**",
     ".impeccable/**",
     ".pi/**",
     ".superpowers/**",
     ".worktrees/**",
+    "dist-desktop/**",
     "next-env.d.ts",
   ]),
 ]);

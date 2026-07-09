@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
       "node_modules/@earendil-works/pi-ai/dist/**/*",
     ],
   },
+  outputFileTracingExcludes: {
+    "/*": [".desktop-dist/**/*", "dist-desktop/**/*"],
+  },
   turbopack: {
     root: projectRoot,
   },

@@ -1,0 +1,129 @@
+import { app, BrowserWindow, dialog, Menu } from "electron";
+import { spawn } from "node:child_process";
+import net from "node:net";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import {
+  buildServerEnvironment,
+  ensureDirectory,
+  getPackagedServerRoot,
+  getPiAgentDir,
+  getServerUrl,
+  getStandaloneServerPath,
+} from "./desktop-runtime.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+let serverProcess;
+
+function getAppRoot() {
+  if (app.isPackaged) return getPackagedServerRoot(process.resourcesPath);
+  return path.resolve(__dirname, "..");
+}
+
+function findFreePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      server.close(() => {
+        if (!address || typeof address === "string") {
+          reject(new Error("Unable to allocate a local port."));
+          return;
+        }
+        resolve(address.port);
+      });
+    });
+  });
+}
+
+function waitForServer(url, deadlineMs = 30000) {
+  const startedAt = Date.now();
+
+  return new Promise((resolve, reject) => {
+    async function poll() {
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+        if (response.ok) {
+          resolve();
+          return;
+        }
+      } catch {
+        // 服务器启动期间请求失败是预期行为，继续轮询直到超时。
+      }
+
+      if (Date.now() - startedAt > deadlineMs) {
+        reject(new Error("Timed out waiting for the local server to start."));
+        return;
+      }
+
+      setTimeout(poll, 250);
+    }
+
+    void poll();
+  });
+}
+
+function startServer({ appRoot, port, piAgentDir }) {
+  const serverPath = getStandaloneServerPath(appRoot);
+  ensureDirectory(piAgentDir);
+
+  serverProcess = spawn(process.execPath, [serverPath], {
+    cwd: appRoot,
+    env: buildServerEnvironment({ piAgentDir, port }),
+    stdio: "ignore",
+    windowsHide: true,
+  });
+
+  serverProcess.once("exit", () => {
+    serverProcess = undefined;
+  });
+}
+
+async function createWindow() {
+  const appRoot = getAppRoot();
+  const piAgentDir = getPiAgentDir(app.getPath("userData"));
+  const port = await findFreePort();
+  const url = getServerUrl(port);
+
+  startServer({ appRoot, port, piAgentDir });
+  await waitForServer(url);
+
+  const window = new BrowserWindow({
+    width: 1440,
+    height: 960,
+    minWidth: 1024,
+    minHeight: 720,
+    title: "Po Agent Web",
+    autoHideMenuBar: true,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  await window.loadURL(url);
+}
+
+function stopServer() {
+  if (!serverProcess || serverProcess.killed) return;
+  serverProcess.kill();
+  serverProcess = undefined;
+}
+
+app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
+  return createWindow();
+}).catch((error) => {
+  dialog.showErrorBox("Po Agent Web failed to start", error.message);
+  app.quit();
+});
+
+app.on("window-all-closed", () => {
+  app.quit();
+});
+
+app.on("before-quit", stopServer);
