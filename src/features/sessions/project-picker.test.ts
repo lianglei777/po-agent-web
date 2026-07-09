@@ -16,13 +16,18 @@ const chinese = readFileSync(
 );
 
 describe("project picker interaction contract", () => {
-  it("defaults to absolute-path entry and loads browsing only on demand", () => {
-    expect(picker).toContain('useState<"input" | "browse">("input")');
+  it("keeps one stable dialog and uses desktop directory selection when available", () => {
+    expect(picker).toContain("selectProjectDirectory");
+    expect(picker).toContain("addSelectedProject");
     expect(picker).toContain("<Input");
     expect(picker).toContain("autoFocus");
     expect(picker).toContain('type="submit"');
-    expect(picker).toContain('setMode("browse")');
-    expect(picker).toContain("if (!result) void navigate()");
+    expect(picker).toContain("max-h-[calc(100vh-2rem)]");
+    expect(picker).toContain("{!browseOpen ? (");
+    expect(picker).toContain("{!browseOpen ? (\n                <DialogDescription>");
+    expect(picker).toContain('setBrowseOpen((value) => !value)');
+    expect(picker).not.toContain("result?.current ?? t.sessions.loadingDirectories");
+    expect(picker).not.toContain("result?.breadcrumbs.map");
   });
 
   it("provides matching English and Chinese copy", () => {

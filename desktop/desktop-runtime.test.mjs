@@ -85,3 +85,14 @@ test("desktop shell uses the packaged app icon", () => {
   assert.match(mainSource, /appIconPath/);
   assert.match(mainSource, /icon:\s*appIconPath/);
 });
+
+test("desktop shell exposes only a directory picker bridge", () => {
+  const mainSource = readFileSync(new URL("./main.mjs", import.meta.url), "utf8");
+  const preloadSource = readFileSync(new URL("./preload.cjs", import.meta.url), "utf8");
+
+  assert.match(mainSource, /preload\.cjs/);
+  assert.match(mainSource, /ipcMain\.handle\("project:select-directory"/);
+  assert.match(mainSource, /showOpenDialog/);
+  assert.match(preloadSource, /selectProjectDirectory/);
+  assert.match(preloadSource, /require\("electron"\)/);
+});

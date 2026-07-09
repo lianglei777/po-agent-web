@@ -23,6 +23,14 @@ import { useI18n } from "@/i18n/use-i18n";
 import { addProject, browseProjects } from "./api";
 import type { ProjectBrowseResult } from "./types";
 
+declare global {
+  interface Window {
+    poAgentDesktop?: {
+      selectProjectDirectory: () => Promise<string | null>;
+    };
+  }
+}
+
 export function ProjectPicker({
   onSelect,
   trigger = "icon",
@@ -31,7 +39,7 @@ export function ProjectPicker({
   trigger?: "icon" | "button";
 }) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<"input" | "browse">("input");
+  const [browseOpen, setBrowseOpen] = useState(false);
   const [pathInput, setPathInput] = useState("");
   const [result, setResult] = useState<ProjectBrowseResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,14 +68,12 @@ export function ProjectPicker({
 
   function closePicker() {
     setOpen(false);
-    setMode("input");
+    setBrowseOpen(false);
     setPathInput("");
     setError("");
   }
 
-  async function submitProject(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const path = pathInput.trim();
+  async function addSelectedProject(path: string) {
     if (!path || saving) return;
     setSaving(true);
     try {
@@ -85,11 +91,26 @@ export function ProjectPicker({
     }
   }
 
-  function selectCurrent() {
+  async function submitProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await addSelectedProject(pathInput.trim());
+  }
+
+  async function selectCurrent() {
     if (!result) return;
-    setPathInput(result.current);
-    setMode("input");
+    await addSelectedProject(result.current);
+  }
+
+  async function browseForProject() {
+    if (window.poAgentDesktop) {
+      const selected = await window.poAgentDesktop.selectProjectDirectory();
+      if (selected) await addSelectedProject(selected);
+      return;
+    }
+
     setError("");
+    setBrowseOpen((value) => !value);
+    if (!result) void navigate();
   }
 
   const triggerButton = (
@@ -123,19 +144,37 @@ export function ProjectPicker({
         }}
         open={open}
       >
-        <DialogContent className="max-w-xl" closeLabel={t.common.close}>
-          {mode === "input" ? (
-            <form
-              className="space-y-4"
-              onSubmit={(event) => void submitProject(event)}
-            >
-              <DialogHeader>
-                <DialogTitle>{t.sessions.openProject}</DialogTitle>
+        <DialogContent
+          className="max-h-[calc(100vh-2rem)] max-w-xl overflow-y-auto"
+          closeLabel={t.common.close}
+        >
+          <form
+            className="space-y-4"
+            onSubmit={(event) => void submitProject(event)}
+          >
+            <DialogHeader>
+              <DialogTitle>{t.sessions.openProject}</DialogTitle>
+              {!browseOpen ? (
                 <DialogDescription>
                   {t.sessions.projectPathHint}
                 </DialogDescription>
-              </DialogHeader>
+              ) : null}
+            </DialogHeader>
 
+            {!browseOpen ? (
+              <Button
+                className="w-full justify-center"
+                disabled={saving}
+                onClick={() => void browseForProject()}
+                type="button"
+                variant="outline"
+              >
+                <Folder />
+                {t.sessions.browseDirectories}
+              </Button>
+            ) : null}
+
+            {!browseOpen ? (
               <div className="space-y-1.5">
                 <label
                   className="text-xs font-medium"
@@ -155,41 +194,10 @@ export function ProjectPicker({
                   <p className="text-xs text-destructive">{error}</p>
                 ) : null}
               </div>
+            ) : null}
 
-              <DialogFooter>
-                <Button
-                  onClick={closePicker}
-                  type="button"
-                  variant="outline"
-                >
-                  {t.common.cancel}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setError("");
-                    setMode("browse");
-                    if (!result) void navigate();
-                  }}
-                  type="button"
-                  variant="outline"
-                >
-                  <Folder />
-                  {t.sessions.browseDirectories}
-                </Button>
-                <Button disabled={saving || !pathInput.trim()} type="submit">
-                  {saving ? t.common.saving : t.sessions.addProject}
-                </Button>
-              </DialogFooter>
-            </form>
-          ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle>{t.sessions.openProject}</DialogTitle>
-                <DialogDescription className="truncate font-ui-mono text-xs">
-                  {result?.current ?? t.sessions.loadingDirectories}
-                </DialogDescription>
-              </DialogHeader>
-
+            {browseOpen ? (
+              <div className="space-y-3">
               <div>
                 <p className="mb-1.5 text-[11px] font-medium text-muted">
                   {t.sessions.projectLocations}
@@ -210,22 +218,7 @@ export function ProjectPicker({
                 </div>
               </div>
 
-              <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto border-b border-line-subtle pb-2">
-                {result?.breadcrumbs.map((crumb) => (
-                  <Button
-                    className="shrink-0 font-ui-mono text-[11px]"
-                    key={crumb.path}
-                    onClick={() => void navigate(crumb.path)}
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                  >
-                    {crumb.name}
-                  </Button>
-                ))}
-              </div>
-
-              <ScrollArea className="h-[min(55vh,28rem)] rounded-md border border-line-subtle">
+              <ScrollArea className="h-[min(36vh,18rem)] rounded-md border border-line-subtle">
                 <div className="p-1">
                   {loading ? (
                     <div
@@ -277,34 +270,30 @@ export function ProjectPicker({
               {error ? (
                 <p className="text-xs text-destructive">{error}</p>
               ) : null}
-              <DialogFooter>
                 <Button
-                  onClick={closePicker}
-                  type="button"
-                  variant="outline"
-                >
-                  {t.common.cancel}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setMode("input");
-                    setError("");
-                  }}
-                  type="button"
-                  variant="outline"
-                >
-                  {t.sessions.backToPathEntry}
-                </Button>
-                <Button
+                  className="w-full"
                   disabled={!result || loading}
-                  onClick={selectCurrent}
+                  onClick={() => void selectCurrent()}
                   type="button"
                 >
                   {t.sessions.chooseThisFolder}
                 </Button>
-              </DialogFooter>
-            </>
-          )}
+              </div>
+            ) : null}
+
+            <DialogFooter>
+              <Button
+                onClick={closePicker}
+                type="button"
+                variant="outline"
+              >
+                {t.common.cancel}
+              </Button>
+              <Button disabled={saving || !pathInput.trim()} type="submit">
+                {saving ? t.common.saving : t.sessions.addProject}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, Menu } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu } from "electron";
 import { spawn } from "node:child_process";
 import net from "node:net";
 import path from "node:path";
@@ -15,6 +15,7 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appIconPath = path.resolve(__dirname, "..", "build", "icon.png");
+const preloadPath = path.join(__dirname, "preload.cjs");
 
 let serverProcess;
 
@@ -103,6 +104,7 @@ async function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      preload: preloadPath,
       sandbox: true,
     },
   });
@@ -118,6 +120,12 @@ function stopServer() {
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
+  ipcMain.handle("project:select-directory", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openDirectory"],
+    });
+    return result.canceled ? null : result.filePaths[0];
+  });
   return createWindow();
 }).catch((error) => {
   dialog.showErrorBox("Po Agent Web failed to start", error.message);
