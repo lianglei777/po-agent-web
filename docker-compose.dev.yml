@@ -20,6 +20,9 @@ services:
       - /app/node_modules
       # 与生产共用数据卷，登录态/配置共享
       - po-agent-data:/data/pi-agent
+      # 本机工作区：启动脚本按宿主机 OS 自动设置 WORKSPACE_HOST_DIR
+      # （Win/Mac 挂 Desktop，Linux 挂 ~/po-agent-user-workspace），UI 里浏览 /workspace 添加项目
+      - "${WORKSPACE_HOST_DIR:?请通过 scripts/docker-up 启动，或手动设置 WORKSPACE_HOST_DIR}:/workspace"
     restart: unless-stopped
 
 volumes:
