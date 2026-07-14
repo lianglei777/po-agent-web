@@ -9,6 +9,10 @@ export interface SkillGroup {
   skills: SkillInfo[];
 }
 
+export function isManagedSkill(skill: SkillInfo): boolean {
+  return skill.sourceInfo.origin === "package";
+}
+
 export function groupSkills(skills: SkillInfo[]): SkillGroup[] {
   const groups = new Map<string, SkillGroup>();
   for (const skill of skills) {
@@ -47,6 +51,7 @@ export function reconcileSelectedSkill(
 }
 
 function groupId(skill: SkillInfo): string {
+  if (isManagedSkill(skill)) return `package:${skill.sourceInfo.source}`;
   if (skill.sourceInfo.scope === "project") return "project";
   if (skill.sourceInfo.scope === "user") return "global";
   return `path:${skill.sourceInfo.source}`;

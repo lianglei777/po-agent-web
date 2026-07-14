@@ -32,6 +32,18 @@ describe("skills config UI contract", () => {
     expect(detailSource).toContain("t.skills.readOnlySymlink");
   });
 
+  it("labels package groups with their package source", () => {
+    expect(listSource).toContain(
+      "sourceLabel(group.detail, group.origin, t.skills)",
+    );
+  });
+
+  it("does not offer standalone mutations for package-owned skills", () => {
+    expect(detailSource).toContain("isManagedSkill(skill)");
+    expect(detailSource).toContain("t.skills.managedByPack");
+    expect(detailSource).toContain("!managed &&");
+  });
+
   it("clears an interrupted save when refreshing", () => {
     const refreshStart = hookSource.indexOf("const refresh");
     const refreshEnd = hookSource.indexOf("useEffect", refreshStart);

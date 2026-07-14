@@ -27,7 +27,9 @@ export function SkillList({
               className="text-[11px] font-semibold uppercase tracking-[0.12em] text-dim"
               id={`skill-group-${group.id}`}
             >
-              {groupLabel(group.scope, t)}
+              {group.origin === "package"
+                ? sourceLabel(group.detail, group.origin, t.skills)
+                : groupLabel(group.scope, t)}
             </h3>
           </div>
           {group.skills.map((skill) => {

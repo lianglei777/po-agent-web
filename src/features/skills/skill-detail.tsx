@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
-import { sourceLabel } from "./skill-state";
+import { isManagedSkill, sourceLabel } from "./skill-state";
 import type { SkillInfo } from "./types";
 
 export function SkillDetail({
@@ -23,6 +23,7 @@ export function SkillDetail({
   onRemove: () => void;
 }) {
   const enabled = !skill.disableModelInvocation;
+  const managed = isManagedSkill(skill);
   const { t } = useI18n();
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-5">
@@ -45,45 +46,51 @@ export function SkillDetail({
                 <code>/skill:{skill.name}</code> {t.skills.calls}
               </p>
             </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex shrink-0">
-                  <button
-                    aria-busy={saving || undefined}
-                    aria-checked={enabled}
-                    aria-label={t.skills.allowModelInvocation}
-                    className={`group relative h-6 w-11 shrink-0 rounded-full border outline-none transition-colors duration-[var(--motion-fast)] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:border-line-subtle disabled:bg-[var(--disabled-surface)] ${
-                      enabled
-                        ? "border-accent bg-accent"
-                        : "border-line-strong bg-subtle"
-                    }`}
-                    disabled={saving || !skill.canModify}
-                    onClick={onToggle}
-                    role="switch"
-                    type="button"
-                  >
-                    <span
-                      className={`absolute left-0.5 top-0.5 flex size-[18px] items-center justify-center rounded-full bg-elevated text-primary transition-transform duration-[var(--motion-standard)] group-disabled:bg-[var(--disabled-text)] ${
-                        enabled ? "translate-x-5" : "translate-x-0"
+            {managed ? (
+              <p className="max-w-48 text-right text-xs leading-5 text-muted">
+                {t.skills.managedByPack}
+              </p>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex shrink-0">
+                    <button
+                      aria-busy={saving || undefined}
+                      aria-checked={enabled}
+                      aria-label={t.skills.allowModelInvocation}
+                      className={`group relative h-6 w-11 shrink-0 rounded-full border outline-none transition-colors duration-[var(--motion-fast)] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:border-line-subtle disabled:bg-[var(--disabled-surface)] ${
+                        enabled
+                          ? "border-accent bg-accent"
+                          : "border-line-strong bg-subtle"
                       }`}
+                      disabled={saving || !skill.canModify}
+                      onClick={onToggle}
+                      role="switch"
+                      type="button"
                     >
-                      {saving ? (
-                        <LoaderCircle className="size-3 animate-spin" />
-                      ) : null}
-                    </span>
-                  </button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                {saving
-                  ? t.common.saving
-                  : skill.canModify
-                    ? enabled
-                      ? t.skills.modelInvocationAllowed
-                      : t.skills.manualInvocationOnly
-                    : t.skills.readOnlySymlink}
-              </TooltipContent>
-            </Tooltip>
+                      <span
+                        className={`absolute left-0.5 top-0.5 flex size-[18px] items-center justify-center rounded-full bg-elevated text-primary transition-transform duration-[var(--motion-standard)] group-disabled:bg-[var(--disabled-text)] ${
+                          enabled ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      >
+                        {saving ? (
+                          <LoaderCircle className="size-3 animate-spin" />
+                        ) : null}
+                      </span>
+                    </button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {saving
+                    ? t.common.saving
+                    : skill.canModify
+                      ? enabled
+                        ? t.skills.modelInvocationAllowed
+                        : t.skills.manualInvocationOnly
+                      : t.skills.readOnlySymlink}
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
           <dl className="grid gap-4 p-4 text-sm sm:grid-cols-2">
             <Detail
@@ -96,14 +103,14 @@ export function SkillDetail({
         </div>
 
         <p className="mt-4 rounded-lg bg-hover px-3 py-2 text-xs leading-5 text-muted">
-          {!skill.canModify
+          {!managed && !skill.canModify
             ? `${t.skills.readOnlySymlink} `
             : ""}
           {t.skills.changesNotice}
         </p>
 
-        {skill.sourceInfo.scope === "project" ||
-        skill.sourceInfo.scope === "user" ? (
+        {!managed && (skill.sourceInfo.scope === "project" ||
+        skill.sourceInfo.scope === "user") ? (
           <div className="mt-4 flex justify-end">
             <Button
               aria-label={t.skills.removeSkill}

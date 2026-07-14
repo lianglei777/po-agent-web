@@ -388,6 +388,7 @@ export const en = {
     scope: "Scope",
     path: "Path",
     readOnlySymlink: "This skill was discovered through a symlink and is read-only.",
+    managedByPack: "Managed by its Skill Pack and read-only here.",
     changesNotice: "Changes affect newly created sessions, restored sessions, or a session after its resources are reloaded. The current running session is not silently restarted.",
     removeSkill: "Remove skill",
     remove: "Remove",

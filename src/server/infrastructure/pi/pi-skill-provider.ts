@@ -191,6 +191,13 @@ export class PiSkillProvider implements SkillProvider {
           404,
         );
       }
+      if (skill.sourceInfo.origin === "package") {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Package-managed skills must be removed with their Skill Pack.",
+          403,
+        );
+      }
       if (skill.sourceInfo.scope === "temporary") {
         throw new AppError(
           "VALIDATION_ERROR",
@@ -416,6 +423,7 @@ async function mapSkill(skill: Skill, cwd: string): Promise<SkillInfo> {
   const resolvedFilePath = path.resolve(skill.filePath);
   const realFilePath = await fs.realpath(skill.filePath);
   const content = await fs.readFile(realFilePath);
+  const managed = skill.sourceInfo.origin === "package";
   return {
     skillId: skillIdForPath(realFilePath),
     name: skill.name,
@@ -430,7 +438,7 @@ async function mapSkill(skill: Skill, cwd: string): Promise<SkillInfo> {
       origin: skill.sourceInfo.origin,
       baseDir: skill.sourceInfo.baseDir,
     },
-    canModify: samePath(resolvedFilePath, realFilePath),
+    canModify: !managed && samePath(resolvedFilePath, realFilePath),
     disableModelInvocation: skill.disableModelInvocation,
     version: versionForContent(content),
   };

@@ -388,6 +388,7 @@ export const zh = {
     scope: "范围",
     path: "路径",
     readOnlySymlink: "该技能通过符号链接发现，处于只读状态。",
+    managedByPack: "由所属技能包管理，此处为只读。",
     changesNotice: "改动会影响新建会话、恢复的会话，或资源重新加载后的会话。当前运行中的会话不会被静默重启。",
     removeSkill: "移除技能",
     remove: "移除",
