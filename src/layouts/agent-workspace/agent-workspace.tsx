@@ -138,6 +138,18 @@ export function AgentWorkspace() {
     [activeView, modelProviderDirty],
   );
 
+  const handleOpenModelProvider = useCallback(
+    () =>
+      requestNavigation("model-provider", () =>
+        setActiveView("model-provider"),
+      ),
+    [requestNavigation],
+  );
+  const handleOpenSkills = useCallback(
+    () => requestNavigation("skills", () => setActiveView("skills")),
+    [requestNavigation],
+  );
+
   function cancelDiscard() {
     pendingNavigationRef.current = null;
     setConfirmingDiscard(false);
@@ -297,14 +309,8 @@ export function AgentWorkspace() {
                   handleNewSession(crypto.randomUUID(), activeCwd),
                 );
               }}
-              onOpenModelProvider={() =>
-                requestNavigation("model-provider", () =>
-                  setActiveView("model-provider"),
-                )
-              }
-              onOpenSkills={() =>
-                requestNavigation("skills", () => setActiveView("skills"))
-              }
+              onOpenModelProvider={handleOpenModelProvider}
+              onOpenSkills={handleOpenSkills}
               sessionProps={{
                 draftSession,
                 initialSessionId,
@@ -376,8 +382,11 @@ export function AgentWorkspace() {
               newSessionCwd={newSessionCwd}
               onAgentEnd={handleAgentEnd}
               onBranchState={setBranchState}
+              onOpenModelProvider={handleOpenModelProvider}
+              onOpenSkills={handleOpenSkills}
               onSessionCreated={handleSessionCreated}
               onSessionForked={handleSessionForked}
+              projectName={activeCwd ? getProjectName(activeCwd) : null}
               session={selectedSession}
             />
           </div>

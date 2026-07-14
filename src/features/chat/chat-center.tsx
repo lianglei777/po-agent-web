@@ -7,10 +7,19 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
-import { ImagePlus } from "lucide-react";
-// import BlurText from "@/components/react-bits/blur-text";
+import {
+  ImagePlus,
+  MessageSquarePlus,
+  Puzzle,
+  ServerCog,
+  type LucideIcon,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n/use-i18n";
 import { ChatInput } from "./chat-input";
 import { createChatMinimapEntries } from "./minimap/chat-minimap-adapter";
@@ -41,6 +50,9 @@ export function ChatCenter({
   onSessionStatsChange,
   onContextUsageChange,
   onBranchState,
+  onOpenModelProvider,
+  onOpenSkills,
+  projectName,
 }: {
   session: ChatSession | null;
   newSessionCwd: string | null;
@@ -52,6 +64,9 @@ export function ChatCenter({
   onSessionStatsChange?: (stats: SessionStats | null) => void;
   onContextUsageChange?: (usage: ContextUsage | null) => void;
   onBranchState?: (state: BranchState | null) => void;
+  onOpenModelProvider: () => void;
+  onOpenSkills: () => void;
+  projectName: string | null;
 }) {
   const controller = useChatController({
     session,
@@ -201,7 +216,16 @@ export function ChatCenter({
                     setContentNode(node);
                   }}
                 >
-                  {!hasConversation ? <Welcome /> : null}
+                  {!hasConversation ? (
+                    <Welcome
+                      modelCount={controller.models.length}
+                      modelReady={Boolean(controller.currentModel)}
+                      onOpenModelProvider={onOpenModelProvider}
+                      onOpenSkills={onOpenSkills}
+                      onStart={() => controller.textareaRef.current?.focus()}
+                      projectName={projectName}
+                    />
+                  ) : null}
 
                   <MessageList
                     entryIds={controller.entryIds}
@@ -240,43 +264,146 @@ export function ChatCenter({
   );
 }
 
-function Welcome() {
+function Welcome({
+  modelCount,
+  modelReady,
+  onOpenModelProvider,
+  onOpenSkills,
+  onStart,
+  projectName,
+}: {
+  modelCount: number;
+  modelReady: boolean;
+  onOpenModelProvider: () => void;
+  onOpenSkills: () => void;
+  onStart: () => void;
+  projectName: string | null;
+}) {
   const { t } = useI18n();
-  const reduceMotion = usePrefersReducedMotion();
+  const skillsDisabledReason = projectName
+    ? null
+    : t.workspace.selectProjectForSkills;
+  const sessionDisabledReason = !projectName
+    ? t.chat.input.selectProjectBeforeStart
+    : !modelReady
+      ? t.chat.welcome.sessionNeedsModel
+      : null;
 
   return (
     <section className={styles.stage}>
-      <div className={styles.terminalMark}>
-        <span aria-hidden="true" className={styles.neonSlice} />
-        <div className={styles.titleStack}>
-          <h1 className={styles.neonTitle}>{t.chat.welcome.headline}</h1>
-          {!reduceMotion ? (
-            <div aria-hidden="true" className={styles.bitsLayer}>
-          
-            </div>
-          ) : null}
-        </div>
+      <div className={styles.intro}>
+        <p className={styles.eyebrow}>{t.chat.welcome.eyebrow}</p>
+        <h1 className={styles.title}>{t.chat.welcome.headline}</h1>
+        <p className={styles.description}>{t.chat.welcome.description}</p>
       </div>
+
+      <div className={styles.cards}>
+        <WelcomeCard
+          action={t.chat.welcome.modelAction}
+          description={t.chat.welcome.modelDescription}
+          emphasized={!modelReady}
+          icon={ServerCog}
+          onClick={onOpenModelProvider}
+          status={
+            modelCount > 0
+              ? t.chat.welcome.modelConfigured.replace(
+                  "{count}",
+                  String(modelCount),
+                )
+              : t.chat.welcome.modelMissing
+          }
+          title={t.workspace.modelProvider}
+        />
+        <WelcomeCard
+          action={t.chat.welcome.skillsAction}
+          description={t.chat.welcome.skillsDescription}
+          disabledReason={skillsDisabledReason}
+          icon={Puzzle}
+          onClick={onOpenSkills}
+          status={skillsDisabledReason ?? t.chat.welcome.skillsReady}
+          title={t.workspace.skills}
+        />
+        <WelcomeCard
+          action={t.chat.welcome.sessionAction}
+          description={
+            projectName
+              ? t.chat.welcome.sessionDescription.replace(
+                  "{project}",
+                  projectName,
+                )
+              : t.chat.welcome.sessionDescriptionNoProject
+          }
+          disabledReason={sessionDisabledReason}
+          emphasized={!sessionDisabledReason}
+          icon={MessageSquarePlus}
+          onClick={onStart}
+          status={sessionDisabledReason ?? t.chat.welcome.sessionReady}
+          title={t.workspace.newChat}
+        />
+      </div>
+
+      <p className={styles.capabilities}>
+        <strong>{t.chat.welcome.capabilitiesLead}</strong>
+        <span>{t.chat.welcome.history}</span>
+        <span>{t.chat.welcome.files}</span>
+        <span>{t.chat.welcome.branches}</span>
+      </p>
     </section>
   );
 }
 
-function usePrefersReducedMotion() {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    getReducedMotionSnapshot,
-    () => false,
+function WelcomeCard({
+  action,
+  description,
+  disabledReason = null,
+  emphasized = false,
+  icon: Icon,
+  onClick,
+  status,
+  title,
+}: {
+  action: string;
+  description: string;
+  disabledReason?: string | null;
+  emphasized?: boolean;
+  icon: LucideIcon;
+  onClick: () => void;
+  status: string;
+  title: string;
+}) {
+  const card = (
+    <button
+      aria-disabled={disabledReason ? true : undefined}
+      className={`${styles.card} ${emphasized ? styles.emphasized : ""}`}
+      onClick={disabledReason ? undefined : onClick}
+      type="button"
+    >
+      <span className={styles.cardHeader}>
+        <span className={styles.icon}>
+          <Icon aria-hidden="true" />
+        </span>
+        <span className={styles.status}>
+          <span aria-hidden="true" className={styles.statusDot} />
+          {status}
+        </span>
+      </span>
+      <strong className={styles.cardTitle}>{title}</strong>
+      <span className={styles.cardDescription}>{description}</span>
+      <span className={styles.action}>
+        {action}
+        <span aria-hidden="true">→</span>
+      </span>
+    </button>
   );
-}
 
-function subscribeReducedMotion(callback: () => void) {
-  const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-  query.addEventListener("change", callback);
-  return () => query.removeEventListener("change", callback);
-}
-
-function getReducedMotionSnapshot() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return disabledReason ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{card}</TooltipTrigger>
+      <TooltipContent>{disabledReason}</TooltipContent>
+    </Tooltip>
+  ) : (
+    card
+  );
 }
 
 function CenteredState({

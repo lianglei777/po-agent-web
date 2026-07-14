@@ -1,134 +1,163 @@
 .stage {
   display: grid;
   min-height: calc(100dvh - 280px);
-  width: 100%;
-  align-items: end;
-  justify-items: center;
-  overflow: hidden;
-  padding: 24px 16px clamp(52px, 12vh, 112px);
+  width: min(100%, 980px);
+  margin-inline: auto;
+  align-content: end;
+  gap: 28px;
+  padding: 32px 16px clamp(52px, 10vh, 96px);
 }
 
-.terminalMark {
-  position: relative;
-  display: grid;
-  width: min(100%, 720px);
-  place-items: center;
-  padding-block: 18px;
-  isolation: isolate;
-}
-
-.terminalMark::before {
-  position: absolute;
-  inset-inline: 10%;
-  top: 50%;
-  z-index: -1;
-  height: 1px;
-  content: "";
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(16 163 127 / 0.44),
-    transparent
-  );
-}
-
-.terminalMark::after {
-  position: absolute;
-  inset-inline: 28%;
-  bottom: 10px;
-  height: 1px;
-  content: "";
-  background: rgb(255 61 242 / 0.28);
-  transform: skewX(-18deg);
-}
-
-.titleStack {
-  position: relative;
-  display: grid;
-  width: 100%;
-  place-items: center;
-}
-
-.neonTitle {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(44px, 5.8vw, 88px);
-  font-weight: 650;
-  line-height: 0.95;
-  letter-spacing: 0;
-  color: var(--text);
-  max-width: 100%;
-  overflow-wrap: break-word;
+.intro {
   text-align: center;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 18px 0 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
   text-wrap: balance;
-  text-shadow:
-    -1px 0 0 rgb(0 214 201 / 0.62),
-    1px 0 0 rgb(255 61 242 / 0.4),
-    0 10px 22px rgb(13 13 13 / 0.12);
 }
 
-.bitsLayer {
-  position: absolute;
-  inset: 0;
+.description {
+  margin: 10px 0 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+.cards {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: grid;
+  min-height: 176px;
+  grid-template-rows: auto auto 1fr auto;
+  padding: 16px;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.card:not([aria-disabled="true"]):hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.card[aria-disabled="true"] {
+  color: var(--disabled-text);
+  cursor: not-allowed;
+  background: var(--disabled-surface);
+}
+
+.card[aria-disabled="true"] .statusDot {
+  background: var(--disabled-text);
+}
+
+.emphasized {
+  border-color: var(--border-strong);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
   place-items: center;
-  pointer-events: none;
+  color: var(--text);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
 }
 
-.bitsTitle {
-  color: rgb(13 13 13 / 0.18);
-  text-shadow:
-    -2px 0 0 rgb(0 214 201 / 0.42),
-    2px 0 0 rgb(255 61 242 / 0.3);
+.icon svg {
+  width: 20px;
+  height: 20px;
 }
 
-.neonSlice {
-  position: absolute;
-  z-index: 1;
-  width: min(76%, 520px);
-  height: 8px;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(0 214 201 / 0.38),
-    rgb(255 61 242 / 0.26),
-    transparent
-  );
-  opacity: 0.72;
-  transform: translateY(-4px) skewX(-16deg);
-  animation: welcome-slice 3.6s steps(1, end) infinite;
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted-foreground);
+  font-size: 11px;
 }
 
-@keyframes welcome-slice {
-  0%,
-  82%,
-  100% {
-    clip-path: inset(0 0 0 0);
-    transform: translateY(-4px) skewX(-16deg);
-  }
-  83% {
-    clip-path: inset(0 0 42% 0);
-    transform: translate(-12px, -15px) skewX(-16deg);
-  }
-  84% {
-    clip-path: inset(58% 0 0 0);
-    transform: translate(10px, 14px) skewX(-16deg);
-  }
+.statusDot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .neonSlice {
-    animation: none;
-  }
+.cardTitle {
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-@media (max-width: 700px) {
-  .stage {
-    padding-inline: 8px;
-  }
+.cardDescription {
+  margin-top: 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
 
-  .neonTitle {
-    font-size: clamp(30px, 8vw, 44px);
-  }
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.capabilities {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.capabilities strong {
+  color: var(--text);
+  font-weight: 600;
 }
