@@ -133,7 +133,9 @@ composition/transport/domain <- app/api
 
 - 新增功能前，先确认它应放在哪一层，再开始写代码
 - 修改公共 API 或模块边界后，同步更新 `docs/agent-api-reference.md` 和 `docs/architecture.md`
-- 提交前运行 `npm run check`（lint + typecheck + test）
+- 开发过程中按变更风险运行最小相关检查；不要求文档、样式、静态文案或无行为变化的重构新增测试
+- 新增非平凡行为或修复缺陷时，添加聚焦测试
+- 代码提交前运行一次 `npm run check`（lint + typecheck + test）；纯文档修改可跳过
 - 涉及 Next.js 路由、渲染或生产行为变更时，额外运行 `npm run build`
 - 用户可见文案放在 `src/i18n/dictionaries`，新增或修改时同步中英文字典
 - 新代码注释用中文

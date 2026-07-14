@@ -36,9 +36,11 @@ truth because this Next.js version may differ from training data.
 1. Inspect the owning module, its callers, its tests, and relevant docs.
 2. Identify the correct architectural layer before writing code.
 3. Make the smallest coherent change that fully solves the task.
-4. Add or update focused tests for changed behavior.
-5. Run `npm run check`.
-6. For Next.js routing, rendering, configuration, or production behavior
+4. During development, run the smallest relevant checks for fast feedback.
+5. Add or update focused tests when the change introduces non-trivial behavior
+   or fixes a bug.
+6. Before handing off a code change, run `npm run check` once.
+7. For Next.js routing, rendering, configuration, or production behavior
    changes, also run `npm run build`.
 
 Do not start broad refactors unless they are required for correctness or
@@ -160,6 +162,11 @@ bypass it with relative paths, re-exports, lint disables, or duplicated types.
 
 ## Testing Expectations
 
+- Do not add tests for documentation, comments, formatting, styling-only
+  changes, static copy, or mechanical refactors that preserve behavior.
+- Prefer existing relevant tests for behavior-preserving refactors.
+- New non-trivial branches, validation, parsing, concurrency, security, and
+  filesystem behavior should have focused tests.
 - Domain and application behavior: focused unit tests.
 - Infrastructure adapters: tests around mapping, persistence, process, and
   failure behavior.
@@ -171,8 +178,8 @@ bypass it with relative paths, re-exports, lint disables, or duplicated types.
 
 ## Completion
 
-A task is complete only when the relevant behavior is implemented, docs are
-updated when contracts or boundaries changed, and these checks pass:
+A code task is complete only when the relevant behavior is implemented, docs
+are updated when contracts or boundaries changed, and this final check passes:
 
 ```bash
 npm run check
@@ -180,3 +187,5 @@ npm run check
 
 Run `npm run build` as well when the change can affect Next.js production
 compilation or runtime behavior.
+
+Documentation-only changes do not require `npm run check` or `npm run build`.
