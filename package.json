@@ -16,7 +16,9 @@
     "desktop:prepare": "node desktop/prepare-standalone.mjs",
     "desktop:dev": "npm run build && npm run desktop:prepare && electron .",
     "desktop:pack": "npm run build && npm run desktop:prepare && electron-builder --dir --publish never",
-    "desktop:dist": "npm run build && npm run desktop:prepare && electron-builder --publish never"
+    "desktop:pack:cn": "npm run build && npm run desktop:prepare && cross-env ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ electron-builder --dir --publish never",
+    "desktop:dist": "npm run build && npm run desktop:prepare && electron-builder --publish never",
+    "desktop:dist:cn": "npm run build && npm run desktop:prepare && cross-env ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ electron-builder --publish never"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "^0.75.5",
@@ -47,6 +49,7 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "electron": "^43.1.0",
     "electron-builder": "^26.15.3",
     "eslint": "^9",
