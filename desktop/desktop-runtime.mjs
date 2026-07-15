@@ -30,6 +30,7 @@ export function getPackagedServerRoot(resourcesPath) {
 export function buildServerEnvironment({
   baseEnv = process.env,
   builtinSkillsDir,
+  officialPacksDir,
   piAgentDir,
   port,
 }) {
@@ -42,6 +43,7 @@ export function buildServerEnvironment({
     PORT: String(port),
     PI_CODING_AGENT_DIR: piAgentDir,
     PO_AGENT_BUILTIN_SKILLS_DIR: builtinSkillsDir,
+    PO_AGENT_OFFICIAL_PACKS_DIR: officialPacksDir,
   };
 }
 

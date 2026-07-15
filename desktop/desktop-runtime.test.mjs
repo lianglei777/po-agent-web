@@ -45,6 +45,21 @@ test("passes the built-in skills directory to the server", () => {
   );
 });
 
+test("passes the official Skill Pack directory to the server", () => {
+  const env = buildServerEnvironment({
+    baseEnv: {},
+    officialPacksDir:
+      "C:\\Program Files\\Po Agent Web\\resources\\official-packs",
+    piAgentDir: "C:\\agent",
+    port: 53123,
+  });
+
+  assert.equal(
+    env.PO_AGENT_OFFICIAL_PACKS_DIR,
+    "C:\\Program Files\\Po Agent Web\\resources\\official-packs",
+  );
+});
+
 test("resolves the Pi agent directory under Electron app data", () => {
   assert.equal(
     getPiAgentDir("C:\\Users\\me\\AppData\\Roaming\\Po Agent Web"),

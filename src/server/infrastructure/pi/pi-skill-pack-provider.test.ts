@@ -19,6 +19,7 @@ const source = path.resolve("C:\\app\\developer-workflows");
 const catalog: OfficialSkillPackDefinition[] = [
   {
     id: "developer-workflows",
+    version: "1.0.0",
     source,
     name: "Developer Workflows",
     description: "Focused developer workflows",
