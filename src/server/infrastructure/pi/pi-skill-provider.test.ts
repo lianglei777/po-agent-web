@@ -58,7 +58,8 @@ describe("PiSkillProvider helpers", () => {
           disableModelInvocation: false,
           sourceInfo: {
             path: filePath,
-            source: "npm:@po-agent/developer-workflows@1.0.0",
+            source:
+              "https://user:secret@example.com/developer-workflows.git?token=hidden",
             scope: "project",
             origin: "package",
           },
@@ -67,9 +68,16 @@ describe("PiSkillProvider helpers", () => {
 
     try {
       const provider = new PiSkillProvider({ run: vi.fn() } as ProcessRunner);
-      await expect(provider.load(root)).resolves.toMatchObject({
-        skills: [expect.objectContaining({ canModify: false })],
+      const result = await provider.load(root);
+      expect(result).toMatchObject({
+        skills: [expect.objectContaining({
+          canModify: false,
+          sourceInfo: expect.objectContaining({
+            source: "https://example.com/developer-workflows.git",
+          }),
+        })],
       });
+      expect(JSON.stringify(result)).not.toMatch(/secret|hidden/);
     } finally {
       reload.mockRestore();
       getSkills.mockRestore();

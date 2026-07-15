@@ -37,7 +37,7 @@ function createContainer() {
   );
   const processes = new NodeProcessRunner();
   const skills = new PiSkillProvider(processes);
-  const skillPacks = new PiSkillPackProvider();
+  const skillPacks = new PiSkillPackProvider(undefined, undefined, undefined, roots);
 
   return {
     roots,

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
   DefaultPackageManager,
@@ -10,18 +11,33 @@ import {
 import { AppError } from "@/server/domain/app-error";
 import type {
   InstallSkillPackInput,
+  InstallSkillPackSourceInput,
+  MaintainSkillPackInput,
   RemoveSkillPackInput,
   SkillPackInfo,
   SkillPackLoadResult,
   SkillPackResources,
 } from "@/server/domain/skill-pack";
+import type { WorkspaceRootProvider } from "@/server/ports/file-system";
 import type { SkillPackProvider } from "@/server/ports/skill-pack-provider";
 import {
   getOfficialSkillPacks,
   type OfficialSkillPackDefinition,
 } from "./official-skill-packs";
+import {
+  canUpdatePackageSource,
+  isLocalPackageSource,
+  normalizeManualPackageSource,
+  safePackageSource,
+} from "./package-source";
 
 type PackageManagerFactory = (cwd: string) => PackageManager;
+type ConfiguredPackage = ReturnType<PackageManager["listConfiguredPackages"]>[number];
+type MutationFailureCode =
+  | "SKILL_PACK_INSTALL_FAILED"
+  | "SKILL_PACK_UPDATE_FAILED"
+  | "SKILL_PACK_REPAIR_FAILED"
+  | "SKILL_PACK_REMOVE_FAILED";
 
 export class PiSkillPackProvider implements SkillPackProvider {
   private running = false;
@@ -30,21 +46,22 @@ export class PiSkillPackProvider implements SkillPackProvider {
     private readonly createManager: PackageManagerFactory = createDefaultManager,
     private readonly catalog = getOfficialSkillPacks(),
     private readonly agentDir = getAgentDir(),
+    private readonly roots?: WorkspaceRootProvider,
   ) {}
 
   async list(cwd: string): Promise<SkillPackLoadResult> {
     const manager = this.createManager(cwd);
     const configured = manager.listConfiguredPackages();
+    this.registerConfiguredRoots(configured, cwd);
     let resolved = emptyResources();
     let resolutionSucceeded = true;
     try {
       resolved = await manager.resolve(async () => "skip");
     } catch {
       resolutionSucceeded = false;
-      // 配置仍需展示为 broken，具体安装错误由后续安装或移除操作返回。
     }
     return {
-      packs: mapPacks(
+      packs: await mapPacks(
         this.catalog,
         configured,
         resolved,
@@ -56,88 +73,169 @@ export class PiSkillPackProvider implements SkillPackProvider {
   }
 
   async install(input: InstallSkillPackInput): Promise<SkillPackLoadResult> {
-    return this.withMutation(
-      "SKILL_PACK_INSTALL_FAILED",
-      async () => {
-        const definition = this.catalog.find(
-          (item) => catalogPackId(item.id) === input.packId,
-        );
-        if (!definition) {
-          throw new AppError(
-            "SKILL_PACK_NOT_FOUND",
-            "Skill Pack was not found.",
-            404,
-          );
-        }
+    return this.withMutation("SKILL_PACK_INSTALL_FAILED", async () => {
+      const definition = this.catalog.find(
+        (item) => catalogPackId(item.id) === input.packId,
+      );
+      if (!definition) notFound();
 
-        const manager = this.createManager(input.cwd);
-        if (
-          manager
-            .listConfiguredPackages()
-            .some((item) =>
-              configuredMatchesDefinition(
-                item,
-                definition,
-                input.cwd,
-                this.agentDir,
-              ),
-            )
-        ) {
-          throw new AppError(
-            "VALIDATION_ERROR",
-            "Skill Pack is already installed.",
-            409,
-          );
-        }
-
-        const local = input.scope === "project";
-        await manager.installAndPersist(definition.source, { local });
-        const result = await this.list(input.cwd);
-        const installed = result.packs.find(
-          (pack) => pack.catalogId === definition.id,
-        );
-        if (
-          installed?.status !== "installed" ||
-          !definition.expectedSkills.every((name) =>
-            installed.resources.skills.includes(name),
+      const manager = this.createManager(input.cwd);
+      if (
+        manager
+          .listConfiguredPackages()
+          .some((item) =>
+            configuredMatchesDefinition(
+              item,
+              definition,
+              input.cwd,
+              this.agentDir,
+            ),
           )
-        ) {
-          try {
-            await manager.removeAndPersist(definition.source, { local });
-          } catch (cleanupError) {
-            console.error("Failed to clean up an invalid Skill Pack", cleanupError);
-          }
-          throw new AppError(
-            "SKILL_PACK_INSTALL_FAILED",
-            "Installed Skill Pack could not be verified.",
-            500,
-          );
-        }
-        return result;
-      },
-    );
+      ) {
+        alreadyInstalled();
+      }
+
+      this.registerLocalSource(definition.source);
+      const local = input.scope === "project";
+      await manager.installAndPersist(definition.source, { local });
+      const result = await this.list(input.cwd);
+      const installed = result.packs.find(
+        (pack) => pack.catalogId === definition.id,
+      );
+      if (
+        installed?.status !== "installed" ||
+        !definition.expectedSkills.every((name) =>
+          installed.resources.skills.includes(name),
+        )
+      ) {
+        await cleanupInstall(manager, definition.source, local);
+        throw new AppError(
+          "SKILL_PACK_INSTALL_FAILED",
+          "Installed Skill Pack could not be verified.",
+          500,
+        );
+      }
+      return result;
+    });
+  }
+
+  async installSource(
+    input: InstallSkillPackSourceInput,
+  ): Promise<SkillPackLoadResult> {
+    return this.withMutation("SKILL_PACK_INSTALL_FAILED", async () => {
+      const source = normalizeManualPackageSource(input.source);
+      const manager = this.createManager(input.cwd);
+      if (
+        manager
+          .listConfiguredPackages()
+          .some((item) =>
+            configuredMatchesSource(item, source, input.cwd, this.agentDir),
+          )
+      ) {
+        alreadyInstalled();
+      }
+
+      this.registerLocalSource(source);
+      const local = input.scope === "project";
+      await manager.installAndPersist(source, { local });
+      const configured = manager
+        .listConfiguredPackages()
+        .find((item) =>
+          configuredMatchesSource(item, source, input.cwd, this.agentDir),
+        );
+      if (!configured) {
+        await cleanupInstall(manager, source, local);
+        throw new AppError(
+          "SKILL_PACK_INSTALL_FAILED",
+          "Installed Skill Pack could not be verified.",
+          500,
+        );
+      }
+
+      const packId = configuredPackId(
+        configured,
+        this.catalog,
+        input.cwd,
+        this.agentDir,
+      );
+      const result = await this.list(input.cwd);
+      const installed = result.packs.find((pack) => pack.packId === packId);
+      if (installed?.status !== "installed" || !hasResources(installed.resources)) {
+        await cleanupInstall(manager, source, local);
+        throw new AppError(
+          "SKILL_PACK_INSTALL_FAILED",
+          "Installed Skill Pack does not expose an enabled resource.",
+          500,
+        );
+      }
+      return result;
+    });
+  }
+
+  async update(input: MaintainSkillPackInput): Promise<SkillPackLoadResult> {
+    return this.withMutation("SKILL_PACK_UPDATE_FAILED", async () => {
+      const manager = this.createManager(input.cwd);
+      const target = findConfigured(
+        manager.listConfiguredPackages(),
+        input.packId,
+        this.catalog,
+        input.cwd,
+        this.agentDir,
+      );
+      if (!target) notFound();
+      if (!canUpdatePackageSource(target.source)) {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Local Skill Packs must be refreshed from their source directory.",
+          409,
+        );
+      }
+
+      await manager.update(target.source);
+      return this.verifyConfiguredPack(input, "SKILL_PACK_UPDATE_FAILED");
+    });
+  }
+
+  async repair(input: MaintainSkillPackInput): Promise<SkillPackLoadResult> {
+    return this.withMutation("SKILL_PACK_REPAIR_FAILED", async () => {
+      const before = await this.list(input.cwd);
+      const pack = before.packs.find((item) => item.packId === input.packId);
+      if (!pack) notFound();
+      if (pack.status !== "broken") {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Only a broken Skill Pack can be repaired.",
+          409,
+        );
+      }
+
+      const manager = this.createManager(input.cwd);
+      const target = findConfigured(
+        manager.listConfiguredPackages(),
+        input.packId,
+        this.catalog,
+        input.cwd,
+        this.agentDir,
+      );
+      if (!target) notFound();
+      const localPath = configuredLocalPath(target, input.cwd, this.agentDir);
+      if (localPath) this.registerLocalSource(localPath);
+      await manager.install(target.source, { local: target.scope === "project" });
+      return this.verifyConfiguredPack(input, "SKILL_PACK_REPAIR_FAILED");
+    });
   }
 
   async remove(input: RemoveSkillPackInput): Promise<SkillPackLoadResult> {
     return this.withMutation("SKILL_PACK_REMOVE_FAILED", async () => {
       const manager = this.createManager(input.cwd);
-      const configured = manager.listConfiguredPackages();
-      const target = configured.find(
-        (item) =>
-          configuredPackId(
-            item,
-            this.catalog,
-            input.cwd,
-            this.agentDir,
-          ) === input.packId,
+      const target = findConfigured(
+        manager.listConfiguredPackages(),
+        input.packId,
+        this.catalog,
+        input.cwd,
+        this.agentDir,
       );
-      if (!target) {
-        throw new AppError(
-          "SKILL_PACK_NOT_FOUND",
-          "Skill Pack was not found.",
-          404,
-        );
-      }
+      if (!target) notFound();
 
       await manager.removeAndPersist(target.source, {
         local: target.scope === "project",
@@ -154,8 +252,34 @@ export class PiSkillPackProvider implements SkillPackProvider {
     });
   }
 
+  private async verifyConfiguredPack(
+    input: MaintainSkillPackInput,
+    code: Extract<MutationFailureCode, "SKILL_PACK_UPDATE_FAILED" | "SKILL_PACK_REPAIR_FAILED">,
+  ): Promise<SkillPackLoadResult> {
+    const result = await this.list(input.cwd);
+    const pack = result.packs.find((item) => item.packId === input.packId);
+    if (pack?.status !== "installed" || !hasResources(pack.resources)) {
+      throw new AppError(code, "Skill Pack could not be verified.", 500);
+    }
+    return result;
+  }
+
+  private registerConfiguredRoots(
+    configured: ConfiguredPackage[],
+    cwd: string,
+  ): void {
+    for (const item of configured) {
+      const localPath = configuredLocalPath(item, cwd, this.agentDir);
+      if (localPath) this.registerLocalSource(localPath);
+    }
+  }
+
+  private registerLocalSource(source: string): void {
+    if (isLocalPackageSource(source)) this.roots?.addRoot(path.resolve(source));
+  }
+
   private async withMutation<T>(
-    failureCode: "SKILL_PACK_INSTALL_FAILED" | "SKILL_PACK_REMOVE_FAILED",
+    failureCode: MutationFailureCode,
     work: () => Promise<T>,
   ): Promise<T> {
     if (this.running) {
@@ -170,11 +294,7 @@ export class PiSkillPackProvider implements SkillPackProvider {
       return await work();
     } catch (error) {
       if (error instanceof AppError) throw error;
-      throw new AppError(
-        failureCode,
-        error instanceof Error ? error.message : String(error),
-        500,
-      );
+      throw new AppError(failureCode, failureMessage(failureCode), 500);
     } finally {
       this.running = false;
     }
@@ -190,72 +310,91 @@ function createDefaultManager(cwd: string): PackageManager {
   });
 }
 
-function mapPacks(
+async function mapPacks(
   catalog: OfficialSkillPackDefinition[],
-  configured: ReturnType<PackageManager["listConfiguredPackages"]>,
+  configured: ConfiguredPackage[],
   resolved: ResolvedPaths,
   cwd: string,
   agentDir: string,
   resolutionSucceeded: boolean,
-): SkillPackInfo[] {
-  const official = catalog.map((definition) => {
-    const installed = configured.find((item) =>
-      configuredMatchesDefinition(item, definition, cwd, agentDir),
-    );
-    const resolvedResources = resourcesForSource(
-      resolved,
-      installed?.source ?? definition.source,
-    );
-    const resources = installed
-      ? resolvedResources
-      : {
-          ...resolvedResources,
-          skills: [...definition.expectedSkills].sort(),
-        };
-    const verified = definition.expectedSkills.every((name) =>
-      resolvedResources.skills.includes(name),
-    );
-    return {
-      packId: catalogPackId(definition.id),
-      catalogId: definition.id,
-      name: definition.name,
-      description: definition.description,
-      source: definition.source,
-      scope: installed?.scope ?? null,
-      status: installed
-        ? installed.installedPath && verified
-          ? ("installed" as const)
-          : ("broken" as const)
-        : ("available" as const),
-      resources,
-      containsExtensions:
-        definition.containsExtensions || resources.extensions.length > 0,
-    };
-  });
-  const thirdParty = configured
-    .filter(
-      (item) =>
-        !catalog.some((definition) =>
-          configuredMatchesDefinition(item, definition, cwd, agentDir),
-        ),
-    )
-    .map((item) => {
-      const resources = resourcesForSource(resolved, item.source);
-      const displaySource = safePackageSource(item.source);
+): Promise<SkillPackInfo[]> {
+  const official = await Promise.all(
+    catalog.map(async (definition): Promise<SkillPackInfo> => {
+      const installed = configured.find((item) =>
+        configuredMatchesDefinition(item, definition, cwd, agentDir),
+      );
+      const resolvedResources = resourcesForSource(
+        resolved,
+        installed?.source ?? definition.source,
+      );
+      const resources = installed
+        ? resolvedResources
+        : {
+            ...resolvedResources,
+            skills: [...definition.expectedSkills].sort(),
+          };
+      const verified = definition.expectedSkills.every((name) =>
+        resolvedResources.skills.includes(name),
+      );
+      const version = await packageVersion(installed?.installedPath);
+      const canUpdate = Boolean(
+        installed && canUpdatePackageSource(installed.source),
+      );
       return {
-        packId: configuredPackId(item, catalog, cwd, agentDir),
-        name: packageLabel(displaySource),
-        description: "",
-        source: displaySource,
-        scope: item.scope,
-        status:
-          item.installedPath && resolutionSucceeded
-            ? ("installed" as const)
-            : ("broken" as const),
+        packId: catalogPackId(definition.id),
+        catalogId: definition.id,
+        name: definition.name,
+        description: definition.description,
+        source: safePackageSource(definition.source),
+        scope: installed?.scope ?? null,
+        status: installed
+          ? installed.installedPath && verified
+            ? "installed"
+            : "broken"
+          : "available",
+        version,
+        availableVersion: definition.version,
+        updateAvailable: Boolean(
+          canUpdate && version && definition.version && version !== definition.version,
+        ),
+        canUpdate,
         resources,
-        containsExtensions: resources.extensions.length > 0,
+        containsExtensions:
+          definition.containsExtensions || resources.extensions.length > 0,
       };
-    });
+    }),
+  );
+  const thirdParty = await Promise.all(
+    configured
+      .filter(
+        (item) =>
+          !catalog.some((definition) =>
+            configuredMatchesDefinition(item, definition, cwd, agentDir),
+          ),
+      )
+      .map(async (item): Promise<SkillPackInfo> => {
+        const resources = resourcesForSource(resolved, item.source);
+        const displaySource = safePackageSource(item.source);
+        const healthy = Boolean(
+          item.installedPath &&
+            resolutionSucceeded &&
+            (item.filtered || hasResources(resources)),
+        );
+        return {
+          packId: configuredPackId(item, catalog, cwd, agentDir),
+          name: packageLabel(displaySource),
+          description: "",
+          source: displaySource,
+          scope: item.scope,
+          status: healthy ? "installed" : "broken",
+          version: await packageVersion(item.installedPath),
+          updateAvailable: false,
+          canUpdate: canUpdatePackageSource(item.source),
+          resources,
+          containsExtensions: resources.extensions.length > 0,
+        };
+      }),
+  );
   return [...official, ...thirdParty];
 }
 
@@ -286,8 +425,20 @@ function resourceNames(
     .sort((left, right) => left.localeCompare(right));
 }
 
+function findConfigured(
+  configured: ConfiguredPackage[],
+  packId: string,
+  catalog: OfficialSkillPackDefinition[],
+  cwd: string,
+  agentDir: string,
+): ConfiguredPackage | undefined {
+  return configured.find(
+    (item) => configuredPackId(item, catalog, cwd, agentDir) === packId,
+  );
+}
+
 function configuredPackId(
-  configured: ReturnType<PackageManager["listConfiguredPackages"]>[number],
+  configured: ConfiguredPackage,
   catalog: OfficialSkillPackDefinition[],
   cwd: string,
   agentDir: string,
@@ -301,22 +452,63 @@ function configuredPackId(
 }
 
 function configuredMatchesDefinition(
-  configured: ReturnType<PackageManager["listConfiguredPackages"]>[number],
+  configured: ConfiguredPackage,
   definition: OfficialSkillPackDefinition,
   cwd: string,
   agentDir: string,
 ): boolean {
-  if (sameSource(configured.source, definition.source)) return true;
-  if (
-    configured.installedPath &&
-    sameSource(configured.installedPath, definition.source)
-  ) {
+  return configuredMatchesSource(
+    configured,
+    definition.source,
+    cwd,
+    agentDir,
+  );
+}
+
+function configuredMatchesSource(
+  configured: ConfiguredPackage,
+  source: string,
+  cwd: string,
+  agentDir: string,
+): boolean {
+  if (sameSource(configured.source, source)) return true;
+  if (configured.installedPath && sameSource(configured.installedPath, source)) {
     return true;
   }
-  if (path.isAbsolute(configured.source)) return false;
+  const localPath = configuredLocalPath(configured, cwd, agentDir);
+  return Boolean(localPath && sameSource(localPath, source));
+}
+
+function configuredLocalPath(
+  configured: ConfiguredPackage,
+  cwd: string,
+  agentDir: string,
+): string | undefined {
+  if (path.isAbsolute(configured.source)) return configured.source;
+  if (!/^(?:\.\.?)[\\/]/.test(configured.source)) return undefined;
   const baseDir =
     configured.scope === "project" ? path.join(cwd, ".pi") : agentDir;
-  return sameSource(path.resolve(baseDir, configured.source), definition.source);
+  return path.resolve(baseDir, configured.source);
+}
+
+async function packageVersion(installedPath?: string): Promise<string | undefined> {
+  if (!installedPath) return undefined;
+  try {
+    const content = await fs.readFile(path.join(installedPath, "package.json"), "utf8");
+    const value: unknown = JSON.parse(content);
+    if (
+      typeof value === "object" &&
+      value !== null &&
+      "version" in value &&
+      typeof value.version === "string" &&
+      value.version.trim()
+    ) {
+      return value.version;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
 }
 
 function catalogPackId(id: string): string {
@@ -342,21 +534,42 @@ function packageLabel(source: string): string {
   return path.isAbsolute(source) ? path.basename(source) : source;
 }
 
-function safePackageSource(source: string): string {
-  const urlStart = source.search(/[a-z][a-z\d+.-]*:\/\//i);
-  if (urlStart < 0) return source;
+function hasResources(resources: SkillPackResources): boolean {
+  return Object.values(resources).some((items) => items.length > 0);
+}
 
+async function cleanupInstall(
+  manager: PackageManager,
+  source: string,
+  local: boolean,
+): Promise<void> {
   try {
-    const prefix = source.slice(0, urlStart);
-    const url = new URL(source.slice(urlStart));
-    url.username = "";
-    url.password = "";
-    url.search = "";
-    url.hash = "";
-    return `${prefix}${url.toString()}`;
+    await manager.removeAndPersist(source, { local });
   } catch {
-    return source.slice(0, urlStart);
+    // 清理失败不覆盖原始安装校验错误，也不向响应泄露底层命令信息。
   }
+}
+
+function notFound(): never {
+  throw new AppError("SKILL_PACK_NOT_FOUND", "Skill Pack was not found.", 404);
+}
+
+function alreadyInstalled(): never {
+  throw new AppError(
+    "VALIDATION_ERROR",
+    "Skill Pack is already installed.",
+    409,
+  );
+}
+
+function failureMessage(code: MutationFailureCode): string {
+  const messages: Record<MutationFailureCode, string> = {
+    SKILL_PACK_INSTALL_FAILED: "Skill Pack installation failed.",
+    SKILL_PACK_UPDATE_FAILED: "Skill Pack update failed.",
+    SKILL_PACK_REPAIR_FAILED: "Skill Pack repair failed.",
+    SKILL_PACK_REMOVE_FAILED: "Skill Pack removal failed.",
+  };
+  return messages[code];
 }
 
 function emptyResources(): ResolvedPaths {

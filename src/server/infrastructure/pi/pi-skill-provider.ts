@@ -23,6 +23,7 @@ import {
   BUILTIN_SKILL_SOURCE,
   createPiResourceLoader,
 } from "./pi-resource-loader";
+import { safePackageSource } from "./package-source";
 
 const ANSI_PATTERN = /\u001b\[[0-?]*[ -/]*[@-~]/g;
 const MAX_COMMAND_OUTPUT = 1024 * 1024;
@@ -431,7 +432,7 @@ async function mapSkill(skill: Skill, cwd: string): Promise<SkillInfo> {
     baseDir: await fs.realpath(skill.baseDir),
     sourceInfo: {
       path: skill.sourceInfo.path,
-      source: skill.sourceInfo.source,
+      source: safePackageSource(skill.sourceInfo.source),
       scope: skill.sourceInfo.scope,
       origin: skill.sourceInfo.origin,
       baseDir: skill.sourceInfo.baseDir,

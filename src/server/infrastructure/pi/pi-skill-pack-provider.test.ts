@@ -1,3 +1,5 @@
+import { promises as fs } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import type {
   PackageManager,
@@ -5,6 +7,12 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
 import type { OfficialSkillPackDefinition } from "./official-skill-packs";
+import {
+  canUpdatePackageSource,
+  isLocalPackageSource,
+  normalizeManualPackageSource,
+  safePackageSource,
+} from "./package-source";
 import { PiSkillPackProvider } from "./pi-skill-pack-provider";
 
 const source = path.resolve("C:\\app\\developer-workflows");
@@ -20,6 +28,40 @@ const catalog: OfficialSkillPackDefinition[] = [
 ];
 
 describe("PiSkillPackProvider", () => {
+  it("validates and classifies manual package sources", () => {
+    const local = path.resolve("C:\\packs\\release");
+    expect(normalizeManualPackageSource(local)).toBe(local);
+    expect(normalizeManualPackageSource("npm:@scope/release-pack")).toBe(
+      "npm:@scope/release-pack",
+    );
+    expect(normalizeManualPackageSource("git@github.com:org/release.git")).toBe(
+      "git@github.com:org/release.git",
+    );
+    expect(
+      normalizeManualPackageSource("https://github.com/org/release.git"),
+    ).toBe("https://github.com/org/release.git");
+    expect(isLocalPackageSource(local)).toBe(true);
+    expect(canUpdatePackageSource(local)).toBe(false);
+    expect(canUpdatePackageSource("npm:@scope/release-pack")).toBe(true);
+
+    for (const invalid of [
+      "./relative-pack",
+      "../relative-pack",
+      "https://user:secret@example.com/pack.git",
+      "https://example.com/pack.git?token=secret",
+      "https://example.com/pack.git#main",
+      "ftp://example.com/pack.tgz",
+      "npm:pack\nother",
+    ]) {
+      expect(() => normalizeManualPackageSource(invalid)).toThrowError();
+    }
+    expect(
+      safePackageSource(
+        "https://user:secret@example.com/pack.git?token=hidden#fragment",
+      ),
+    ).toBe("https://example.com/pack.git");
+  });
+
   it("discloses expected skills before installation", async () => {
     const manager = fakePackageManager();
     const provider = new PiSkillPackProvider(() => manager, catalog);
@@ -208,6 +250,158 @@ describe("PiSkillPackProvider", () => {
     });
     expect(result.packs[0]).toMatchObject({ status: "available", scope: null });
   });
+
+  it("installs an absolute local package after registering its root", async () => {
+    const localSource = await fs.mkdtemp(path.join(os.tmpdir(), "skill-pack-"));
+    await fs.writeFile(
+      path.join(localSource, "package.json"),
+      JSON.stringify({ name: "local-release", version: "1.2.3" }),
+    );
+    const manager = fakePackageManager();
+    const configured: ReturnType<PackageManager["listConfiguredPackages"]> = [];
+    vi.mocked(manager.listConfiguredPackages).mockImplementation(() => configured);
+    vi.mocked(manager.installAndPersist).mockImplementation(async () => {
+      configured.push({
+        source: localSource,
+        scope: "project",
+        filtered: false,
+        installedPath: localSource,
+      });
+    });
+    vi.mocked(manager.resolve).mockImplementation(async () =>
+      configured.length > 0
+        ? resolvedSingleSkill(localSource, localSource)
+        : emptyResolvedPaths(),
+    );
+    const roots = { listRoots: vi.fn(), addRoot: vi.fn() };
+    const provider = new PiSkillPackProvider(
+      () => manager,
+      [],
+      "C:\\agent",
+      roots,
+    );
+
+    try {
+      const result = await provider.installSource({
+        source: localSource,
+        scope: "project",
+        cwd: "C:\\work",
+      });
+
+      expect(roots.addRoot).toHaveBeenCalledWith(localSource);
+      expect(vi.mocked(roots.addRoot).mock.invocationCallOrder[0]).toBeLessThan(
+        vi.mocked(manager.installAndPersist).mock.invocationCallOrder[0]!,
+      );
+      expect(result.packs[0]).toMatchObject({
+        source: localSource,
+        status: "installed",
+        version: "1.2.3",
+        canUpdate: false,
+      });
+    } finally {
+      await fs.rm(localSource, { recursive: true, force: true });
+    }
+  });
+
+  it("rolls back a manual install without enabled resources", async () => {
+    const manager = fakePackageManager();
+    const configured: ReturnType<PackageManager["listConfiguredPackages"]> = [];
+    vi.mocked(manager.listConfiguredPackages).mockImplementation(() => configured);
+    vi.mocked(manager.installAndPersist).mockImplementation(async () => {
+      configured.push({
+        source: "npm:@scope/empty-pack",
+        scope: "user",
+        filtered: false,
+        installedPath: "C:\\cache\\empty-pack",
+      });
+    });
+    const provider = new PiSkillPackProvider(() => manager, []);
+
+    await expect(
+      provider.installSource({
+        source: "npm:@scope/empty-pack",
+        scope: "global",
+        cwd: "C:\\work",
+      }),
+    ).rejects.toMatchObject({ code: "SKILL_PACK_INSTALL_FAILED" });
+    expect(manager.removeAndPersist).toHaveBeenCalledWith(
+      "npm:@scope/empty-pack",
+      { local: false },
+    );
+  });
+
+  it("updates remote packages and repairs only broken packages", async () => {
+    const installedPath = await fs.mkdtemp(path.join(os.tmpdir(), "remote-pack-"));
+    await fs.writeFile(
+      path.join(installedPath, "package.json"),
+      JSON.stringify({ name: "remote-release", version: "2.0.0" }),
+    );
+    const remoteSource = "npm:@scope/release-pack";
+    const manager = fakePackageManager();
+    const configured: ReturnType<PackageManager["listConfiguredPackages"]> = [{
+      source: remoteSource,
+      scope: "project" as const,
+      filtered: false,
+      installedPath,
+    }];
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue(configured);
+    vi.mocked(manager.resolve).mockResolvedValue(
+      resolvedSingleSkill(remoteSource, installedPath),
+    );
+    const provider = new PiSkillPackProvider(() => manager, []);
+
+    try {
+      const packId = (await provider.list("C:\\work")).packs[0]!.packId;
+      await provider.update({ packId, cwd: "C:\\work" });
+      expect(manager.update).toHaveBeenCalledWith(remoteSource);
+
+      configured[0]!.installedPath = undefined;
+      vi.mocked(manager.resolve).mockResolvedValue(emptyResolvedPaths());
+      vi.mocked(manager.install).mockImplementation(async () => {
+        configured[0]!.installedPath = installedPath;
+        vi.mocked(manager.resolve).mockResolvedValue(
+          resolvedSingleSkill(remoteSource, installedPath),
+        );
+      });
+      await provider.repair({ packId, cwd: "C:\\work" });
+      expect(manager.install).toHaveBeenCalledWith(remoteSource, { local: true });
+    } finally {
+      await fs.rm(installedPath, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects updates for local packages and does not leak operation errors", async () => {
+    const manager = fakePackageManager();
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue([
+      configuredPackage(),
+    ]);
+    vi.mocked(manager.resolve).mockResolvedValue(resolvedOfficialPack());
+    const provider = new PiSkillPackProvider(() => manager, []);
+    const packId = (await provider.list("C:\\work")).packs[0]!.packId;
+
+    await expect(provider.update({ packId, cwd: "C:\\work" })).rejects.toMatchObject(
+      { code: "VALIDATION_ERROR" },
+    );
+
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue([{
+      source: "npm:@scope/private-pack",
+      scope: "user",
+      filtered: false,
+      installedPath: "C:\\cache\\private-pack",
+    }]);
+    vi.mocked(manager.resolve).mockResolvedValue(
+      resolvedSingleSkill("npm:@scope/private-pack", "C:\\cache\\private-pack"),
+    );
+    const remoteId = (await provider.list("C:\\work")).packs[0]!.packId;
+    vi.mocked(manager.update).mockRejectedValue(
+      new Error("command failed with TOKEN=super-secret"),
+    );
+    const error = await provider
+      .update({ packId: remoteId, cwd: "C:\\work" })
+      .catch((caught: unknown) => caught);
+    expect(error).toMatchObject({ code: "SKILL_PACK_UPDATE_FAILED" });
+    expect(JSON.stringify(error)).not.toContain("super-secret");
+  });
 });
 
 function fakePackageManager(): PackageManager {
@@ -253,5 +447,21 @@ function resolvedOfficialPack(metadataSource = source): ResolvedPaths {
         baseDir: source,
       },
     })),
+  };
+}
+
+function resolvedSingleSkill(metadataSource: string, baseDir: string): ResolvedPaths {
+  return {
+    ...emptyResolvedPaths(),
+    skills: [{
+      path: path.join(baseDir, "skills", "release", "SKILL.md"),
+      enabled: true,
+      metadata: {
+        source: metadataSource,
+        scope: "project",
+        origin: "package",
+        baseDir,
+      },
+    }],
   };
 }
