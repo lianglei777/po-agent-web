@@ -28,6 +28,24 @@ const packInstallRouteSource = readFileSync(
   ),
   "utf8",
 );
+const packInstallSourceRouteSource = readFileSync(
+  fileURLToPath(
+    new URL("../../app/api/skill-packs/install-source/route.ts", import.meta.url),
+  ),
+  "utf8",
+);
+const packUpdateRouteSource = readFileSync(
+  fileURLToPath(
+    new URL("../../app/api/skill-packs/update/route.ts", import.meta.url),
+  ),
+  "utf8",
+);
+const packRepairRouteSource = readFileSync(
+  fileURLToPath(
+    new URL("../../app/api/skill-packs/repair/route.ts", import.meta.url),
+  ),
+  "utf8",
+);
 
 describe("skills config response contract", () => {
   it("does not expose unused load or install fields", () => {
@@ -45,6 +63,26 @@ describe("skills config response contract", () => {
     expect(packInstallRouteSource).toContain("parseSkillPackInstall");
     expect(packInstallRouteSource).toContain(
       "container.skillPackService.install",
+    );
+    expect(packInstallSourceRouteSource).toContain('runtime = "nodejs"');
+    expect(packInstallSourceRouteSource).toContain("readJson(request)");
+    expect(packInstallSourceRouteSource).toContain(
+      "parseSkillPackInstallSource",
+    );
+    expect(packInstallSourceRouteSource).toContain(
+      "container.skillPackService.installSource",
+    );
+    expect(packUpdateRouteSource).toContain('runtime = "nodejs"');
+    expect(packUpdateRouteSource).toContain("readJson(request)");
+    expect(packUpdateRouteSource).toContain("parseSkillPackMaintain");
+    expect(packUpdateRouteSource).toContain(
+      "container.skillPackService.update",
+    );
+    expect(packRepairRouteSource).toContain('runtime = "nodejs"');
+    expect(packRepairRouteSource).toContain("readJson(request)");
+    expect(packRepairRouteSource).toContain("parseSkillPackMaintain");
+    expect(packRepairRouteSource).toContain(
+      "container.skillPackService.repair",
     );
   });
 });
