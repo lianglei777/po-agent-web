@@ -8,6 +8,9 @@ describe("SkillPackService", () => {
     const provider: SkillPackProvider = {
       list: vi.fn().mockResolvedValue({ packs: [] }),
       install: vi.fn().mockResolvedValue({ packs: [] }),
+      installSource: vi.fn().mockResolvedValue({ packs: [] }),
+      update: vi.fn().mockResolvedValue({ packs: [] }),
+      repair: vi.fn().mockResolvedValue({ packs: [] }),
       remove: vi.fn().mockResolvedValue({ packs: [] }),
     };
     const root = path.resolve("C:\\workspace");
@@ -22,12 +25,32 @@ describe("SkillPackService", () => {
       scope: "global",
       cwd: root,
     });
+    await service.installSource({
+      source: "D:\\skill-packs\\release",
+      scope: "project",
+      cwd: root,
+    });
+    await service.update({ packId: "pack_abc", cwd: root });
+    await service.repair({ packId: "pack_abc", cwd: root });
     await service.remove({ packId: "pack_abc", cwd: root });
 
     expect(provider.list).toHaveBeenCalledWith(root);
     expect(provider.install).toHaveBeenCalledWith({
       packId: "pack_abc",
       scope: "global",
+      cwd: root,
+    });
+    expect(provider.installSource).toHaveBeenCalledWith({
+      source: "D:\\skill-packs\\release",
+      scope: "project",
+      cwd: root,
+    });
+    expect(provider.update).toHaveBeenCalledWith({
+      packId: "pack_abc",
+      cwd: root,
+    });
+    expect(provider.repair).toHaveBeenCalledWith({
+      packId: "pack_abc",
       cwd: root,
     });
     expect(provider.remove).toHaveBeenCalledWith({

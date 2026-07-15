@@ -1,5 +1,7 @@
 import type {
+  InstallSkillPackSourceInput,
   InstallSkillPackInput,
+  MaintainSkillPackInput,
   RemoveSkillPackInput,
 } from "@/server/domain/skill-pack";
 import type { WorkspaceRootProvider } from "@/server/ports/file-system";
@@ -18,6 +20,27 @@ export class SkillPackService {
 
   async install(input: InstallSkillPackInput) {
     return this.skillPacks.install({
+      ...input,
+      cwd: await resolveAllowedCwd(input.cwd, this.roots),
+    });
+  }
+
+  async installSource(input: InstallSkillPackSourceInput) {
+    return this.skillPacks.installSource({
+      ...input,
+      cwd: await resolveAllowedCwd(input.cwd, this.roots),
+    });
+  }
+
+  async update(input: MaintainSkillPackInput) {
+    return this.skillPacks.update({
+      ...input,
+      cwd: await resolveAllowedCwd(input.cwd, this.roots),
+    });
+  }
+
+  async repair(input: MaintainSkillPackInput) {
+    return this.skillPacks.repair({
       ...input,
       cwd: await resolveAllowedCwd(input.cwd, this.roots),
     });

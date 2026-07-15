@@ -16,6 +16,10 @@ export interface SkillPackInfo {
   source: string;
   scope: SkillPackScope;
   status: SkillPackStatus;
+  version?: string;
+  availableVersion?: string;
+  updateAvailable: boolean;
+  canUpdate: boolean;
   resources: SkillPackResources;
   containsExtensions: boolean;
 }
@@ -31,6 +35,17 @@ export interface InstallSkillPackRequest {
 }
 
 export interface RemoveSkillPackRequest {
+  packId: string;
+  cwd: string;
+}
+
+export interface InstallSkillPackSourceRequest {
+  source: string;
+  scope: "global" | "project";
+  cwd: string;
+}
+
+export interface MaintainSkillPackRequest {
   packId: string;
   cwd: string;
 }

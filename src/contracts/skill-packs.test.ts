@@ -13,6 +13,10 @@ describe("Skill Pack contracts", () => {
           source: "bundled:developer-workflows",
           scope: null,
           status: "available",
+          version: "1.0.0",
+          availableVersion: "1.1.0",
+          updateAvailable: true,
+          canUpdate: false,
           resources: {
             skills: ["investigate-failure"],
             extensions: [],

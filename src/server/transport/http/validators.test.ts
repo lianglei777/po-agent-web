@@ -7,6 +7,8 @@ import {
   parseSkillCreateLocal,
   parseSkillInstall,
   parseSkillPackInstall,
+  parseSkillPackInstallSource,
+  parseSkillPackMaintain,
   parseSkillPackRemove,
   parseSkillRemove,
 } from "./validators";
@@ -108,6 +110,40 @@ describe("agent HTTP validation", () => {
     expect(() =>
       parseSkillPackRemove({ packId: "pack_abc", cwd: "" }),
     ).toThrow("cwd must be a non-empty string");
+  });
+
+  it("parses Skill Pack source installs and maintenance", () => {
+    expect(
+      parseSkillPackInstallSource({
+        source: "D:\\skill-packs\\release",
+        scope: "project",
+        cwd: "C:\\work",
+      }),
+    ).toEqual({
+      source: "D:\\skill-packs\\release",
+      scope: "project",
+      cwd: "C:\\work",
+    });
+    expect(
+      parseSkillPackMaintain({ packId: "pack_abc", cwd: "C:\\work" }),
+    ).toEqual({ packId: "pack_abc", cwd: "C:\\work" });
+    expect(() =>
+      parseSkillPackInstallSource({
+        source: "",
+        scope: "global",
+        cwd: "C:\\work",
+      }),
+    ).toThrow("source must be a non-empty string");
+    expect(() =>
+      parseSkillPackInstallSource({
+        source: "@scope/release-pack",
+        scope: "bad",
+        cwd: "C:\\work",
+      }),
+    ).toThrow("scope must be global or project");
+    expect(() =>
+      parseSkillPackMaintain({ packId: "", cwd: "C:\\work" }),
+    ).toThrow("packId must be a non-empty string");
   });
 
   it("parses local skill import requests", () => {

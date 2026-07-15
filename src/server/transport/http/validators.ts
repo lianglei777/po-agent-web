@@ -22,7 +22,9 @@ import type {
   RemoveSkillRequest,
 } from "@/contracts/skills";
 import type {
+  InstallSkillPackSourceRequest,
   InstallSkillPackRequest,
+  MaintainSkillPackRequest,
   RemoveSkillPackRequest,
 } from "@/contracts/skill-packs";
 
@@ -214,6 +216,29 @@ export function parseSkillPackInstall(value: unknown): InstallSkillPackRequest {
 }
 
 export function parseSkillPackRemove(value: unknown): RemoveSkillPackRequest {
+  const object = asObject(value);
+  return {
+    packId: requiredString(object, "packId"),
+    cwd: requiredString(object, "cwd"),
+  };
+}
+
+export function parseSkillPackInstallSource(
+  value: unknown,
+): InstallSkillPackSourceRequest {
+  const object = asObject(value);
+  const scope = requiredString(object, "scope");
+  if (scope !== "global" && scope !== "project") {
+    invalid("scope must be global or project");
+  }
+  return {
+    source: requiredString(object, "source"),
+    scope,
+    cwd: requiredString(object, "cwd"),
+  };
+}
+
+export function parseSkillPackMaintain(value: unknown): MaintainSkillPackRequest {
   const object = asObject(value);
   return {
     packId: requiredString(object, "packId"),
