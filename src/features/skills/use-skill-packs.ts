@@ -4,21 +4,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/i18n/use-i18n";
 import {
   installSkillPack as installSkillPackApi,
+  installSkillPackSource as installSkillPackSourceApi,
   loadSkillPacks,
   removeSkillPack as removeSkillPackApi,
+  repairSkillPack as repairSkillPackApi,
+  updateSkillPack as updateSkillPackApi,
 } from "./api";
 import { reconcileSelectedSkillPack } from "./skill-state";
 import type { SkillPackLoadResult } from "./types";
 
 const EMPTY_RESULT: SkillPackLoadResult = { packs: [] };
 
+type PackMutation = {
+  operation: "install" | "install-source" | "remove" | "update" | "repair";
+  packId: string | null;
+} | null;
+
 export function useSkillPacks(cwd: string) {
   const { t } = useI18n();
   const [result, setResult] = useState(EMPTY_RESULT);
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [installingPackId, setInstallingPackId] = useState<string | null>(null);
-  const [removingPackId, setRemovingPackId] = useState<string | null>(null);
+  const [mutation, setMutation] = useState<PackMutation>(null);
   const [error, setError] = useState<string | null>(null);
   const refreshRequestRef = useRef<AbortController | null>(null);
   const mutationRequestRef = useRef<AbortController | null>(null);
@@ -64,10 +71,11 @@ export function useSkillPacks(cwd: string) {
     [result.packs, selectedPackId],
   );
 
-  const install = useCallback(
+  const runMutation = useCallback(
     async (
-      packId: string,
-      scope: "global" | "project",
+      nextMutation: NonNullable<PackMutation>,
+      request: (signal: AbortSignal) => Promise<SkillPackLoadResult>,
+      onSuccess?: (next: SkillPackLoadResult) => void,
     ): Promise<boolean> => {
       if (mutationRequestRef.current) return false;
       refreshRequestRef.current?.abort();
@@ -75,12 +83,12 @@ export function useSkillPacks(cwd: string) {
       setLoading(false);
       const controller = new AbortController();
       mutationRequestRef.current = controller;
-      setInstallingPackId(packId);
+      setMutation(nextMutation);
       setError(null);
       try {
-        applyResult(
-          await installSkillPackApi({ packId, scope, cwd }, controller.signal),
-        );
+        const next = await request(controller.signal);
+        applyResult(next);
+        onSuccess?.(next);
         return true;
       } catch (nextError) {
         if (!controller.signal.aborted) {
@@ -90,55 +98,76 @@ export function useSkillPacks(cwd: string) {
       } finally {
         if (mutationRequestRef.current === controller) {
           mutationRequestRef.current = null;
-          setInstallingPackId(null);
+          setMutation(null);
         }
       }
     },
-    [applyResult, cwd, t.skills.somethingWentWrong],
+    [applyResult, t.skills.somethingWentWrong],
+  );
+
+  const install = useCallback(
+    (packId: string, scope: "global" | "project") =>
+      runMutation({ operation: "install", packId }, (signal) =>
+        installSkillPackApi({ packId, scope, cwd }, signal),
+      ),
+    [cwd, runMutation],
+  );
+
+  const installSource = useCallback(
+    (source: string, scope: "global" | "project") =>
+      runMutation(
+        { operation: "install-source", packId: null },
+        (signal) =>
+          installSkillPackSourceApi({ source, scope, cwd }, signal),
+        (next) => {
+          const installed = next.packs.find(
+            (pack) => pack.scope !== null && pack.source === source.trim(),
+          );
+          if (installed) setSelectedPackId(installed.packId);
+        },
+      ),
+    [cwd, runMutation],
   );
 
   const remove = useCallback(
-    async (packId: string): Promise<boolean> => {
-      if (mutationRequestRef.current) return false;
-      refreshRequestRef.current?.abort();
-      refreshRequestRef.current = null;
-      setLoading(false);
-      const controller = new AbortController();
-      mutationRequestRef.current = controller;
-      setRemovingPackId(packId);
-      setError(null);
-      try {
-        applyResult(
-          await removeSkillPackApi({ packId, cwd }, controller.signal),
-        );
-        return true;
-      } catch (nextError) {
-        if (!controller.signal.aborted) {
-          setError(errorMessage(nextError, t.skills.somethingWentWrong));
-        }
-        return false;
-      } finally {
-        if (mutationRequestRef.current === controller) {
-          mutationRequestRef.current = null;
-          setRemovingPackId(null);
-        }
-      }
-    },
-    [applyResult, cwd, t.skills.somethingWentWrong],
+    (packId: string) =>
+      runMutation({ operation: "remove", packId }, (signal) =>
+        removeSkillPackApi({ packId, cwd }, signal),
+      ),
+    [cwd, runMutation],
+  );
+
+  const update = useCallback(
+    (packId: string) =>
+      runMutation({ operation: "update", packId }, (signal) =>
+        updateSkillPackApi({ packId, cwd }, signal),
+      ),
+    [cwd, runMutation],
+  );
+
+  const repair = useCallback(
+    (packId: string) =>
+      runMutation({ operation: "repair", packId }, (signal) =>
+        repairSkillPackApi({ packId, cwd }, signal),
+      ),
+    [cwd, runMutation],
   );
 
   return {
     ...result,
+    busy: mutation !== null,
     error,
     install,
-    installingPackId,
+    installSource,
     loading,
+    mutation,
     refresh,
     remove,
-    removingPackId,
+    repair,
     selectedPack,
     selectedPackId,
     setSelectedPackId,
+    update,
   };
 }
 

@@ -7,21 +7,22 @@ import type { SkillPackInfo } from "./types";
 
 export function SkillPackDetail({
   pack,
-  installing,
-  removing,
+  busy,
   onInstall,
   onRemove,
+  onUpdate,
+  onRepair,
 }: {
   pack: SkillPackInfo;
-  installing: boolean;
-  removing: boolean;
+  busy: boolean;
   onInstall: () => void;
   onRemove: () => void;
+  onUpdate: () => void;
+  onRepair: () => void;
 }) {
   const { t } = useI18n();
   const copy = packCopy(pack);
-  const installed = pack.scope !== null;
-  const busy = installing || removing;
+  const configured = pack.scope !== null;
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-6">
@@ -34,29 +35,50 @@ export function SkillPackDetail({
               <Badge variant={pack.status === "installed" ? "success" : "outline"}>
                 {statusLabel(pack.status, t.skills.packs)}
               </Badge>
+              {pack.updateAvailable ? (
+                <Badge variant="outline">{t.skills.packs.updateAvailable}</Badge>
+              ) : null}
             </div>
             <p className="mt-2 text-sm leading-6 text-muted">
               {copy.description || t.skills.noDescription}
             </p>
           </div>
-          <Button
-            disabled={busy}
-            onClick={installed ? onRemove : onInstall}
-            type="button"
-            variant={installed ? "destructive" : "default"}
-          >
-            {busy ? <LoaderCircle className="animate-spin" /> : null}
-            {installed
-              ? t.skills.packs.removeAction
-              : t.skills.packs.installAction}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            {pack.status === "available" ? (
+              <Action busy={busy} label={t.skills.packs.installAction} onClick={onInstall} />
+            ) : null}
+            {pack.status === "installed" && pack.canUpdate ? (
+              <Action busy={busy} label={t.skills.packs.updateAction} onClick={onUpdate} />
+            ) : null}
+            {pack.status === "broken" ? (
+              <Action busy={busy} label={t.skills.packs.repairAction} onClick={onRepair} />
+            ) : null}
+            {configured ? (
+              <Action
+                busy={busy}
+                label={t.skills.packs.removeAction}
+                onClick={onRemove}
+                variant="destructive"
+              />
+            ) : null}
+          </div>
         </header>
 
-        <dl className="grid gap-4 border-b border-line py-5 text-sm sm:grid-cols-3">
+        <dl className="grid gap-4 border-b border-line py-5 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <Detail label={t.skills.packs.status} value={statusLabel(pack.status, t.skills.packs)} />
           <Detail label={t.skills.scope} value={scopeLabel(pack, t.skills.packs)} />
-          <Detail label={t.skills.source} value={pack.source} mono />
+          <Detail label={t.skills.packs.currentVersion} value={pack.version ?? t.skills.packs.versionUnknown} />
+          <Detail label={t.skills.packs.availableVersion} value={pack.availableVersion ?? t.skills.packs.versionUnknown} />
+          <div className="sm:col-span-2 lg:col-span-4">
+            <Detail label={t.skills.source} value={pack.source} mono />
+          </div>
         </dl>
+
+        {pack.status === "installed" && !pack.canUpdate ? (
+          <p className="border-b border-line py-3 text-xs leading-5 text-muted">
+            {t.skills.packs.localRefreshHint}
+          </p>
+        ) : null}
 
         <section className="py-5">
           <h3 className="text-sm font-semibold">{t.skills.packs.resources}</h3>
@@ -76,6 +98,25 @@ export function SkillPackDetail({
         </div>
       </div>
     </div>
+  );
+}
+
+function Action({
+  busy,
+  label,
+  onClick,
+  variant = "default",
+}: {
+  busy: boolean;
+  label: string;
+  onClick: () => void;
+  variant?: "default" | "destructive";
+}) {
+  return (
+    <Button disabled={busy} onClick={onClick} type="button" variant={variant}>
+      {busy ? <LoaderCircle className="animate-spin" /> : null}
+      {label}
+    </Button>
   );
 }
 

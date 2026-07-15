@@ -1,4 +1,4 @@
-import { LoaderCircle, Trash2 } from "lucide-react";
+import { LoaderCircle, PackageOpen, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -15,12 +15,14 @@ export function SkillDetail({
   removing,
   onToggle,
   onRemove,
+  onViewPack,
 }: {
   skill: SkillInfo;
   saving: boolean;
   removing: boolean;
   onToggle: () => void;
   onRemove: () => void;
+  onViewPack?: () => void;
 }) {
   const enabled = !skill.disableModelInvocation;
   const managed = isManagedSkill(skill);
@@ -47,9 +49,17 @@ export function SkillDetail({
               </p>
             </div>
             {managed ? (
-              <p className="max-w-48 text-right text-xs leading-5 text-muted">
-                {t.skills.managedByPack}
-              </p>
+              <div className="max-w-48 space-y-2 text-right">
+                <p className="text-xs leading-5 text-muted">
+                  {t.skills.managedByPack}
+                </p>
+                {onViewPack ? (
+                  <Button onClick={onViewPack} size="sm" type="button" variant="outline">
+                    <PackageOpen />
+                    {t.skills.packs.viewPack}
+                  </Button>
+                ) : null}
+              </div>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>

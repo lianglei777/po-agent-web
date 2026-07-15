@@ -36,6 +36,7 @@ describe("Skills page", () => {
     expect(source).toContain("SkillPackList");
     expect(source).toContain("SkillPackDetail");
     expect(source).toContain("ConfirmSkillPackDialog");
+    expect(source).toContain("AddSkillPackDialog");
     expect(source).toContain("bg-selected text-foreground");
   });
 
@@ -46,5 +47,11 @@ describe("Skills page", () => {
     expect(source).toContain("tabIndex={view === tab ? 0 : -1}");
     expect(source).toContain('event.key !== "ArrowLeft"');
     expect(source).toContain('role="tabpanel"');
+  });
+
+  it("navigates from a managed Skill to its owning Pack", () => {
+    expect(source).toContain("onViewPack");
+    expect(source).toContain("setSelectedPackId");
+    expect(source).toContain('selectView("packs")');
   });
 });

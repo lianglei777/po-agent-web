@@ -1,6 +1,8 @@
 import type { ApiErrorResponse } from "@/contracts/common";
 import type {
+  InstallSkillPackSourceRequest,
   InstallSkillPackRequest,
+  MaintainSkillPackRequest,
   RemoveSkillPackRequest,
   SkillPackLoadResponse,
 } from "@/contracts/skill-packs";
@@ -118,6 +120,42 @@ export function removeSkillPack(
 ) {
   return requestJson<SkillPackLoadResponse>("/api/skill-packs", {
     method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function installSkillPackSource(
+  input: InstallSkillPackSourceRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs/install-source", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function updateSkillPack(
+  input: MaintainSkillPackRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function repairSkillPack(
+  input: MaintainSkillPackRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs/repair", {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
     signal,

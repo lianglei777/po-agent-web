@@ -5,7 +5,9 @@ export type {
 } from "@/contracts/skills";
 
 export type {
+  InstallSkillPackSourceRequest,
   InstallSkillPackRequest,
+  MaintainSkillPackRequest,
   RemoveSkillPackRequest,
   SkillPackInfo,
   SkillPackLoadResponse as SkillPackLoadResult,

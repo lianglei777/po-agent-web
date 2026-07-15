@@ -23,14 +23,6 @@ import { useI18n } from "@/i18n/use-i18n";
 import { addProject, browseProjects } from "./api";
 import type { ProjectBrowseResult } from "./types";
 
-declare global {
-  interface Window {
-    poAgentDesktop?: {
-      selectProjectDirectory: () => Promise<string | null>;
-    };
-  }
-}
-
 export function ProjectPicker({
   onSelect,
   trigger = "icon",
