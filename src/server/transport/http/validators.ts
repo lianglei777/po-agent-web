@@ -21,6 +21,10 @@ import type {
   InstallSkillRequest,
   RemoveSkillRequest,
 } from "@/contracts/skills";
+import type {
+  InstallSkillPackRequest,
+  RemoveSkillPackRequest,
+} from "@/contracts/skill-packs";
 
 type JsonObject = Record<string, unknown>;
 
@@ -192,6 +196,27 @@ export function parseSkillRemove(value: unknown): RemoveSkillRequest {
   const object = asObject(value);
   return {
     skillId: requiredString(object, "skillId"),
+    cwd: requiredString(object, "cwd"),
+  };
+}
+
+export function parseSkillPackInstall(value: unknown): InstallSkillPackRequest {
+  const object = asObject(value);
+  const scope = requiredString(object, "scope");
+  if (scope !== "global" && scope !== "project") {
+    invalid("scope must be global or project");
+  }
+  return {
+    packId: requiredString(object, "packId"),
+    scope,
+    cwd: requiredString(object, "cwd"),
+  };
+}
+
+export function parseSkillPackRemove(value: unknown): RemoveSkillPackRequest {
+  const object = asObject(value);
+  return {
+    packId: requiredString(object, "packId"),
     cwd: requiredString(object, "cwd"),
   };
 }

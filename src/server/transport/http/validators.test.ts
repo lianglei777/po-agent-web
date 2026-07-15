@@ -6,6 +6,8 @@ import {
   parseProjectPath,
   parseSkillCreateLocal,
   parseSkillInstall,
+  parseSkillPackInstall,
+  parseSkillPackRemove,
   parseSkillRemove,
 } from "./validators";
 
@@ -79,6 +81,33 @@ describe("agent HTTP validation", () => {
     expect(() => parseSkillRemove({ skillId: "abc" })).toThrow(
       "cwd must be a non-empty string",
     );
+  });
+
+  it("parses Skill Pack mutations with opaque IDs", () => {
+    expect(
+      parseSkillPackInstall({
+        packId: "pack_abc",
+        scope: "project",
+        cwd: "C:\\work",
+      }),
+    ).toEqual({
+      packId: "pack_abc",
+      scope: "project",
+      cwd: "C:\\work",
+    });
+    expect(
+      parseSkillPackRemove({ packId: "pack_abc", cwd: "C:\\work" }),
+    ).toEqual({ packId: "pack_abc", cwd: "C:\\work" });
+    expect(() =>
+      parseSkillPackInstall({
+        packId: "pack_abc",
+        scope: "bad",
+        cwd: "C:\\work",
+      }),
+    ).toThrow("scope must be global or project");
+    expect(() =>
+      parseSkillPackRemove({ packId: "pack_abc", cwd: "" }),
+    ).toThrow("cwd must be a non-empty string");
   });
 
   it("parses local skill import requests", () => {

@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
+  getAgentDir,
   type Skill,
 } from "@earendil-works/pi-coding-agent";
 import { AppError } from "@/server/domain/app-error";
