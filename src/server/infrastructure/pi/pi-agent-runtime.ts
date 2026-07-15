@@ -17,6 +17,7 @@ import type {
   ModelConfigInvalidation,
 } from "@/server/ports/agent-runtime";
 import { mapPiMessage } from "./message-mapper";
+import { createPiResourceLoader } from "./pi-resource-loader";
 
 const FULL_BUILTIN_TOOLS = [
   "bash",
@@ -36,8 +37,10 @@ export class PiAgentRuntimeFactory implements AgentRuntimeFactory {
     if (input.requestedSessionId && !input.sessionFile) {
       manager.newSession({ id: input.requestedSessionId });
     }
+    const resourceLoader = await createPiResourceLoader({ cwd: input.cwd });
     const { session } = await createAgentSession({
       cwd: input.cwd,
+      resourceLoader,
       sessionManager: manager,
       tools: input.toolNames ?? FULL_BUILTIN_TOOLS,
       noTools: input.toolNames?.length === 0 ? "all" : undefined,

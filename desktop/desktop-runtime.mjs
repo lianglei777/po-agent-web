@@ -27,7 +27,12 @@ export function getPackagedServerRoot(resourcesPath) {
   return path.join(resourcesPath, "server");
 }
 
-export function buildServerEnvironment({ baseEnv = process.env, piAgentDir, port }) {
+export function buildServerEnvironment({
+  baseEnv = process.env,
+  builtinSkillsDir,
+  piAgentDir,
+  port,
+}) {
   return {
     ...baseEnv,
     ELECTRON_RUN_AS_NODE: "1",
@@ -36,6 +41,7 @@ export function buildServerEnvironment({ baseEnv = process.env, piAgentDir, port
     HOSTNAME: "127.0.0.1",
     PORT: String(port),
     PI_CODING_AGENT_DIR: piAgentDir,
+    PO_AGENT_BUILTIN_SKILLS_DIR: builtinSkillsDir,
   };
 }
 
