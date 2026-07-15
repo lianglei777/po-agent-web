@@ -1,4 +1,9 @@
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { DefaultResourceLoader } from "@earendil-works/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
+import type { SkillInfo } from "@/server/domain/skill";
 import type { ProcessRunner } from "@/server/ports/process-runner";
 import {
   buildInstallArgs,
@@ -11,7 +16,95 @@ import {
   validateSkillName,
 } from "./pi-skill-provider";
 
+const skillFixture: SkillInfo = {
+  skillId: "packed-id",
+  name: "packed",
+  description: "Packed",
+  filePath: "C:\\work\\packed\\SKILL.md",
+  displayPath: ".pi\\skills\\packed\\SKILL.md",
+  baseDir: "C:\\work\\packed",
+  sourceInfo: {
+    path: "C:\\work\\packed\\SKILL.md",
+    source: "auto",
+    scope: "project",
+    origin: "top-level",
+  },
+  canModify: true,
+  disableModelInvocation: false,
+  version: "v1",
+};
+
 describe("PiSkillProvider helpers", () => {
+  it("maps package-owned skills as immutable", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "pack-skill-"));
+    const filePath = path.join(root, "SKILL.md");
+    await fs.writeFile(
+      filePath,
+      "---\nname: packed\ndescription: Packed\n---\n",
+    );
+
+    const reload = vi
+      .spyOn(DefaultResourceLoader.prototype, "reload")
+      .mockResolvedValue();
+    const getSkills = vi
+      .spyOn(DefaultResourceLoader.prototype, "getSkills")
+      .mockReturnValue({
+        diagnostics: [],
+        skills: [{
+          name: "packed",
+          description: "Packed",
+          filePath,
+          baseDir: root,
+          disableModelInvocation: false,
+          sourceInfo: {
+            path: filePath,
+            source:
+              "https://user:secret@example.com/developer-workflows.git?token=hidden",
+            scope: "project",
+            origin: "package",
+          },
+        }],
+      });
+
+    try {
+      const provider = new PiSkillProvider({ run: vi.fn() } as ProcessRunner);
+      const result = await provider.load(root);
+      expect(result).toMatchObject({
+        skills: [expect.objectContaining({
+          canModify: false,
+          sourceInfo: expect.objectContaining({
+            source: "https://example.com/developer-workflows.git",
+          }),
+        })],
+      });
+      expect(JSON.stringify(result)).not.toMatch(/secret|hidden/);
+    } finally {
+      reload.mockRestore();
+      getSkills.mockRestore();
+    }
+  });
+
+  it("rejects standalone removal for a package-owned skill", async () => {
+    const provider = new PiSkillProvider({ run: vi.fn() } as ProcessRunner);
+    vi.spyOn(provider, "load").mockResolvedValue({
+      diagnostics: [],
+      skills: [
+        {
+          ...skillFixture,
+          canModify: false,
+          sourceInfo: {
+            ...skillFixture.sourceInfo,
+            origin: "package",
+          },
+        },
+      ],
+    });
+
+    await expect(
+      provider.remove({ cwd: "C:\\work", skillId: skillFixture.skillId }),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR", status: 403 });
+  });
+
   it("preserves BOM, CRLF, comments, and unrelated frontmatter", () => {
     const source =
       "\uFEFF---\r\nname: demo\r\ndisable-model-invocation: false # keep\r\ntags: [one]\r\n---\r\nBody";

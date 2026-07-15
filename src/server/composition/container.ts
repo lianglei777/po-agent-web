@@ -6,6 +6,7 @@ import { FileService } from "@/server/application/file-service";
 import { ModelService } from "@/server/application/model-service";
 import { ProjectService } from "@/server/application/project-service";
 import { SessionService } from "@/server/application/session-service";
+import { SkillPackService } from "@/server/application/skill-pack-service";
 import { SkillService } from "@/server/application/skill-service";
 import { NodeWorkspaceFileService } from "@/server/infrastructure/filesystem/node-file-system";
 import { JsonProjectRepository } from "@/server/infrastructure/filesystem/json-project-repository";
@@ -15,6 +16,7 @@ import { PiAgentRuntimeFactory } from "@/server/infrastructure/pi/pi-agent-runti
 import { PiCredentialProvider } from "@/server/infrastructure/pi/pi-credential-provider";
 import { PiModelProvider } from "@/server/infrastructure/pi/pi-model-provider";
 import { PiSessionRepository } from "@/server/infrastructure/pi/pi-session-repository";
+import { PiSkillPackProvider } from "@/server/infrastructure/pi/pi-skill-pack-provider";
 import { PiSkillProvider } from "@/server/infrastructure/pi/pi-skill-provider";
 import { NodeProcessRunner } from "@/server/infrastructure/process/node-process-runner";
 import { InMemoryAgentRegistry } from "@/server/infrastructure/runtime/in-memory-agent-registry";
@@ -35,6 +37,7 @@ function createContainer() {
   );
   const processes = new NodeProcessRunner();
   const skills = new PiSkillProvider(processes);
+  const skillPacks = new PiSkillPackProvider(undefined, undefined, undefined, roots);
 
   return {
     roots,
@@ -55,6 +58,7 @@ function createContainer() {
     authService: new AuthService(credentials, pendingInputs),
     fileService: new FileService(fileSystem, roots),
     skillService: new SkillService(skills, roots),
+    skillPackService: new SkillPackService(skillPacks, roots),
   };
 }
 

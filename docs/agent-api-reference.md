@@ -95,6 +95,11 @@ Content-Type: text/event-stream; charset=utf-8
 | `OAUTH_PROVIDER_NOT_FOUND` | 404 | OAuth Provider 不存在 |
 | `PENDING_INPUT_NOT_FOUND` | 404 | OAuth Pending Input Token 不存在或 Provider 不匹配 |
 | `SKILL_INSTALL_FAILED` | 500 | Skill CLI 安装失败 |
+| `SKILL_PACK_NOT_FOUND` | 404 | Skill Pack 不存在或 opaque ID 已失效 |
+| `SKILL_PACK_INSTALL_BUSY` | 409 | 另一个 Skill Pack 安装或移除操作正在运行 |
+| `SKILL_PACK_INSTALL_FAILED` | 500 | Skill Pack 安装或安装后校验失败 |
+| `SKILL_PACK_REMOVE_FAILED` | 500 | Skill Pack 移除或移除后校验失败 |
+| `SKILL_PACK_BROKEN` | 409 | Skill Pack 已配置但资源不完整 |
 | `INTERNAL_ERROR` | 500 | 未归类的服务端错误 |
 
 ## 2. API 总览
@@ -193,6 +198,17 @@ Content-Type: text/event-stream; charset=utf-8
 | `POST` | `/api/skills/install` | 安装 Skill |
 | `POST` | `/api/skills/local` | 导入本地 Skill 文件 |
 | `DELETE` | `/api/skills` | 移除 Skill |
+
+### 2.9 Skill Packs
+
+| Method | Path | 用途 |
+| --- | --- | --- |
+| `GET` | `/api/skill-packs` | 加载官方目录和当前已配置的 Pi Packages |
+| `POST` | `/api/skill-packs/install` | 从服务端官方目录安装 Skill Pack |
+| `POST` | `/api/skill-packs/install-source` | 从 npm、Git、HTTPS 或本地绝对目录安装 Skill Pack |
+| `POST` | `/api/skill-packs/update` | 更新支持更新的已安装 Skill Pack |
+| `POST` | `/api/skill-packs/repair` | 修复损坏的已配置 Skill Pack |
+| `DELETE` | `/api/skill-packs` | 移除已安装的 Skill Pack |
 
 ## 3. 通用数据结构
 
@@ -2082,6 +2098,165 @@ node <npm>/bin/npx-cli.js --yes skills remove <name> -y --agent pi
 - `404 SKILL_NOT_FOUND`
 - `409 SKILL_REMOVE_BUSY`
 - `500 SKILL_REMOVE_FAILED`
+
+### 10.7 Skill Pack
+
+Skill Pack 是由 Pi Package 承载的安装和分发单元，可以包含 Skills、Extensions、
+Prompts 和 Themes。目录安装、更新、修复和移除使用服务端生成的 opaque `packId`；
+手动安装接口接受经过严格校验的 Package Source。
+
+#### 10.7.1 加载 Skill Packs
+
+```http
+GET /api/skill-packs?cwd=C%3A%5Cworkspace%5Cproject
+```
+
+`cwd` 必需，且必须位于已注册的 Workspace Root 内。响应包含未安装的官方目录项和
+Pi Settings 中已配置的 Package；两者都为空时返回空列表：
+
+```json
+{
+  "packs": []
+}
+```
+
+`status` 可为 `available`、`installed` 或 `broken`。`scope` 可为 `user`、
+`project` 或 `null`。配置存在但安装路径或声明资源缺失时返回 `broken`，使用户仍可
+看到并移除损坏的 Package。`version` 来自已安装目录的 `package.json`；
+`availableVersion` 来自官方目录；`canUpdate` 表示 Pi 能否更新该远程 Source；
+`updateAvailable` 表示已确认存在不同的可用版本。响应中的 Source 会移除 URL
+凭据、查询参数和 fragment。
+
+#### 10.7.2 安装 Skill Pack
+
+```http
+POST /api/skill-packs/install
+Content-Type: application/json
+```
+
+```json
+{
+  "packId": "pack_6de4b2c214eb3517",
+  "scope": "project",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+`scope` 为 `project` 或 `global`。服务端使用 `packId` 在官方目录中重新解析真实
+Package Source，调用 Pi Package Manager 持久化安装，重新解析资源并校验目录声明的
+Skills。校验失败时会尝试回滚本次安装。成功响应为刷新后的完整 Skill Pack 列表。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `404 SKILL_PACK_NOT_FOUND`
+- `409 VALIDATION_ERROR`（已经安装）
+- `409 SKILL_PACK_INSTALL_BUSY`
+- `500 SKILL_PACK_INSTALL_FAILED`
+
+#### 10.7.3 从 Package Source 安装
+
+```http
+POST /api/skill-packs/install-source
+Content-Type: application/json
+```
+
+```json
+{
+  "source": "D:\\skill-packs\\release-workflows",
+  "scope": "project",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+`source` 可以是 `npm:` 引用、`git:` 引用、显式 `http://` / `https://` / `ssh://` /
+`git://` 仓库 URL，或现存的本地绝对目录。裸 npm 名称、裸 Git SCP 引用和 `git+*://`
+协议不被接受，因为当前 Pi Package Manager 会把它们解释为本地相对路径。
+`npm:` 后缀仅接受 registry version、tag 或不含空格的 range；URL、`file:` 和 npm alias spec
+会返回 `400 VALIDATION_ERROR`。
+相对路径、控制字符、不支持的协议，以及包含用户名、密码、查询参数或 fragment 的
+URL 会返回 `400 VALIDATION_ERROR`。本地目录可以位于当前 Workspace 外；服务端会在
+Pi 读取前把该目录注册为 Workspace Root。安装会写入对应 scope 的 Pi Settings，且
+必须至少解析出一个启用资源，否则回滚本次配置。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `409 VALIDATION_ERROR`（已经安装）
+- `409 SKILL_PACK_INSTALL_BUSY`
+- `500 SKILL_PACK_INSTALL_FAILED`
+
+#### 10.7.4 更新 Skill Pack
+
+```http
+POST /api/skill-packs/update
+Content-Type: application/json
+```
+
+```json
+{
+  "packId": "pack_6de4b2c214eb3517",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+服务端根据当前 Pi Settings 解析 Source，并调用 Pi Package Manager 更新 npm 或 Git
+Package。本地目录不能通过此接口更新，应直接修改源目录后重新加载。更新后必须重新
+解析出健康资源；失败不会移除原 Package 配置。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `404 SKILL_PACK_NOT_FOUND`
+- `409 VALIDATION_ERROR`（本地 Source）
+- `409 SKILL_PACK_INSTALL_BUSY`
+- `500 SKILL_PACK_UPDATE_FAILED`
+
+#### 10.7.5 修复 Skill Pack
+
+```http
+POST /api/skill-packs/repair
+Content-Type: application/json
+```
+
+请求体与更新接口相同。修复只接受 `broken` Pack，并使用 Pi 的非持久化 `install`
+重新获取或检查原 Source，不重复写入 Settings。修复失败时 Pack 配置仍保留，以便继续
+展示、重试或移除。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `404 SKILL_PACK_NOT_FOUND`
+- `409 VALIDATION_ERROR`（Pack 当前并非 `broken`）
+- `409 SKILL_PACK_INSTALL_BUSY`
+- `500 SKILL_PACK_REPAIR_FAILED`
+
+#### 10.7.6 移除 Skill Pack
+
+```http
+DELETE /api/skill-packs
+Content-Type: application/json
+```
+
+```json
+{
+  "packId": "pack_6de4b2c214eb3517",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+服务端只根据当前 Pi Settings 中的 Package 配置解析 opaque `packId`，调用 Pi
+Package Manager 从原 scope 移除并重新加载确认。成功响应为刷新后的完整列表。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `404 SKILL_PACK_NOT_FOUND`
+- `409 SKILL_PACK_INSTALL_BUSY`
+- `500 SKILL_PACK_REMOVE_FAILED`
+
+上述变更都会修改本机 Pi Package 状态，且不会热重载已运行的 Agent Runtime。刷新后的
+Skills 页面可立即看到新资源；新建 Agent 会加载最新资源，已有 Agent 会话保持原资源集。
 
 ## 11. SSE 通用行为
 

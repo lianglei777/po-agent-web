@@ -1,5 +1,12 @@
 import type { ApiErrorResponse } from "@/contracts/common";
 import type {
+  InstallSkillPackSourceRequest,
+  InstallSkillPackRequest,
+  MaintainSkillPackRequest,
+  RemoveSkillPackRequest,
+  SkillPackLoadResponse,
+} from "@/contracts/skill-packs";
+import type {
   CreateLocalSkillRequest,
   CreateLocalSkillResponse,
   InstallSkillRequest,
@@ -82,6 +89,73 @@ export async function removeSkill(
 ): Promise<RemoveSkillResponse> {
   return requestJson("/api/skills", {
     method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function loadSkillPacks(cwd: string, signal?: AbortSignal) {
+  return requestJson<SkillPackLoadResponse>(
+    `/api/skill-packs?cwd=${encodeURIComponent(cwd)}`,
+    { signal },
+  );
+}
+
+export function installSkillPack(
+  input: InstallSkillPackRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs/install", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function removeSkillPack(
+  input: RemoveSkillPackRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function installSkillPackSource(
+  input: InstallSkillPackSourceRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs/install-source", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function updateSkillPack(
+  input: MaintainSkillPackRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
+}
+
+export function repairSkillPack(
+  input: MaintainSkillPackRequest,
+  signal?: AbortSignal,
+) {
+  return requestJson<SkillPackLoadResponse>("/api/skill-packs/repair", {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
     signal,

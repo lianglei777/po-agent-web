@@ -1,5 +1,3 @@
-import path from "node:path";
-import { AppError } from "@/server/domain/app-error";
 import type {
   ImportLocalSkillInput,
   InstallSkillInput,
@@ -8,6 +6,7 @@ import type {
 } from "@/server/domain/skill";
 import type { WorkspaceRootProvider } from "@/server/ports/file-system";
 import type { SkillProvider } from "@/server/ports/skill-provider";
+import { resolveAllowedCwd } from "./resolve-allowed-cwd";
 
 export class SkillService {
   constructor(
@@ -16,13 +15,13 @@ export class SkillService {
   ) {}
 
   async load(cwd: string) {
-    return this.skills.load(await this.resolveAllowedCwd(cwd));
+    return this.skills.load(await resolveAllowedCwd(cwd, this.roots));
   }
 
   async setModelInvocationDisabled(input: SetSkillInvocationInput) {
     return this.skills.setModelInvocationDisabled({
       ...input,
-      cwd: await this.resolveAllowedCwd(input.cwd),
+      cwd: await resolveAllowedCwd(input.cwd, this.roots),
     });
   }
 
@@ -35,7 +34,7 @@ export class SkillService {
       ...input,
       cwd:
         input.scope === "project"
-          ? await this.resolveAllowedCwd(input.cwd ?? "")
+          ? await resolveAllowedCwd(input.cwd ?? "", this.roots)
           : input.cwd,
     });
   }
@@ -43,7 +42,7 @@ export class SkillService {
   async remove(input: RemoveSkillInput) {
     return this.skills.remove({
       ...input,
-      cwd: await this.resolveAllowedCwd(input.cwd),
+      cwd: await resolveAllowedCwd(input.cwd, this.roots),
     });
   }
 
@@ -52,31 +51,9 @@ export class SkillService {
       ...input,
       cwd:
         input.scope === "project"
-          ? await this.resolveAllowedCwd(input.cwd ?? "")
+          ? await resolveAllowedCwd(input.cwd ?? "", this.roots)
           : input.cwd,
     });
   }
 
-  private async resolveAllowedCwd(cwd: string): Promise<string> {
-    if (!cwd.trim()) {
-      throw new AppError("VALIDATION_ERROR", "cwd is required", 400);
-    }
-    const resolved = path.resolve(cwd);
-    const roots = await this.roots.listRoots();
-    const allowed = roots.some((root) => {
-      const relative = path.relative(path.resolve(root), resolved);
-      return (
-        relative === "" ||
-        (!relative.startsWith("..") && !path.isAbsolute(relative))
-      );
-    });
-    if (!allowed) {
-      throw new AppError(
-        "VALIDATION_ERROR",
-        "cwd is not a registered workspace root",
-        403,
-      );
-    }
-    return resolved;
-  }
 }

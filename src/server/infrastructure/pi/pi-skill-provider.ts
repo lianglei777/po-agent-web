@@ -3,9 +3,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
-  DefaultResourceLoader,
   getAgentDir,
-  SettingsManager,
   type Skill,
 } from "@earendil-works/pi-coding-agent";
 import { AppError } from "@/server/domain/app-error";
@@ -21,6 +19,11 @@ import type {
 } from "@/server/domain/skill";
 import type { ProcessRunner } from "@/server/ports/process-runner";
 import type { SkillProvider } from "@/server/ports/skill-provider";
+import {
+  BUILTIN_SKILL_SOURCE,
+  createPiResourceLoader,
+} from "./pi-resource-loader";
+import { safePackageSource } from "./package-source";
 
 const ANSI_PATTERN = /\u001b\[[0-?]*[ -/]*[@-~]/g;
 const MAX_COMMAND_OUTPUT = 1024 * 1024;
@@ -32,13 +35,7 @@ export class PiSkillProvider implements SkillProvider {
   constructor(private readonly processes: ProcessRunner) {}
 
   async load(cwd: string): Promise<SkillLoadResult> {
-    const agentDir = getAgentDir();
-    const loader = new DefaultResourceLoader({
-      cwd,
-      agentDir,
-      settingsManager: SettingsManager.create(cwd, agentDir),
-    });
-    await loader.reload();
+    const loader = await createPiResourceLoader({ cwd });
     const result = loader.getSkills();
     return {
       skills: await Promise.all(
@@ -189,6 +186,13 @@ export class PiSkillProvider implements SkillProvider {
           "SKILL_NOT_FOUND",
           "The selected skill is no longer available. Refresh and try again.",
           404,
+        );
+      }
+      if (skill.sourceInfo.origin === "package") {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Package-managed skills must be removed with their Skill Pack.",
+          403,
         );
       }
       if (skill.sourceInfo.scope === "temporary") {
@@ -416,6 +420,9 @@ async function mapSkill(skill: Skill, cwd: string): Promise<SkillInfo> {
   const resolvedFilePath = path.resolve(skill.filePath);
   const realFilePath = await fs.realpath(skill.filePath);
   const content = await fs.readFile(realFilePath);
+  const managed =
+    skill.sourceInfo.origin === "package" ||
+    skill.sourceInfo.source === BUILTIN_SKILL_SOURCE;
   return {
     skillId: skillIdForPath(realFilePath),
     name: skill.name,
@@ -425,12 +432,12 @@ async function mapSkill(skill: Skill, cwd: string): Promise<SkillInfo> {
     baseDir: await fs.realpath(skill.baseDir),
     sourceInfo: {
       path: skill.sourceInfo.path,
-      source: skill.sourceInfo.source,
+      source: safePackageSource(skill.sourceInfo.source),
       scope: skill.sourceInfo.scope,
       origin: skill.sourceInfo.origin,
       baseDir: skill.sourceInfo.baseDir,
     },
-    canModify: samePath(resolvedFilePath, realFilePath),
+    canModify: !managed && samePath(resolvedFilePath, realFilePath),
     disableModelInvocation: skill.disableModelInvocation,
     version: versionForContent(content),
   };

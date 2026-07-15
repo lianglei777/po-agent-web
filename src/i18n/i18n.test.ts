@@ -48,6 +48,13 @@ describe("dictionaries", () => {
     expect(en.workspace.skills).toBe("Skills");
     expect(zh.workspace.skills).toBe("技能");
   });
+
+  it("provides Skill Pack lifecycle copy in both locales", () => {
+    expect(en.skills.packs.addAction).toBe("Add Skill Pack");
+    expect(zh.skills.packs.addAction).toBe("添加技能包");
+    expect(en.skills.packs.updateAction).toBe("Check & Update");
+    expect(zh.skills.packs.repairAction).toBe("修复");
+  });
 });
 
 function flattenKeys(value: unknown, prefix = ""): string[] {

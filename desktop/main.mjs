@@ -68,13 +68,24 @@ function waitForServer(url, deadlineMs = 30000) {
   });
 }
 
-function startServer({ appRoot, port, piAgentDir }) {
+function startServer({
+  appRoot,
+  builtinSkillsDir,
+  officialPacksDir,
+  port,
+  piAgentDir,
+}) {
   const serverPath = getStandaloneServerPath(appRoot);
   ensureDirectory(piAgentDir);
 
   serverProcess = spawn(process.execPath, [serverPath], {
     cwd: appRoot,
-    env: buildServerEnvironment({ piAgentDir, port }),
+    env: buildServerEnvironment({
+      builtinSkillsDir,
+      officialPacksDir,
+      piAgentDir,
+      port,
+    }),
     stdio: "ignore",
     windowsHide: true,
   });
@@ -86,11 +97,23 @@ function startServer({ appRoot, port, piAgentDir }) {
 
 async function createWindow() {
   const appRoot = getAppRoot();
+  const builtinSkillsDir = app.isPackaged
+    ? path.join(process.resourcesPath, "resources", "builtin-skills")
+    : path.join(appRoot, "resources", "builtin-skills");
+  const officialPacksDir = app.isPackaged
+    ? path.join(process.resourcesPath, "resources", "official-packs")
+    : path.join(appRoot, "resources", "official-packs");
   const piAgentDir = getPiAgentDir(app.getPath("userData"));
   const port = await findFreePort();
   const url = getServerUrl(port);
 
-  startServer({ appRoot, port, piAgentDir });
+  startServer({
+    appRoot,
+    builtinSkillsDir,
+    officialPacksDir,
+    port,
+    piAgentDir,
+  });
   await waitForServer(url);
 
   const window = new BrowserWindow({

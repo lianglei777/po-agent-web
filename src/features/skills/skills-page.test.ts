@@ -28,4 +28,30 @@ describe("Skills page", () => {
     expect(source).toContain("skills.removeSkill()");
     expect(source).toContain("skills.removingSkillId");
   });
+
+  it("provides Skills and Skill Packs views", () => {
+    expect(source).toContain('"skills"');
+    expect(source).toContain('"packs"');
+    expect(source).toContain("useSkillPacks(cwd)");
+    expect(source).toContain("SkillPackList");
+    expect(source).toContain("SkillPackDetail");
+    expect(source).toContain("ConfirmSkillPackDialog");
+    expect(source).toContain("AddSkillPackDialog");
+    expect(source).toContain("bg-selected text-foreground");
+  });
+
+  it("keeps Skill Pack mutations consistent and exposes complete tab semantics", () => {
+    expect(source).toContain("packs.loading || packBusy");
+    expect(source).toContain("void skills.refresh()");
+    expect(source).toContain('aria-controls="skills-view-panel"');
+    expect(source).toContain("tabIndex={view === tab ? 0 : -1}");
+    expect(source).toContain('event.key !== "ArrowLeft"');
+    expect(source).toContain('role="tabpanel"');
+  });
+
+  it("navigates from a managed Skill to its owning Pack", () => {
+    expect(source).toContain("onViewPack");
+    expect(source).toContain("setSelectedPackId");
+    expect(source).toContain('selectView("packs")');
+  });
 });

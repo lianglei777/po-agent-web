@@ -1,6 +1,6 @@
 import { Bot, Terminal } from "lucide-react";
 import { useI18n } from "@/i18n/use-i18n";
-import { groupSkills, sourceLabel } from "./skill-state";
+import { groupSkills, packageSourceLabel } from "./skill-state";
 import type { SkillInfo } from "./types";
 
 export function SkillList({
@@ -27,7 +27,11 @@ export function SkillList({
               className="text-[11px] font-semibold uppercase tracking-[0.12em] text-dim"
               id={`skill-group-${group.id}`}
             >
-              {groupLabel(group.scope, t)}
+              {group.id === "builtin"
+                ? t.skills.builtIn
+                : group.origin === "package"
+                  ? `${t.skills.fromSkillPack}: ${packageSourceLabel(group.detail)}`
+                  : groupLabel(group.scope, t)}
             </h3>
           </div>
           {group.skills.map((skill) => {

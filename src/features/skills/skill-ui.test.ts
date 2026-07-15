@@ -18,6 +18,18 @@ const pageSource = readFileSync(
   fileURLToPath(new URL("./skills-page.tsx", import.meta.url)),
   "utf8",
 );
+const packHookSource = readFileSync(
+  fileURLToPath(new URL("./use-skill-packs.ts", import.meta.url)),
+  "utf8",
+);
+const packDetailSource = readFileSync(
+  fileURLToPath(new URL("./skill-pack-detail.tsx", import.meta.url)),
+  "utf8",
+);
+const addPackSource = readFileSync(
+  fileURLToPath(new URL("./add-skill-pack-dialog.tsx", import.meta.url)),
+  "utf8",
+);
 
 describe("skills config UI contract", () => {
   it("describes model invocation instead of whole-skill enablement", () => {
@@ -30,6 +42,21 @@ describe("skills config UI contract", () => {
     expect(detailSource).toContain("left-0.5");
     expect(detailSource).toContain("<Tooltip>");
     expect(detailSource).toContain("t.skills.readOnlySymlink");
+  });
+
+  it("labels package groups with their package source", () => {
+    expect(listSource).toContain("packageSourceLabel(group.detail)");
+    expect(listSource).not.toContain(
+      "sourceLabel(group.detail, group.origin, t.skills)",
+    );
+  });
+
+  it("does not offer standalone mutations for package-owned skills", () => {
+    expect(detailSource).toContain("isManagedSkill(skill)");
+    expect(detailSource).toContain("t.skills.managedByPack");
+    expect(detailSource).toContain("!managed &&");
+    expect(detailSource).toContain("onViewPack");
+    expect(detailSource).toContain("t.skills.packs.viewPack");
   });
 
   it("clears an interrupted save when refreshing", () => {
@@ -62,5 +89,27 @@ describe("skills config UI contract", () => {
     expect(pageSource).toContain('"text-warning"');
     expect(pageSource).toContain('"text-destructive"');
     expect(pageSource).toContain('"text-primary"');
+  });
+
+  it("does not let list refreshes abort package mutations", () => {
+    expect(packHookSource).toContain("refreshRequestRef");
+    expect(packHookSource).toContain("mutationRequestRef");
+  });
+
+  it("shows versions and only valid lifecycle actions", () => {
+    expect(packDetailSource).toContain("pack.version");
+    expect(packDetailSource).toContain("pack.availableVersion");
+    expect(packDetailSource).toContain("pack.canUpdate");
+    expect(packDetailSource).toContain('pack.status === "broken"');
+    expect(packDetailSource).toContain("onUpdate");
+    expect(packDetailSource).toContain("onRepair");
+    expect(packDetailSource).toContain("onRemove");
+  });
+
+  it("provides one reviewed manual Package source form", () => {
+    expect(addPackSource).toContain("selectProjectDirectory");
+    expect(addPackSource).toContain("installScope");
+    expect(addPackSource).toContain("securityWarning");
+    expect(addPackSource).toContain("source.trim()");
   });
 });

@@ -92,6 +92,13 @@
       {
         "from": ".next/static",
         "to": "server/.next/static"
+      },
+      {
+        "from": "resources",
+        "to": "resources",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "mac": {
