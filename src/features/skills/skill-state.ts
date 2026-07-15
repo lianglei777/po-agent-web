@@ -13,6 +13,20 @@ export function isManagedSkill(skill: SkillInfo): boolean {
   return skill.sourceInfo.origin === "package";
 }
 
+export function findOwningSkillPack(
+  skill: SkillInfo,
+  packs: SkillPackInfo[],
+): SkillPackInfo | undefined {
+  if (!isManagedSkill(skill)) return undefined;
+
+  return packs.find((pack) => {
+    if (pack.scope === null) return false;
+    if (pack.source === skill.sourceInfo.source) return true;
+    if (!skill.sourceInfo.baseDir) return false;
+    return comparablePath(pack.source) === comparablePath(skill.sourceInfo.baseDir);
+  });
+}
+
 export function groupSkills(skills: SkillInfo[]): SkillGroup[] {
   const groups = new Map<string, SkillGroup>();
   for (const skill of skills) {
@@ -84,6 +98,11 @@ function groupRank(id: string): number {
   if (id === "global") return 2;
   if (id.startsWith("package:")) return 3;
   return 4;
+}
+
+function comparablePath(value: string): string {
+  const normalized = value.replaceAll("\\", "/").replace(/\/+$/, "");
+  return /^[a-z]:\//i.test(normalized) ? normalized.toLowerCase() : normalized;
 }
 
 // 将技能来源的内部标识映射为用户可读的标签

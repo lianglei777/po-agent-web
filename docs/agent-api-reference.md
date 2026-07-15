@@ -2169,7 +2169,11 @@ Content-Type: application/json
 }
 ```
 
-`source` 可以是 npm 引用、显式 Git/HTTPS URL、Git SCP 引用或本地绝对目录。
+`source` 可以是 `npm:` 引用、`git:` 引用、显式 `http://` / `https://` / `ssh://` /
+`git://` 仓库 URL，或现存的本地绝对目录。裸 npm 名称、裸 Git SCP 引用和 `git+*://`
+协议不被接受，因为当前 Pi Package Manager 会把它们解释为本地相对路径。
+`npm:` 后缀仅接受 registry version、tag 或不含空格的 range；URL、`file:` 和 npm alias spec
+会返回 `400 VALIDATION_ERROR`。
 相对路径、控制字符、不支持的协议，以及包含用户名、密码、查询参数或 fragment 的
 URL 会返回 `400 VALIDATION_ERROR`。本地目录可以位于当前 Workspace 外；服务端会在
 Pi 读取前把该目录注册为 Workspace Root。安装会写入对应 scope 的 Pi Settings，且

@@ -35,8 +35,11 @@ describe("PiSkillPackProvider", () => {
     expect(normalizeManualPackageSource("npm:@scope/release-pack")).toBe(
       "npm:@scope/release-pack",
     );
-    expect(normalizeManualPackageSource("git@github.com:org/release.git")).toBe(
-      "git@github.com:org/release.git",
+    expect(normalizeManualPackageSource("npm:release-pack@^1.2.3")).toBe(
+      "npm:release-pack@^1.2.3",
+    );
+    expect(normalizeManualPackageSource("git:git@github.com:org/release.git")).toBe(
+      "git:git@github.com:org/release.git",
     );
     expect(
       normalizeManualPackageSource("https://github.com/org/release.git"),
@@ -44,10 +47,24 @@ describe("PiSkillPackProvider", () => {
     expect(isLocalPackageSource(local)).toBe(true);
     expect(canUpdatePackageSource(local)).toBe(false);
     expect(canUpdatePackageSource("npm:@scope/release-pack")).toBe(true);
+    expect(canUpdatePackageSource("git:git@github.com:org/release.git")).toBe(
+      true,
+    );
+    expect(canUpdatePackageSource("git:org/release")).toBe(true);
+    expect(canUpdatePackageSource("git@github.com:org/release.git")).toBe(
+      false,
+    );
 
     for (const invalid of [
       "./relative-pack",
       "../relative-pack",
+      "@scope/release-pack",
+      "git@github.com:org/release.git",
+      "git+https://github.com/org/release.git",
+      "git:https://user:secret@github.com/org/release.git",
+      "npm:release-pack@https://user:secret@example.com/a.tgz",
+      "npm:release-pack@file:C:\\secret",
+      "npm:release-pack@npm:other@1.0.0",
       "https://user:secret@example.com/pack.git",
       "https://example.com/pack.git?token=secret",
       "https://example.com/pack.git#main",
@@ -61,6 +78,12 @@ describe("PiSkillPackProvider", () => {
         "https://user:secret@example.com/pack.git?token=hidden#fragment",
       ),
     ).toBe("https://example.com/pack.git");
+    expect(safePackageSource("token@example.com:org/pack.git")).toBe(
+      "example.com:org/pack.git",
+    );
+    expect(safePackageSource("git:git@example.com:org/pack.git")).toBe(
+      "git:example.com:org/pack.git",
+    );
   });
 
   it("discloses expected skills before installation", async () => {
@@ -214,6 +237,40 @@ describe("PiSkillPackProvider", () => {
     expect(manager.installAndPersist).not.toHaveBeenCalled();
   });
 
+  it("rejects another version or ref of an already configured package", async () => {
+    const manager = fakePackageManager();
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue([
+      {
+        source: "npm:@scope/release-pack@1.0.0",
+        scope: "project",
+        filtered: false,
+        installedPath: "C:\\cache\\release-pack",
+      },
+      {
+        source: "https://github.com/org/release.git@main",
+        scope: "user",
+        filtered: false,
+        installedPath: "C:\\cache\\release-git",
+      },
+    ]);
+    const provider = new PiSkillPackProvider(() => manager, []);
+
+    for (const duplicate of [
+      "npm:@scope/release-pack@2.0.0",
+      "git:git@github.com:org/release.git@v2",
+      "git:org/release@v2",
+    ]) {
+      await expect(
+        provider.installSource({
+          source: duplicate,
+          scope: "project",
+          cwd: "C:\\work",
+        }),
+      ).rejects.toMatchObject({ code: "VALIDATION_ERROR", status: 409 });
+    }
+    expect(manager.installAndPersist).not.toHaveBeenCalled();
+  });
+
   it("cleans up when fresh resolution cannot verify expected skills", async () => {
     const manager = fakePackageManager();
     vi.mocked(manager.listConfiguredPackages)
@@ -249,6 +306,93 @@ describe("PiSkillPackProvider", () => {
     expect(manager.removeAndPersist).toHaveBeenCalledWith(source, {
       local: true,
     });
+    expect(result.packs[0]).toMatchObject({ status: "available", scope: null });
+  });
+
+  it("removes a project-local package using its canonical directory", async () => {
+    const cwd = path.resolve("C:\\work");
+    const relativeSource = "release";
+    const installedPath = path.resolve(cwd, ".pi", relativeSource);
+    const configured: ReturnType<PackageManager["listConfiguredPackages"]> = [{
+      source: relativeSource,
+      scope: "project",
+      filtered: false,
+      installedPath,
+    }];
+    const manager = fakePackageManager();
+    vi.mocked(manager.listConfiguredPackages).mockImplementation(() => configured);
+    vi.mocked(manager.resolve).mockImplementation(async () =>
+      configured.length > 0
+        ? resolvedSingleSkill(relativeSource, installedPath)
+        : emptyResolvedPaths(),
+    );
+    vi.mocked(manager.removeAndPersist).mockImplementation(async (removeSource) => {
+      if (removeSource !== installedPath) return false;
+      configured.splice(0);
+      return true;
+    });
+    const provider = new PiSkillPackProvider(() => manager, []);
+    const packId = (await provider.list(cwd)).packs[0]!.packId;
+
+    await expect(provider.remove({ packId, cwd })).resolves.toEqual({ packs: [] });
+    expect(manager.removeAndPersist).toHaveBeenCalledWith(installedPath, {
+      local: true,
+    });
+  });
+
+  it("repairs a project-local package using its canonical directory", async () => {
+    const cwd = path.resolve("C:\\work");
+    const relativeSource = "release";
+    const installedPath = path.resolve(cwd, ".pi", relativeSource);
+    const configured = [{
+      source: relativeSource,
+      scope: "project" as const,
+      filtered: false,
+      installedPath,
+    }];
+    const manager = fakePackageManager();
+    let resolved = emptyResolvedPaths();
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue(configured);
+    vi.mocked(manager.resolve).mockImplementation(async () => resolved);
+    vi.mocked(manager.install).mockImplementation(async (installSource) => {
+      if (installSource === installedPath) {
+        resolved = resolvedSingleSkill(relativeSource, installedPath);
+      }
+    });
+    const provider = new PiSkillPackProvider(() => manager, []);
+    const packId = (await provider.list(cwd)).packs[0]!.packId;
+
+    const result = await provider.repair({ packId, cwd });
+
+    expect(manager.install).toHaveBeenCalledWith(installedPath, { local: true });
+    expect(result.packs[0]?.status).toBe("installed");
+  });
+
+  it("removes duplicate user and project configurations for one pack id", async () => {
+    const manager = fakePackageManager();
+    const configured = [
+      { ...configuredPackage(), scope: "user" as const },
+      { ...configuredPackage(), scope: "project" as const },
+    ];
+    vi.mocked(manager.listConfiguredPackages).mockImplementation(() => configured);
+    vi.mocked(manager.resolve).mockImplementation(async () =>
+      configured.length > 0 ? resolvedOfficialPack() : emptyResolvedPaths(),
+    );
+    vi.mocked(manager.removeAndPersist).mockImplementation(
+      async (_removeSource, options) => {
+        const scope = options?.local ? "project" : "user";
+        const index = configured.findIndex((item) => item.scope === scope);
+        if (index < 0) return false;
+        configured.splice(index, 1);
+        return true;
+      },
+    );
+    const provider = new PiSkillPackProvider(() => manager, catalog);
+    const packId = (await provider.list("C:\\work")).packs[0]!.packId;
+
+    const result = await provider.remove({ packId, cwd: "C:\\work" });
+
+    expect(manager.removeAndPersist).toHaveBeenCalledTimes(2);
     expect(result.packs[0]).toMatchObject({ status: "available", scope: null });
   });
 
@@ -294,6 +438,7 @@ describe("PiSkillPackProvider", () => {
         vi.mocked(manager.installAndPersist).mock.invocationCallOrder[0]!,
       );
       expect(result.packs[0]).toMatchObject({
+        name: "local-release",
         source: localSource,
         status: "installed",
         version: "1.2.3",
@@ -301,6 +446,34 @@ describe("PiSkillPackProvider", () => {
       });
     } finally {
       await fs.rm(localSource, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects a missing local source or a source that is not a directory", async () => {
+    const localFile = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), "skill-pack-file-")),
+      "package.json",
+    );
+    await fs.writeFile(localFile, "{}");
+    const manager = fakePackageManager();
+    const roots = { listRoots: vi.fn(), addRoot: vi.fn() };
+    const provider = new PiSkillPackProvider(
+      () => manager,
+      [],
+      "C:\\agent",
+      roots,
+    );
+
+    try {
+      for (const source of [localFile, `${localFile}.missing`]) {
+        await expect(
+          provider.installSource({ source, scope: "project", cwd: "C:\\work" }),
+        ).rejects.toMatchObject({ code: "VALIDATION_ERROR", status: 400 });
+      }
+      expect(manager.installAndPersist).not.toHaveBeenCalled();
+      expect(roots.addRoot).not.toHaveBeenCalled();
+    } finally {
+      await fs.rm(path.dirname(localFile), { recursive: true, force: true });
     }
   });
 

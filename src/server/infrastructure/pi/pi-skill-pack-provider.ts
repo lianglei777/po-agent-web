@@ -28,6 +28,7 @@ import {
   canUpdatePackageSource,
   isLocalPackageSource,
   normalizeManualPackageSource,
+  packageSourceIdentity,
   safePackageSource,
 } from "./package-source";
 
@@ -124,6 +125,7 @@ export class PiSkillPackProvider implements SkillPackProvider {
   ): Promise<SkillPackLoadResult> {
     return this.withMutation("SKILL_PACK_INSTALL_FAILED", async () => {
       const source = normalizeManualPackageSource(input.source);
+      await validateLocalPackageDirectory(source);
       const manager = this.createManager(input.cwd);
       if (
         manager
@@ -220,7 +222,9 @@ export class PiSkillPackProvider implements SkillPackProvider {
       if (!target) notFound();
       const localPath = configuredLocalPath(target, input.cwd, this.agentDir);
       if (localPath) this.registerLocalSource(localPath);
-      await manager.install(target.source, { local: target.scope === "project" });
+      await manager.install(localPath ?? target.source, {
+        local: target.scope === "project",
+      });
       return this.verifyConfiguredPack(input, "SKILL_PACK_REPAIR_FAILED");
     });
   }
@@ -228,18 +232,24 @@ export class PiSkillPackProvider implements SkillPackProvider {
   async remove(input: RemoveSkillPackInput): Promise<SkillPackLoadResult> {
     return this.withMutation("SKILL_PACK_REMOVE_FAILED", async () => {
       const manager = this.createManager(input.cwd);
-      const target = findConfigured(
-        manager.listConfiguredPackages(),
-        input.packId,
-        this.catalog,
-        input.cwd,
-        this.agentDir,
+      const targets = manager.listConfiguredPackages().filter(
+        (item) =>
+          configuredPackId(
+            item,
+            this.catalog,
+            input.cwd,
+            this.agentDir,
+          ) === input.packId,
       );
-      if (!target) notFound();
+      if (targets.length === 0) notFound();
 
-      await manager.removeAndPersist(target.source, {
-        local: target.scope === "project",
-      });
+      for (const target of targets) {
+        const removeSource =
+          configuredLocalPath(target, input.cwd, this.agentDir) ?? target.source;
+        await manager.removeAndPersist(removeSource, {
+          local: target.scope === "project",
+        });
+      }
       const result = await this.list(input.cwd);
       if (result.packs.some((pack) => pack.packId === input.packId && pack.scope)) {
         throw new AppError(
@@ -336,7 +346,8 @@ async function mapPacks(
       const verified = definition.expectedSkills.every((name) =>
         resolvedResources.skills.includes(name),
       );
-      const version = await packageVersion(installed?.installedPath);
+      const metadata = await packageMetadata(installed?.installedPath);
+      const version = metadata.version;
       const canUpdate = Boolean(
         installed && canUpdatePackageSource(installed.source),
       );
@@ -375,6 +386,7 @@ async function mapPacks(
       .map(async (item): Promise<SkillPackInfo> => {
         const resources = resourcesForSource(resolved, item.source);
         const displaySource = safePackageSource(item.source);
+        const metadata = await packageMetadata(item.installedPath);
         const healthy = Boolean(
           item.installedPath &&
             resolutionSucceeded &&
@@ -382,12 +394,12 @@ async function mapPacks(
         );
         return {
           packId: configuredPackId(item, catalog, cwd, agentDir),
-          name: packageLabel(displaySource),
+          name: metadata.name ?? packageLabel(displaySource),
           description: "",
           source: displaySource,
           scope: item.scope,
           status: healthy ? "installed" : "broken",
-          version: await packageVersion(item.installedPath),
+          version: metadata.version,
           updateAvailable: false,
           canUpdate: canUpdatePackageSource(item.source),
           resources,
@@ -471,6 +483,9 @@ function configuredMatchesSource(
   cwd: string,
   agentDir: string,
 ): boolean {
+  const configuredIdentity = packageSourceIdentity(configured.source);
+  const sourceIdentity = packageSourceIdentity(source);
+  if (configuredIdentity && configuredIdentity === sourceIdentity) return true;
   if (sameSource(configured.source, source)) return true;
   if (configured.installedPath && sameSource(configured.installedPath, source)) {
     return true;
@@ -485,30 +500,48 @@ function configuredLocalPath(
   agentDir: string,
 ): string | undefined {
   if (path.isAbsolute(configured.source)) return configured.source;
-  if (!/^(?:\.\.?)[\\/]/.test(configured.source)) return undefined;
+  if (packageSourceIdentity(configured.source)) return undefined;
   const baseDir =
     configured.scope === "project" ? path.join(cwd, ".pi") : agentDir;
   return path.resolve(baseDir, configured.source);
 }
 
-async function packageVersion(installedPath?: string): Promise<string | undefined> {
-  if (!installedPath) return undefined;
+async function packageMetadata(
+  installedPath?: string,
+): Promise<{ name?: string; version?: string }> {
+  if (!installedPath) return {};
   try {
     const content = await fs.readFile(path.join(installedPath, "package.json"), "utf8");
     const value: unknown = JSON.parse(content);
-    if (
-      typeof value === "object" &&
-      value !== null &&
-      "version" in value &&
-      typeof value.version === "string" &&
-      value.version.trim()
-    ) {
-      return value.version;
-    }
+    if (typeof value !== "object" || value === null) return {};
+    const record = value as Record<string, unknown>;
+    return {
+      name:
+        typeof record.name === "string" && record.name.trim()
+          ? record.name
+          : undefined,
+      version:
+        typeof record.version === "string" && record.version.trim()
+          ? record.version
+          : undefined,
+    };
   } catch {
-    return undefined;
+    return {};
   }
-  return undefined;
+}
+
+async function validateLocalPackageDirectory(source: string): Promise<void> {
+  if (!isLocalPackageSource(source)) return;
+  try {
+    if ((await fs.stat(source)).isDirectory()) return;
+  } catch {
+    // 统一映射为不包含系统路径细节的输入错误。
+  }
+  throw new AppError(
+    "VALIDATION_ERROR",
+    "Local Skill Pack source must be an existing directory.",
+    400,
+  );
 }
 
 function catalogPackId(id: string): string {

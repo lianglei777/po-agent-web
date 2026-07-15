@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  findOwningSkillPack,
   groupSkills,
   isManagedSkill,
   packageSourceLabel,
@@ -7,7 +8,7 @@ import {
   sourceLabel,
 } from "./skill-state";
 import type { Dictionary } from "@/i18n/dictionary";
-import type { SkillInfo } from "./types";
+import type { SkillInfo, SkillPackInfo } from "./types";
 
 const base: SkillInfo = {
   skillId: "project-id",
@@ -36,6 +37,32 @@ describe("skills config state", () => {
       }),
     ).toBe(true);
     expect(isManagedSkill(base)).toBe(false);
+  });
+
+  it("finds a local owner pack through the canonical package base directory", () => {
+    const packed = {
+      ...base,
+      sourceInfo: {
+        ...base.sourceInfo,
+        source: "..\\resources\\official-packs\\git-release-workflows",
+        baseDir: "C:\\work\\resources\\official-packs\\git-release-workflows",
+        origin: "package" as const,
+      },
+    };
+    const pack = {
+      packId: "git-release-workflows",
+      name: "Git & Release Workflows",
+      description: "",
+      source: "C:\\work\\resources\\official-packs\\git-release-workflows",
+      scope: "project" as const,
+      status: "installed" as const,
+      updateAvailable: false,
+      canUpdate: false,
+      resources: { skills: [], extensions: [], prompts: [], themes: [] },
+      containsExtensions: false,
+    } satisfies SkillPackInfo;
+
+    expect(findOwningSkillPack(packed, [pack])).toBe(pack);
   });
 
   it("groups same-name skills by actual resource source", () => {

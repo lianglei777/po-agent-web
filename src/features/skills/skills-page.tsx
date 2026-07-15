@@ -18,6 +18,7 @@ import { SkillDetail } from "./skill-detail";
 import { SkillList } from "./skill-list";
 import { SkillPackDetail } from "./skill-pack-detail";
 import { SkillPackList, packCopy } from "./skill-pack-list";
+import { findOwningSkillPack } from "./skill-state";
 import { useSkillPacks } from "./use-skill-packs";
 import { useSkills } from "./use-skills";
 
@@ -106,14 +107,9 @@ export function SkillsPage({ cwd }: { cwd: string }) {
 
   const removing = skills.removingSkillId === skills.selectedSkill?.skillId;
   const packBusy = packs.busy;
-  const selectedSkillOwnerPack =
-    skills.selectedSkill?.sourceInfo.origin === "package"
-      ? packs.packs.find(
-          (pack) =>
-            pack.scope !== null &&
-            pack.source === skills.selectedSkill?.sourceInfo.source,
-        )
-      : undefined;
+  const selectedSkillOwnerPack = skills.selectedSkill
+    ? findOwningSkillPack(skills.selectedSkill, packs.packs)
+    : undefined;
   const activeError = view === "skills" ? skills.error : packs.error;
 
   return (
