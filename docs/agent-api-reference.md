@@ -95,6 +95,11 @@ Content-Type: text/event-stream; charset=utf-8
 | `OAUTH_PROVIDER_NOT_FOUND` | 404 | OAuth Provider 不存在 |
 | `PENDING_INPUT_NOT_FOUND` | 404 | OAuth Pending Input Token 不存在或 Provider 不匹配 |
 | `SKILL_INSTALL_FAILED` | 500 | Skill CLI 安装失败 |
+| `SKILL_PACK_NOT_FOUND` | 404 | Skill Pack 不存在或 opaque ID 已失效 |
+| `SKILL_PACK_INSTALL_BUSY` | 409 | 另一个 Skill Pack 安装或移除操作正在运行 |
+| `SKILL_PACK_INSTALL_FAILED` | 500 | Skill Pack 安装或安装后校验失败 |
+| `SKILL_PACK_REMOVE_FAILED` | 500 | Skill Pack 移除或移除后校验失败 |
+| `SKILL_PACK_BROKEN` | 409 | Skill Pack 已配置但资源不完整 |
 | `INTERNAL_ERROR` | 500 | 未归类的服务端错误 |
 
 ## 2. API 总览
@@ -193,6 +198,14 @@ Content-Type: text/event-stream; charset=utf-8
 | `POST` | `/api/skills/install` | 安装 Skill |
 | `POST` | `/api/skills/local` | 导入本地 Skill 文件 |
 | `DELETE` | `/api/skills` | 移除 Skill |
+
+### 2.9 Skill Packs
+
+| Method | Path | 用途 |
+| --- | --- | --- |
+| `GET` | `/api/skill-packs` | 加载官方目录和当前已配置的 Pi Packages |
+| `POST` | `/api/skill-packs/install` | 从服务端官方目录安装 Skill Pack |
+| `DELETE` | `/api/skill-packs` | 移除已安装的 Skill Pack |
 
 ## 3. 通用数据结构
 
@@ -2082,6 +2095,99 @@ node <npm>/bin/npx-cli.js --yes skills remove <name> -y --agent pi
 - `404 SKILL_NOT_FOUND`
 - `409 SKILL_REMOVE_BUSY`
 - `500 SKILL_REMOVE_FAILED`
+
+### 10.7 Skill Pack
+
+Skill Pack 是由 Pi Package 承载的安装和分发单元，可以包含 Skills、Extensions、
+Prompts 和 Themes。API 只接受服务端生成的 opaque `packId`，客户端不能提交任意
+Package Source。
+
+#### 10.7.1 加载 Skill Packs
+
+```http
+GET /api/skill-packs?cwd=C%3A%5Cworkspace%5Cproject
+```
+
+`cwd` 必需，且必须是已注册的 Workspace Root。响应同时包含未安装的官方目录项和
+Pi Settings 中已配置的 Package：
+
+```json
+{
+  "packs": [
+    {
+      "packId": "pack_6de4b2c214eb3517",
+      "catalogId": "developer-workflows",
+      "name": "Developer Workflows",
+      "description": "Focused workflows for investigating failures and preparing safe changes.",
+      "source": "C:\\app\\resources\\official-packs\\developer-workflows",
+      "scope": null,
+      "status": "available",
+      "resources": {
+        "skills": ["investigate-failure", "prepare-change"],
+        "extensions": [],
+        "prompts": [],
+        "themes": []
+      },
+      "containsExtensions": false
+    }
+  ]
+}
+```
+
+`status` 可为 `available`、`installed` 或 `broken`。`scope` 可为 `user`、
+`project` 或 `null`。配置存在但安装路径或声明资源缺失时返回 `broken`，使用户仍可
+看到并移除损坏的 Package。
+
+#### 10.7.2 安装 Skill Pack
+
+```http
+POST /api/skill-packs/install
+Content-Type: application/json
+```
+
+```json
+{
+  "packId": "pack_6de4b2c214eb3517",
+  "scope": "project",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+`scope` 为 `project` 或 `global`。服务端使用 `packId` 在官方目录中重新解析真实
+Package Source，调用 Pi Package Manager 持久化安装，重新解析资源并校验目录声明的
+Skills。校验失败时会尝试回滚本次安装。成功响应为刷新后的完整 Skill Pack 列表。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `404 SKILL_PACK_NOT_FOUND`
+- `409 VALIDATION_ERROR`（已经安装）
+- `409 SKILL_PACK_INSTALL_BUSY`
+- `500 SKILL_PACK_INSTALL_FAILED`
+
+#### 10.7.3 移除 Skill Pack
+
+```http
+DELETE /api/skill-packs
+Content-Type: application/json
+```
+
+```json
+{
+  "packId": "pack_6de4b2c214eb3517",
+  "cwd": "C:\\workspace\\project"
+}
+```
+
+服务端只根据当前 Pi Settings 中的 Package 配置解析 opaque `packId`，调用 Pi
+Package Manager 从原 scope 移除并重新加载确认。成功响应为刷新后的完整列表。
+
+错误：
+
+- `400 VALIDATION_ERROR`
+- `404 SKILL_PACK_NOT_FOUND`
+- `409 SKILL_PACK_INSTALL_BUSY`
+- `500 SKILL_PACK_REMOVE_FAILED`
 
 ## 11. SSE 通用行为
 
