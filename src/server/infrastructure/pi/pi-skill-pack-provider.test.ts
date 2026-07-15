@@ -49,6 +49,86 @@ describe("PiSkillPackProvider", () => {
     });
   });
 
+  it("keeps an installed filtered package healthy when all resources are disabled", async () => {
+    const manager = fakePackageManager();
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue([
+      { ...configuredPackage(), filtered: true },
+    ]);
+    const provider = new PiSkillPackProvider(() => manager, []);
+
+    const result = await provider.list("C:\\work");
+
+    expect(result.packs[0]).toMatchObject({
+      status: "installed",
+      resources: { skills: [], extensions: [], prompts: [], themes: [] },
+    });
+  });
+
+  it("marks an installed third-party package as broken when resolution fails", async () => {
+    const manager = fakePackageManager();
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue([
+      configuredPackage(),
+    ]);
+    vi.mocked(manager.resolve).mockRejectedValue(new Error("invalid package"));
+    const provider = new PiSkillPackProvider(() => manager, []);
+
+    const result = await provider.list("C:\\work");
+
+    expect(result.packs[0]?.status).toBe("broken");
+  });
+
+  it("redacts credentials from configured package sources", async () => {
+    const manager = fakePackageManager();
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue([
+      {
+        source:
+          "https://user:secret@example.com/org/pack.git?token=hidden#fragment",
+        scope: "project",
+        filtered: false,
+        installedPath: "C:\\cache\\pack",
+      },
+    ]);
+    const provider = new PiSkillPackProvider(() => manager, []);
+
+    const result = await provider.list("C:\\work");
+
+    expect(result.packs[0]?.source).toBe(
+      "https://example.com/org/pack.git",
+    );
+    expect(JSON.stringify(result)).not.toMatch(/secret|hidden/);
+  });
+
+  it("matches Pi-normalized local sources back to the official catalog", async () => {
+    const manager = fakePackageManager();
+    const normalizedSource = path.relative(path.join("C:\\work", ".pi"), source);
+    vi.mocked(manager.listConfiguredPackages).mockReturnValue([
+      {
+        ...configuredPackage(),
+        source: normalizedSource,
+      },
+    ]);
+    vi.mocked(manager.resolve).mockResolvedValue(
+      resolvedOfficialPack(normalizedSource),
+    );
+    const provider = new PiSkillPackProvider(
+      () => manager,
+      catalog,
+      "C:\\agent",
+    );
+
+    const result = await provider.list("C:\\work");
+
+    expect(result.packs).toHaveLength(1);
+    expect(result.packs[0]).toMatchObject({
+      catalogId: "developer-workflows",
+      status: "installed",
+      scope: "project",
+      resources: {
+        skills: ["investigate-failure", "prepare-change"],
+      },
+    });
+  });
+
   it("installs only a server-catalogued source", async () => {
     const manager = fakePackageManager();
     vi.mocked(manager.listConfiguredPackages)
@@ -160,14 +240,14 @@ function emptyResolvedPaths(): ResolvedPaths {
   return { extensions: [], skills: [], prompts: [], themes: [] };
 }
 
-function resolvedOfficialPack(): ResolvedPaths {
+function resolvedOfficialPack(metadataSource = source): ResolvedPaths {
   return {
     ...emptyResolvedPaths(),
     skills: ["investigate-failure", "prepare-change"].map((name) => ({
       path: path.join(source, "skills", name, "SKILL.md"),
       enabled: true,
       metadata: {
-        source,
+        source: metadataSource,
         scope: "project" as const,
         origin: "package" as const,
         baseDir: source,

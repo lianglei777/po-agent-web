@@ -32,6 +32,11 @@ export async function createPiResourceLoader({
     settingsManager: SettingsManager.create(cwd, agentDir),
   });
   await loader.reload();
+  const existingSourceInfo = new Map(
+    loader
+      .getSkills()
+      .skills.map((skill) => [path.resolve(skill.filePath), skill.sourceInfo]),
+  );
   loader.extendResources({
     skillPaths: [
       {
@@ -44,5 +49,10 @@ export async function createPiResourceLoader({
       },
     ],
   });
+  // Pi 扩展资源时会重新解析全部 Skill；恢复 reload 阶段已解析出的 Package 来源。
+  for (const skill of loader.getSkills().skills) {
+    const sourceInfo = existingSourceInfo.get(path.resolve(skill.filePath));
+    if (sourceInfo) skill.sourceInfo = sourceInfo;
+  }
   return loader;
 }

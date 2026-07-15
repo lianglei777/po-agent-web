@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   groupSkills,
   isManagedSkill,
+  packageSourceLabel,
   reconcileSelectedSkill,
   sourceLabel,
 } from "./skill-state";
@@ -80,6 +81,17 @@ describe("skills config state", () => {
         skills: [packed],
       }),
     ]);
+  });
+
+  it("shows a package name instead of its internal path", () => {
+    expect(
+      packageSourceLabel(
+        "..\\.worktrees\\skill-pack\\resources\\official-packs\\developer-workflows",
+      ),
+    ).toBe("developer-workflows");
+    expect(packageSourceLabel("npm:@scope/office-pack@1.0.0")).toBe(
+      "@scope/office-pack@1.0.0",
+    );
   });
 
   it("keeps selection after refresh and repairs a missing selection", () => {

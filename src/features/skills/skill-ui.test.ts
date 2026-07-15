@@ -18,6 +18,10 @@ const pageSource = readFileSync(
   fileURLToPath(new URL("./skills-page.tsx", import.meta.url)),
   "utf8",
 );
+const packHookSource = readFileSync(
+  fileURLToPath(new URL("./use-skill-packs.ts", import.meta.url)),
+  "utf8",
+);
 
 describe("skills config UI contract", () => {
   it("describes model invocation instead of whole-skill enablement", () => {
@@ -33,7 +37,8 @@ describe("skills config UI contract", () => {
   });
 
   it("labels package groups with their package source", () => {
-    expect(listSource).toContain(
+    expect(listSource).toContain("packageSourceLabel(group.detail)");
+    expect(listSource).not.toContain(
       "sourceLabel(group.detail, group.origin, t.skills)",
     );
   });
@@ -74,5 +79,10 @@ describe("skills config UI contract", () => {
     expect(pageSource).toContain('"text-warning"');
     expect(pageSource).toContain('"text-destructive"');
     expect(pageSource).toContain('"text-primary"');
+  });
+
+  it("does not let list refreshes abort package mutations", () => {
+    expect(packHookSource).toContain("refreshRequestRef");
+    expect(packHookSource).toContain("mutationRequestRef");
   });
 });

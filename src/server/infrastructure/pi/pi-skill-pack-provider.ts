@@ -29,18 +29,30 @@ export class PiSkillPackProvider implements SkillPackProvider {
   constructor(
     private readonly createManager: PackageManagerFactory = createDefaultManager,
     private readonly catalog = getOfficialSkillPacks(),
+    private readonly agentDir = getAgentDir(),
   ) {}
 
   async list(cwd: string): Promise<SkillPackLoadResult> {
     const manager = this.createManager(cwd);
     const configured = manager.listConfiguredPackages();
     let resolved = emptyResources();
+    let resolutionSucceeded = true;
     try {
       resolved = await manager.resolve(async () => "skip");
     } catch {
+      resolutionSucceeded = false;
       // 配置仍需展示为 broken，具体安装错误由后续安装或移除操作返回。
     }
-    return { packs: mapPacks(this.catalog, configured, resolved) };
+    return {
+      packs: mapPacks(
+        this.catalog,
+        configured,
+        resolved,
+        cwd,
+        this.agentDir,
+        resolutionSucceeded,
+      ),
+    };
   }
 
   async install(input: InstallSkillPackInput): Promise<SkillPackLoadResult> {
@@ -62,7 +74,14 @@ export class PiSkillPackProvider implements SkillPackProvider {
         if (
           manager
             .listConfiguredPackages()
-            .some((item) => sameSource(item.source, definition.source))
+            .some((item) =>
+              configuredMatchesDefinition(
+                item,
+                definition,
+                input.cwd,
+                this.agentDir,
+              ),
+            )
         ) {
           throw new AppError(
             "VALIDATION_ERROR",
@@ -104,7 +123,13 @@ export class PiSkillPackProvider implements SkillPackProvider {
       const manager = this.createManager(input.cwd);
       const configured = manager.listConfiguredPackages();
       const target = configured.find(
-        (item) => configuredPackId(item, this.catalog) === input.packId,
+        (item) =>
+          configuredPackId(
+            item,
+            this.catalog,
+            input.cwd,
+            this.agentDir,
+          ) === input.packId,
       );
       if (!target) {
         throw new AppError(
@@ -169,12 +194,18 @@ function mapPacks(
   catalog: OfficialSkillPackDefinition[],
   configured: ReturnType<PackageManager["listConfiguredPackages"]>,
   resolved: ResolvedPaths,
+  cwd: string,
+  agentDir: string,
+  resolutionSucceeded: boolean,
 ): SkillPackInfo[] {
   const official = catalog.map((definition) => {
     const installed = configured.find((item) =>
-      sameSource(item.source, definition.source),
+      configuredMatchesDefinition(item, definition, cwd, agentDir),
     );
-    const resolvedResources = resourcesForSource(resolved, definition.source);
+    const resolvedResources = resourcesForSource(
+      resolved,
+      installed?.source ?? definition.source,
+    );
     const resources = installed
       ? resolvedResources
       : {
@@ -203,19 +234,22 @@ function mapPacks(
   });
   const thirdParty = configured
     .filter(
-      (item) => !catalog.some((definition) => sameSource(item.source, definition.source)),
+      (item) =>
+        !catalog.some((definition) =>
+          configuredMatchesDefinition(item, definition, cwd, agentDir),
+        ),
     )
     .map((item) => {
       const resources = resourcesForSource(resolved, item.source);
-      const hasResources = Object.values(resources).some((values) => values.length);
+      const displaySource = safePackageSource(item.source);
       return {
-        packId: configuredPackId(item, catalog),
-        name: packageLabel(item.source),
+        packId: configuredPackId(item, catalog, cwd, agentDir),
+        name: packageLabel(displaySource),
         description: "",
-        source: item.source,
+        source: displaySource,
         scope: item.scope,
         status:
-          item.installedPath && hasResources
+          item.installedPath && resolutionSucceeded
             ? ("installed" as const)
             : ("broken" as const),
         resources,
@@ -255,11 +289,34 @@ function resourceNames(
 function configuredPackId(
   configured: ReturnType<PackageManager["listConfiguredPackages"]>[number],
   catalog: OfficialSkillPackDefinition[],
+  cwd: string,
+  agentDir: string,
 ): string {
-  const official = catalog.find((item) => sameSource(item.source, configured.source));
+  const official = catalog.find((item) =>
+    configuredMatchesDefinition(configured, item, cwd, agentDir),
+  );
   return official
     ? catalogPackId(official.id)
     : opaqueId(`configured:${configured.scope}:${configured.source}`);
+}
+
+function configuredMatchesDefinition(
+  configured: ReturnType<PackageManager["listConfiguredPackages"]>[number],
+  definition: OfficialSkillPackDefinition,
+  cwd: string,
+  agentDir: string,
+): boolean {
+  if (sameSource(configured.source, definition.source)) return true;
+  if (
+    configured.installedPath &&
+    sameSource(configured.installedPath, definition.source)
+  ) {
+    return true;
+  }
+  if (path.isAbsolute(configured.source)) return false;
+  const baseDir =
+    configured.scope === "project" ? path.join(cwd, ".pi") : agentDir;
+  return sameSource(path.resolve(baseDir, configured.source), definition.source);
 }
 
 function catalogPackId(id: string): string {
@@ -283,6 +340,23 @@ function sameSource(left: string, right: string): boolean {
 
 function packageLabel(source: string): string {
   return path.isAbsolute(source) ? path.basename(source) : source;
+}
+
+function safePackageSource(source: string): string {
+  const urlStart = source.search(/[a-z][a-z\d+.-]*:\/\//i);
+  if (urlStart < 0) return source;
+
+  try {
+    const prefix = source.slice(0, urlStart);
+    const url = new URL(source.slice(urlStart));
+    url.username = "";
+    url.password = "";
+    url.search = "";
+    url.hash = "";
+    return `${prefix}${url.toString()}`;
+  } catch {
+    return source.slice(0, urlStart);
+  }
 }
 
 function emptyResources(): ResolvedPaths {

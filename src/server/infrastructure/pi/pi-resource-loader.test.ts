@@ -36,4 +36,55 @@ describe("createPiResourceLoader", () => {
       await fs.rm(root, { force: true, recursive: true });
     }
   });
+
+  it("preserves Package metadata when built-in skills are extended", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "po-packages-"));
+    const cwd = path.join(root, "workspace");
+    const agentDir = path.join(root, "agent");
+    const builtinSkillsDir = path.join(root, "builtins");
+    const packageDir = path.join(root, "developer-workflows");
+    const settingsDir = path.join(cwd, ".pi");
+    const skillDir = path.join(packageDir, "skills", "prepare-change");
+    await fs.mkdir(path.join(builtinSkillsDir, "review-changes"), {
+      recursive: true,
+    });
+    await fs.mkdir(skillDir, { recursive: true });
+    await fs.mkdir(settingsDir, { recursive: true });
+    await fs.writeFile(
+      path.join(builtinSkillsDir, "review-changes", "SKILL.md"),
+      "---\nname: review-changes\ndescription: Review changes\n---\n",
+    );
+    await fs.writeFile(
+      path.join(skillDir, "SKILL.md"),
+      "---\nname: prepare-change\ndescription: Prepare change\n---\n",
+    );
+    await fs.writeFile(
+      path.join(packageDir, "package.json"),
+      JSON.stringify({ name: "developer-workflows", pi: { skills: ["./skills"] } }),
+    );
+    const configuredSource = path.relative(settingsDir, packageDir);
+    await fs.writeFile(
+      path.join(settingsDir, "settings.json"),
+      JSON.stringify({ packages: [configuredSource] }),
+    );
+
+    try {
+      const loader = await createPiResourceLoader({
+        cwd,
+        agentDir,
+        builtinSkillsDir,
+      });
+      const packageSkill = loader
+        .getSkills()
+        .skills.find((skill) => skill.name === "prepare-change");
+
+      expect(packageSkill?.sourceInfo).toMatchObject({
+        source: configuredSource,
+        scope: "project",
+        origin: "package",
+      });
+    } finally {
+      await fs.rm(root, { force: true, recursive: true });
+    }
+  });
 });

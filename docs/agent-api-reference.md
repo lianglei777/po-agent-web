@@ -2108,29 +2108,12 @@ Package Source。
 GET /api/skill-packs?cwd=C%3A%5Cworkspace%5Cproject
 ```
 
-`cwd` 必需，且必须是已注册的 Workspace Root。响应同时包含未安装的官方目录项和
-Pi Settings 中已配置的 Package：
+`cwd` 必需，且必须位于已注册的 Workspace Root 内。响应包含未安装的官方目录项和
+Pi Settings 中已配置的 Package；两者都为空时返回空列表：
 
 ```json
 {
-  "packs": [
-    {
-      "packId": "pack_6de4b2c214eb3517",
-      "catalogId": "developer-workflows",
-      "name": "Developer Workflows",
-      "description": "Focused workflows for investigating failures and preparing safe changes.",
-      "source": "C:\\app\\resources\\official-packs\\developer-workflows",
-      "scope": null,
-      "status": "available",
-      "resources": {
-        "skills": ["investigate-failure", "prepare-change"],
-        "extensions": [],
-        "prompts": [],
-        "themes": []
-      },
-      "containsExtensions": false
-    }
-  ]
+  "packs": []
 }
 ```
 

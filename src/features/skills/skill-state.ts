@@ -1,5 +1,5 @@
 import type { Dictionary } from "@/i18n/dictionary";
-import type { SkillInfo } from "./types";
+import type { SkillInfo, SkillPackInfo } from "./types";
 
 export interface SkillGroup {
   id: string;
@@ -50,7 +50,28 @@ export function reconcileSelectedSkill(
   return skills[0]?.skillId ?? null;
 }
 
+export function reconcileSelectedSkillPack(
+  packs: SkillPackInfo[],
+  selectedPackId: string | null,
+): string | null {
+  if (
+    selectedPackId &&
+    packs.some((pack) => pack.packId === selectedPackId)
+  ) {
+    return selectedPackId;
+  }
+  return packs[0]?.packId ?? null;
+}
+
+export function packageSourceLabel(source: string): string {
+  if (source.startsWith("npm:")) return source.slice("npm:".length);
+
+  const normalized = source.replaceAll("\\", "/").replace(/\/+$/, "");
+  return normalized.split("/").at(-1) || source;
+}
+
 function groupId(skill: SkillInfo): string {
+  if (skill.sourceInfo.source === "po-agent-builtin") return "builtin";
   if (isManagedSkill(skill)) return `package:${skill.sourceInfo.source}`;
   if (skill.sourceInfo.scope === "project") return "project";
   if (skill.sourceInfo.scope === "user") return "global";
@@ -58,9 +79,11 @@ function groupId(skill: SkillInfo): string {
 }
 
 function groupRank(id: string): number {
-  if (id === "project") return 0;
-  if (id === "global") return 1;
-  return 2;
+  if (id === "builtin") return 0;
+  if (id === "project") return 1;
+  if (id === "global") return 2;
+  if (id.startsWith("package:")) return 3;
+  return 4;
 }
 
 // 将技能来源的内部标识映射为用户可读的标签
