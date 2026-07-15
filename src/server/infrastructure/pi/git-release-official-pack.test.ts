@@ -29,7 +29,7 @@ describe("Git & Release Workflows official Pack", () => {
       path.join(packRoot, "skills", name, "SKILL.md"),
       "utf8",
     );
-    const frontmatter = content.match(/^---\n([\s\S]*?)\n---/u)?.[1] ?? "";
+    const frontmatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---/u)?.[1] ?? "";
     const description = frontmatter.match(/^description:\s*(.+)$/mu)?.[1] ?? "";
 
     expect(frontmatter).toContain(`name: ${name}`);
