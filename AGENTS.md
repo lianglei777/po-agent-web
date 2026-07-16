@@ -46,6 +46,14 @@ truth because this Next.js version may differ from training data.
 Do not start broad refactors unless they are required for correctness or
 explicitly requested.
 
+## Git Branch Workflow
+
+- For complex changes, create and use a normal `feature/*` branch in the
+  current project directory.
+- Do not create a Git worktree unless the user explicitly requests a worktree
+  or parallel branch work.
+- Before switching branches, check for uncommitted changes and preserve them.
+
 ## Server Architecture
 
 The dependency direction is:
