@@ -24,9 +24,12 @@ describe("official Skill Pack catalog", () => {
   });
 
   it("uses the packaged official Pack directory when provided", () => {
+    const officialPacksRoot = path.resolve("official-packs-test");
+
     expect(
-      getOfficialSkillPacks({ PO_AGENT_OFFICIAL_PACKS_DIR: "D:\\official" })[0]
-        ?.source,
-    ).toBe(path.join("D:\\official", "git-release-workflows"));
+      getOfficialSkillPacks({
+        PO_AGENT_OFFICIAL_PACKS_DIR: officialPacksRoot,
+      })[0]?.source,
+    ).toBe(path.join(officialPacksRoot, "git-release-workflows"));
   });
 });

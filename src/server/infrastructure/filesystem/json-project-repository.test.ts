@@ -32,16 +32,16 @@ describe("JsonProjectRepository", () => {
     expect(await repository.list()).toEqual(["/work/b"]);
   });
 
-  it("does not duplicate equivalent project paths", async () => {
+  it("does not duplicate normalized equivalent project paths", async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "po-projects-"));
     temporaryDirectories.push(directory);
     const repository = new JsonProjectRepository(
       path.join(directory, "projects.json"),
     );
 
-    await repository.replace(["C:\\Work\\App", "c:\\work\\app"]);
+    await repository.replace(["/work/app", "/work/./app"]);
 
-    expect(await repository.list()).toEqual(["C:\\Work\\App"]);
+    expect(await repository.list()).toEqual(["/work/app"]);
   });
 
   it("normalizes Windows comparison keys without changing Unix case", () => {
