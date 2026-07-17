@@ -1,0 +1,191 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Validate release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify tag matches package version
+        id: version
+        shell: bash
+        run: |
+          packageVersion="$(node --print "require('./package.json').version")"
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag $GITHUB_REF_NAME is not a stable vX.Y.Z release tag."
+            exit 1
+          fi
+          if [[ "$GITHUB_REF_NAME" != "v$packageVersion" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $packageVersion."
+            exit 1
+          fi
+          echo "version=$packageVersion" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run required checks
+        run: npm run check
+
+  windows-release:
+    name: Publish Windows installer
+    needs: preflight
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    env:
+      APP_VERSION: ${{ needs.preflight.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Restore desktop build caches
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ${{ github.workspace }}\.next\cache
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: windows-release-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'desktop/**', 'resources/**', 'next.config.ts', 'package.json') }}
+          restore-keys: |
+            windows-release-${{ hashFiles('package-lock.json') }}-
+            windows-desktop-${{ hashFiles('package-lock.json') }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production application
+        run: npm run build
+
+      - name: Prepare standalone desktop resources
+        run: npm run desktop:prepare
+
+      - name: Package and optionally sign Windows installer
+        run: npm exec -- electron-builder --publish never
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Create checksum
+        shell: pwsh
+        run: |
+          $installer = Join-Path ".desktop-dist" "Po Agent Web Setup $env:APP_VERSION.exe"
+          if (-not (Test-Path -LiteralPath $installer)) {
+            throw "Windows installer was not generated: $installer"
+          }
+          $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $(Split-Path -Leaf $installer)" | Set-Content -Encoding utf8 ".desktop-dist\SHA256SUMS.txt"
+
+      - name: Create or update GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $installer = Join-Path ".desktop-dist" "Po Agent Web Setup $env:APP_VERSION.exe"
+          $checksum = ".desktop-dist\SHA256SUMS.txt"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $installer $checksum --clobber
+          } else {
+            gh release create $tag $installer $checksum --verify-tag --generate-notes --title "Po Agent Web $tag"
+          }
+          if ($LASTEXITCODE -ne 0) {
+            throw "GitHub Release publishing failed for $tag"
+          }
+
+  docker-release:
+    name: Publish Docker image
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      IMAGE_NAME: ${{ vars.DOCKERHUB_USERNAME }}/po-agent-web
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Validate Docker Hub configuration
+        shell: bash
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [[ -z "$DOCKERHUB_USERNAME" || -z "$DOCKERHUB_TOKEN" ]]; then
+            echo "DOCKERHUB_USERNAME variable and DOCKERHUB_TOKEN secret are required."
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Generate Docker metadata
+        id: metadata
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+            type=sha,format=short,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=Po Agent Web
+            org.opencontainers.image.description=Local workspace for the Pi coding agent
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          build-args: |
+            NPM_REGISTRY=https://registry.npmjs.org
+          cache-from: type=gha,scope=release-docker
+          cache-to: type=gha,mode=max,scope=release-docker
+          provenance: true
+          sbom: true
