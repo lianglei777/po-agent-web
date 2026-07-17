@@ -53,10 +53,10 @@
 ## 3. 安全须知
 
 - ✅ 本机部署:51732 只在本机访问,不要暴露到公网
-- ✅ 云服务器部署:端口绑定 `127.0.0.1`,通过 SSH 隧道或 Tailscale 访问(见第 6 节)
+- ✅ 云服务器部署:端口绑定 `127.0.0.1`,通过 SSH 隧道访问(见 5.8)
 - ❌ **绝对不要**把 51732 直接对公网开放
 
-> 若需公网 URL 访问,必须在前面加反向代理 + 认证(见第 6 节)。当前版本不支持应用层登录。
+> 若需公网 URL 访问,必须在前面加反向代理 + 认证。当前版本不支持应用层登录。
 
 ## 4. 场景一:本机 Docker Desktop 部署
 
@@ -293,7 +293,53 @@ cd /opt/po-agent
 docker compose up -d   # 自动用新镜像重启容器
 ```
 
-> 频繁更新时,每次传几百 MB 的 tar 包较慢。可改用镜像仓库(腾讯云 TCR):`docker push` 到仓库,服务器 `docker pull`,无需 scp。需要时再配置。
+> 频繁更新时,每次传几百 MB 的 tar 包较慢。可改用 Docker Hub 镜像仓库(见 5.11):`docker push` 到仓库,服务器 `docker pull`,只传变化层,无需 scp。
+
+### 5.11 替代方案:通过 Docker Hub 传输镜像(无需 tar)
+
+5.3-5.5 的 tar 方式每次传完整镜像,频繁更新较慢。另一种方式是把镜像推送到 Docker Hub,服务器直接拉取--后续只传变化的层,且是 CI/CD 自动部署的基础。
+
+**前置:注册 Docker Hub 账号并建仓库**
+
+1. 注册 [hub.docker.com](https://hub.docker.com),记下用户名(下面用 `你的用户名` 代替)。
+2. `Repositories -> Create`,仓库名填 `po-agent-web`,可见性选 **Public**(服务器拉取不用 login)。
+3. `Account Settings -> Security -> New Access Token`,生成令牌(代替密码,更安全),复制保存。
+
+**本机:登录、打标签、推送**
+
+```powershell
+# 登录(用户名 + 上一步的 token)
+docker login
+
+# 给镜像打 Docker Hub 格式的标签(版本号 + latest)
+docker tag po-agent-web:0.1.0 你的用户名/po-agent-web:0.1.0
+docker tag po-agent-web:0.1.0 你的用户名/po-agent-web:latest
+
+# 推送
+docker push 你的用户名/po-agent-web:0.1.0
+docker push 你的用户名/po-agent-web:latest
+```
+
+> `docker tag` 不复制镜像,只是加个别名,很快。`latest` 标签让服务器每次拉最新版本。
+
+**服务器:拉取镜像**
+
+```bash
+docker pull 你的用户名/po-agent-web:latest
+```
+
+**服务器 docker-compose.yml 的镜像地址**改成 Docker Hub 路径(替换 5.6 里的 `image`):
+
+```yaml
+services:
+  po-agent-web:
+    image: 你的用户名/po-agent-web:latest   # 原来是 po-agent-web:0.1.0
+    ...
+```
+
+> public 镜像服务器不用 `docker login`。若设为 private,服务器需先 `docker login` 再 pull。
+>
+> **速度说明**:本机 push 到 Docker Hub(国际源)可能慢;服务器从国内拉国际源也可能慢。但后续更新只拉变化的层,比每次传完整 tar 快。若服务器拉取太慢,考虑阿里云 ACR 个人版(国内源,需确认当前是否免费)。
 
 ## 7. 首次使用配置
 

@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 # npm 源，国内构建加速；切回官方：--build-arg NPM_REGISTRY=https://registry.npmjs.org
 ARG NPM_REGISTRY=https://registry.npmmirror.com
 
