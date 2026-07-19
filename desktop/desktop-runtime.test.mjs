@@ -15,7 +15,7 @@ import {
 test("builds a localhost-only Next server environment", () => {
   const env = buildServerEnvironment({
     baseEnv: { EXISTING: "yes", HOSTNAME: "0.0.0.0" },
-    piAgentDir: "C:\\Users\\me\\AppData\\Roaming\\Po Agent Web\\pi-agent",
+    piAgentDir: "C:\\Users\\me\\AppData\\Roaming\\Po Agent\\pi-agent",
     port: 53123,
   });
 
@@ -26,7 +26,7 @@ test("builds a localhost-only Next server environment", () => {
   assert.equal(env.PORT, "53123");
   assert.equal(
     env.PI_CODING_AGENT_DIR,
-    "C:\\Users\\me\\AppData\\Roaming\\Po Agent Web\\pi-agent",
+    "C:\\Users\\me\\AppData\\Roaming\\Po Agent\\pi-agent",
   );
 });
 
@@ -34,14 +34,14 @@ test("passes the built-in skills directory to the server", () => {
   const env = buildServerEnvironment({
     baseEnv: {},
     builtinSkillsDir:
-      "C:\\Program Files\\Po Agent Web\\resources\\builtin-skills",
+      "C:\\Program Files\\Po Agent\\resources\\builtin-skills",
     piAgentDir: "C:\\agent",
     port: 53123,
   });
 
   assert.equal(
     env.PO_AGENT_BUILTIN_SKILLS_DIR,
-    "C:\\Program Files\\Po Agent Web\\resources\\builtin-skills",
+    "C:\\Program Files\\Po Agent\\resources\\builtin-skills",
   );
 });
 
@@ -49,21 +49,21 @@ test("passes the official Skill Pack directory to the server", () => {
   const env = buildServerEnvironment({
     baseEnv: {},
     officialPacksDir:
-      "C:\\Program Files\\Po Agent Web\\resources\\official-packs",
+      "C:\\Program Files\\Po Agent\\resources\\official-packs",
     piAgentDir: "C:\\agent",
     port: 53123,
   });
 
   assert.equal(
     env.PO_AGENT_OFFICIAL_PACKS_DIR,
-    "C:\\Program Files\\Po Agent Web\\resources\\official-packs",
+    "C:\\Program Files\\Po Agent\\resources\\official-packs",
   );
 });
 
 test("resolves the Pi agent directory under Electron app data", () => {
   assert.equal(
-    getPiAgentDir("C:\\Users\\me\\AppData\\Roaming\\Po Agent Web"),
-    path.join("C:\\Users\\me\\AppData\\Roaming\\Po Agent Web", "pi-agent"),
+    getPiAgentDir("C:\\Users\\me\\AppData\\Roaming\\Po Agent"),
+    path.join("C:\\Users\\me\\AppData\\Roaming\\Po Agent", "pi-agent"),
   );
 });
 
@@ -72,7 +72,7 @@ test("builds the desktop URL from localhost and the selected port", () => {
 });
 
 test("falls back to the OS app data shape outside Electron", () => {
-  assert.match(getPiAgentDir(), new RegExp(`Po Agent Web\\${path.sep}pi-agent$`));
+  assert.match(getPiAgentDir(), new RegExp(`Po Agent\\${path.sep}pi-agent$`));
   assert.ok(getPiAgentDir().startsWith(os.homedir()));
 });
 
@@ -97,8 +97,8 @@ test("uses the development standalone server from the repository root", () => {
 
 test("resolves the packaged server root under Electron resources", () => {
   assert.equal(
-    getPackagedServerRoot("C:\\Program Files\\Po Agent Web\\resources"),
-    path.join("C:\\Program Files\\Po Agent Web\\resources", "server"),
+    getPackagedServerRoot("C:\\Program Files\\Po Agent\\resources"),
+    path.join("C:\\Program Files\\Po Agent\\resources", "server"),
   );
 });
 
@@ -114,6 +114,14 @@ test("desktop shell uses the packaged app icon", () => {
 
   assert.match(mainSource, /appIconPath/);
   assert.match(mainSource, /icon:\s*appIconPath/);
+});
+
+test("desktop shell uses the Po Agent product name", () => {
+  const mainSource = readFileSync(new URL("./main.mjs", import.meta.url), "utf8");
+
+  assert.match(mainSource, /title:\s*"Po Agent"/);
+  assert.match(mainSource, /"Po Agent failed to start"/);
+  assert.doesNotMatch(mainSource, /Po Agent Web/);
 });
 
 test("desktop shell exposes only a directory picker bridge", () => {

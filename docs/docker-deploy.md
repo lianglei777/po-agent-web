@@ -1,6 +1,6 @@
-# Po Agent Web Docker 部署手册
+# Po Agent Docker 部署手册
 
-本手册说明如何把 po-agent-web 部署到 Docker 环境,覆盖两种场景:
+本手册说明如何把 po-agent 部署到 Docker 环境,覆盖两种场景:
 
 - **本机 Docker Desktop**(Windows/Mac/Linux):在本机构建并运行,适合日常使用和开发。
 - **云服务器**(如腾讯云 Linux):本机构建镜像后传到服务器运行,适合远程部署。
@@ -9,7 +9,7 @@
 
 ## 1. 概述
 
-- po-agent-web 是**单个 Next.js 应用**:前端和"后端"(`src/app/api/*` 的 Route Handlers)同进程,只需构建**一个镜像、跑一个容器**。
+- po-agent 是**单个 Next.js 应用**:前端和"后端"(`src/app/api/*` 的 Route Handlers)同进程,只需构建**一个镜像、跑一个容器**。
 - Docker 部署统一用端口 **51732**,与本机 `npm run dev` 的 51731 错开,两者可同时运行。
 - 应用状态(凭证、模型配置、项目列表、会话历史)通过数据卷持久化,容器删除不丢。
 - 两种场景的核心差异:
@@ -82,7 +82,7 @@
 首次执行会拉基础镜像 + `npm ci` + `next build`,耗时较长;后续启动命中层缓存会快很多。生产模式后台启动,确认状态:
 
 ```bash
-docker compose logs -f po-agent-web
+docker compose logs -f po-agent
 ```
 
 看到 `Ready` 之类日志后,浏览器访问 **http://localhost:51732**。
@@ -105,7 +105,7 @@ compose 把宿主机目录挂进容器的 `/workspace`,宿主机路径由 `WORKS
 
 ### 4.4 开发模式(可选)
 
-在容器里跑 `next dev`,改源码即热更新,适合不污染本机 Node 环境地开发 po-agent-web 本身。同样用启动脚本,加 `dev` 参数:
+在容器里跑 `next dev`,改源码即热更新,适合不污染本机 Node 环境地开发 po-agent 本身。同样用启动脚本,加 `dev` 参数:
 
 ```powershell
 .\scripts\docker-up.ps1 dev
@@ -169,33 +169,33 @@ echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
 ```powershell
 # 构建指定架构镜像
-docker build --platform linux/amd64 -t po-agent-web:0.1.0 .
+docker build --platform linux/amd64 -t po-agent:0.1.0 .
 
 # 导出为 tar(Windows PowerShell 没有 gzip,直接导出未压缩 tar)
-docker save po-agent-web:0.1.0 -o po-agent-web.tar
+docker save po-agent:0.1.0 -o po-agent.tar
 ```
 
 > `--platform linux/amd64` 必须显式指定,否则本机可能构建出架构不匹配的镜像,服务器上跑不起来。
 >
 > [Dockerfile](../Dockerfile) 默认走 npmmirror 加速;如需切回官方源:
-> `docker build --platform linux/amd64 --build-arg NPM_REGISTRY=https://registry.npmjs.org -t po-agent-web:0.1.0 .`
+> `docker build --platform linux/amd64 --build-arg NPM_REGISTRY=https://registry.npmjs.org -t po-agent:0.1.0 .`
 >
-> **想要更小的压缩文件**:Windows PowerShell 没有 `gzip`。若装了 Git for Windows,在 **Git Bash**(非 PowerShell)里执行 `docker save po-agent-web:0.1.0 | gzip > po-agent-web.tar.gz` 可得到压缩包,上传更快。`docker load` 对 `.tar` 和 `.tar.gz` 都能自动识别。
+> **想要更小的压缩文件**:Windows PowerShell 没有 `gzip`。若装了 Git for Windows,在 **Git Bash**(非 PowerShell)里执行 `docker save po-agent:0.1.0 | gzip > po-agent.tar.gz` 可得到压缩包,上传更快。`docker load` 对 `.tar` 和 `.tar.gz` 都能自动识别。
 
 ### 5.4 上传镜像到服务器
 
-两种方式,任选其一。下面以未压缩的 `po-agent-web.tar` 为例;若用了 Git Bash 压缩,把文件名换成 `po-agent-web.tar.gz` 即可。
+两种方式,任选其一。下面以未压缩的 `po-agent.tar` 为例;若用了 Git Bash 压缩,把文件名换成 `po-agent.tar.gz` 即可。
 
 **方式一:宝塔文件管理器上传(适合不熟 scp)**
 
 1. 宝塔面板 ->「文件」。
 2. 进入 `/opt/` 目录(没有则新建)。
-3. 上传本机的 `po-agent-web.tar`。
+3. 上传本机的 `po-agent.tar`。
 
 **方式二:scp 上传**
 
 ```powershell
-scp po-agent-web.tar root@你的服务器IP:/opt/
+scp po-agent.tar root@你的服务器IP:/opt/
 ```
 
 ### 5.5 服务器加载镜像
@@ -203,11 +203,11 @@ scp po-agent-web.tar root@你的服务器IP:/opt/
 宝塔「终端」或 SSH 执行:
 
 ```bash
-docker load -i /opt/po-agent-web.tar
-docker images   # 确认 po-agent-web:0.1.0 在列
+docker load -i /opt/po-agent.tar
+docker images   # 确认 po-agent:0.1.0 在列
 ```
 
-> `docker load` 能自动识别 `.tar` 和 `.tar.gz`,压缩包用 `docker load < /opt/po-agent-web.tar.gz` 亦可。
+> `docker load` 能自动识别 `.tar` 和 `.tar.gz`,压缩包用 `docker load < /opt/po-agent.tar.gz` 亦可。
 >
 > 若提示 `docker: command not found`,在宝塔 ->「Docker」里安装 Docker 管理器。
 
@@ -223,9 +223,9 @@ mkdir -p /opt/po-agent /root/po-agent-workspace
 
 ```yaml
 services:
-  po-agent-web:
-    image: po-agent-web:0.1.0
-    container_name: po-agent-web
+  po-agent:
+    image: po-agent:0.1.0
+    container_name: po-agent
     ports:
       # 关键:只绑 127.0.0.1,不对公网开放
       - "127.0.0.1:51732:51732"
@@ -254,7 +254,7 @@ volumes:
 ```bash
 cd /opt/po-agent
 docker compose up -d
-docker compose logs -f po-agent-web   # 看到 Ready 即成功
+docker compose logs -f po-agent   # 看到 Ready 即成功
 ```
 
 启动后检查内存占用,确认 2G 够用:
@@ -302,7 +302,7 @@ docker compose up -d   # 自动用新镜像重启容器
 **前置:注册 Docker Hub 账号并建仓库**
 
 1. 注册 [hub.docker.com](https://hub.docker.com),记下用户名(下面用 `你的用户名` 代替)。
-2. `Repositories -> Create`,仓库名填 `po-agent-web`,可见性选 **Public**(服务器拉取不用 login)。
+2. `Repositories -> Create`,仓库名填 `po-agent`,可见性选 **Public**(服务器拉取不用 login)。
 3. `Account Settings -> Security -> New Access Token`,生成令牌(代替密码,更安全),复制保存。
 
 **本机:登录、打标签、推送**
@@ -312,12 +312,12 @@ docker compose up -d   # 自动用新镜像重启容器
 docker login
 
 # 给镜像打 Docker Hub 格式的标签(版本号 + latest)
-docker tag po-agent-web:0.1.0 你的用户名/po-agent-web:0.1.0
-docker tag po-agent-web:0.1.0 你的用户名/po-agent-web:latest
+docker tag po-agent:0.1.0 你的用户名/po-agent:0.1.0
+docker tag po-agent:0.1.0 你的用户名/po-agent:latest
 
 # 推送
-docker push 你的用户名/po-agent-web:0.1.0
-docker push 你的用户名/po-agent-web:latest
+docker push 你的用户名/po-agent:0.1.0
+docker push 你的用户名/po-agent:latest
 ```
 
 > `docker tag` 不复制镜像,只是加个别名,很快。`latest` 标签让服务器每次拉最新版本。
@@ -325,15 +325,15 @@ docker push 你的用户名/po-agent-web:latest
 **服务器:拉取镜像**
 
 ```bash
-docker pull 你的用户名/po-agent-web:latest
+docker pull 你的用户名/po-agent:latest
 ```
 
 **服务器 docker-compose.yml 的镜像地址**改成 Docker Hub 路径(替换 5.6 里的 `image`):
 
 ```yaml
 services:
-  po-agent-web:
-    image: 你的用户名/po-agent-web:latest   # 原来是 po-agent-web:0.1.0
+  po-agent:
+    image: 你的用户名/po-agent:latest   # 原来是 po-agent:0.1.0
     ...
 ```
 
@@ -379,7 +379,7 @@ docker compose -f docker-compose.dev.yml build --build-arg NPM_REGISTRY=https://
 **云服务器部署**在 `docker build` 时传 build-arg:
 
 ```powershell
-docker build --platform linux/amd64 --build-arg NPM_REGISTRY=https://registry.npmjs.org -t po-agent-web:0.1.0 .
+docker build --platform linux/amd64 --build-arg NPM_REGISTRY=https://registry.npmjs.org -t po-agent:0.1.0 .
 ```
 
 ## 10. 常用运维命令
@@ -395,7 +395,7 @@ docker build --platform linux/amd64 --build-arg NPM_REGISTRY=https://registry.np
 docker compose down
 
 # 查看日志
-docker compose logs -f po-agent-web
+docker compose logs -f po-agent
 
 # 重新构建(改了代码或依赖后)
 docker compose up --build -d
@@ -416,7 +416,7 @@ docker compose up -d
 docker compose down
 
 # 查看日志
-docker compose logs -f po-agent-web
+docker compose logs -f po-agent
 
 # 查看资源占用
 docker stats --no-stream

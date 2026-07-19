@@ -42,7 +42,7 @@ are explicit selection, validation, confirmation, and a local-only server.
 
 - The frontend does not edit `.pi/settings.json` directly because that bypasses
   validation, rollback, and resource verification.
-- Po Agent Web does not implement another PackageManager because Pi already
+- Po Agent does not implement another PackageManager because Pi already
   owns installation, updates, persistence, and resolution.
 - Local Packs are not copied into the Workspace because copies become stale and
   break the expected live-directory development workflow.

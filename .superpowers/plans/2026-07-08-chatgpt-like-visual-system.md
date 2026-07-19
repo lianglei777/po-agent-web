@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the light visual system, base controls, sidebar, chat messages, minimap, and composer look much closer to ChatGPT Web while preserving Po Agent Web workflows.
+**Goal:** Make the light visual system, base controls, sidebar, chat messages, minimap, and composer look much closer to ChatGPT Web while preserving Po Agent workflows.
 
 **Architecture:** Keep the change shallow: design tokens first, shared UI primitives second, feature CSS/classes last. Do not introduce new components unless an existing class cannot express the visual change.
 

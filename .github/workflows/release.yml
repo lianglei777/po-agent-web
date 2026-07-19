@@ -102,7 +102,7 @@ jobs:
       - name: Create checksum
         shell: pwsh
         run: |
-          $installer = Join-Path ".desktop-dist" "Po Agent Web Setup $env:APP_VERSION.exe"
+          $installer = Join-Path ".desktop-dist" "Po Agent Setup $env:APP_VERSION.exe"
           if (-not (Test-Path -LiteralPath $installer)) {
             throw "Windows installer was not generated: $installer"
           }
@@ -115,13 +115,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.ref_name }}"
-          $installer = Join-Path ".desktop-dist" "Po Agent Web Setup $env:APP_VERSION.exe"
+          $installer = Join-Path ".desktop-dist" "Po Agent Setup $env:APP_VERSION.exe"
           $checksum = ".desktop-dist\SHA256SUMS.txt"
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag $installer $checksum --clobber
           } else {
-            gh release create $tag $installer $checksum --verify-tag --generate-notes --title "Po Agent Web $tag"
+            gh release create $tag $installer $checksum --verify-tag --generate-notes --title "Po Agent $tag"
           }
           if ($LASTEXITCODE -ne 0) {
             throw "GitHub Release publishing failed for $tag"
@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      IMAGE_NAME: ${{ vars.DOCKERHUB_USERNAME }}/po-agent-web
+      IMAGE_NAME: ${{ vars.DOCKERHUB_USERNAME }}/po-agent
     steps:
       - name: Check out repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -171,7 +171,7 @@ jobs:
             type=raw,value=latest
             type=sha,format=short,prefix=sha-
           labels: |
-            org.opencontainers.image.title=Po Agent Web
+            org.opencontainers.image.title=Po Agent
             org.opencontainers.image.description=Local workspace for the Pi coding agent
 
       - name: Build and push Docker image

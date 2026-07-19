@@ -5,22 +5,22 @@ Status: Proposed for implementation planning
 
 ## 1. Purpose
 
-Po Agent Web will provide a small set of built-in Skills and a user-facing
+Po Agent will provide a small set of built-in Skills and a user-facing
 Skill Pack feature without creating a second package runtime.
 
 The feature has four explicit concepts:
 
-- **Built-in Skill**: shipped with Po Agent Web, available without installation,
+- **Built-in Skill**: shipped with Po Agent, available without installation,
   and not removable by users.
 - **Standalone Skill**: an Agent Skill installed through the existing
   `skills.sh` and Agent Skills CLI workflow.
 - **Skill Pack**: a Pi Package presented as a cohesive, installable capability
-  set by Po Agent Web.
+  set by Po Agent.
 - **Workflow**: a future execution and orchestration feature. It is not part of
   this design and is not implemented by Skill Packs.
 
 Pi Package remains the source of truth for Package installation, persistence,
-resource discovery, scope, version pinning, updates, and removal. Po Agent Web
+resource discovery, scope, version pinning, updates, and removal. Po Agent
 adds only the product catalog, safe application boundary, and management UI.
 
 ## 2. Goals

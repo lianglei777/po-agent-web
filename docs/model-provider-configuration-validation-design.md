@@ -2,7 +2,7 @@
 
 ## 1. 背景
 
-Po Agent Web 允许用户通过 Model Config 的 “Add Provider / Discover Models” 配置自定义 Provider 和模型。当前流程可以发现模型 ID、补齐部分模型元数据并保存配置，但“配置成功”不等于“模型实际可用”。
+Po Agent 允许用户通过 Model Config 的 “Add Provider / Discover Models” 配置自定义 Provider 和模型。当前流程可以发现模型 ID、补齐部分模型元数据并保存配置，但“配置成功”不等于“模型实际可用”。
 
 已出现的典型问题是：
 
@@ -131,7 +131,7 @@ compat?: TApi extends "openai-completions"
       : never;
 ```
 
-Po Agent Web 应建立一份共享的“协议兼容字段注册表”，作为以下行为的唯一来源：
+Po Agent 应建立一份共享的“协议兼容字段注册表”，作为以下行为的唯一来源：
 
 - Provider 和 Model 配置 UI。
 - 客户端保存前清理。
@@ -238,7 +238,7 @@ UI 应同时展示：
 | `failed` | 当前配置指纹下验证失败，并有诊断结果 |
 | `stale` | 曾验证成功，但影响请求的配置已变化 |
 
-验证状态应保存在 Po Agent Web 自己的运行数据中，而不是写入 Pi `models.json`。
+验证状态应保存在 Po Agent 自己的运行数据中，而不是写入 Pi `models.json`。
 
 ### 7.2 配置指纹
 

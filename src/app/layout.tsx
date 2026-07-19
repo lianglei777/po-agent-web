@@ -21,7 +21,7 @@ const notoSerifSc = Noto_Serif_SC({
 });
 
 export const metadata: Metadata = {
-  title: "Po Agent Web",
+  title: "Po Agent",
   description: "Local desktop workspace for the Pi coding agent — manage sessions, inspect files, and configure models.",
 };
 

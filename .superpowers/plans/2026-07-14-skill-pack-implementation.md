@@ -380,13 +380,13 @@ Extend `desktop-runtime.test.mjs`:
 test("passes the built-in skills directory to the server", () => {
   const env = buildServerEnvironment({
     baseEnv: {},
-    builtinSkillsDir: "C:\\Program Files\\Po Agent Web\\resources\\builtin-skills",
+    builtinSkillsDir: "C:\\Program Files\\Po Agent\\resources\\builtin-skills",
     piAgentDir: "C:\\agent",
     port: 53123,
   });
   assert.equal(
     env.PO_AGENT_BUILTIN_SKILLS_DIR,
-    "C:\\Program Files\\Po Agent Web\\resources\\builtin-skills",
+    "C:\\Program Files\\Po Agent\\resources\\builtin-skills",
   );
 });
 ```

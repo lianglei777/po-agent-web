@@ -10,7 +10,7 @@ Solo developers running Pi Agent locally through a desktop Web workspace to writ
 
 ## Product Purpose
 
-Po Agent Web is the local desktop Web interface for the Pi coding agent. It turns projects and agent sessions into a navigable, inspectable workspace: start a session, watch the agent's reasoning and tool calls, optionally open a file workspace, configure model providers and project skills, and resume or fork past sessions. The interface exists to keep the developer in control, not to entertain them.
+Po Agent is the local desktop Web interface for the Pi coding agent. It turns projects and agent sessions into a navigable, inspectable workspace: start a session, watch the agent's reasoning and tool calls, optionally open a file workspace, configure model providers and project skills, and resume or fork past sessions. The interface exists to keep the developer in control, not to entertain them.
 
 ## Brand Personality
 

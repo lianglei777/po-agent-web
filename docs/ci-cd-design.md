@@ -1,6 +1,6 @@
 # GitHub Actions CI/CD 设计
 
-本文描述 Po Agent Web 的持续集成与发布设计。实际工作流位于：
+本文描述 Po Agent 的持续集成与发布设计。实际工作流位于：
 
 - [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
 - [`.github/workflows/release.yml`](../.github/workflows/release.yml)
@@ -87,7 +87,7 @@ npm run desktop:pack
 `desktop:pack` 生成免安装目录，比每次 CI 都编译 NSIS 安装器更快。作业最后确认以下文件存在：
 
 ```text
-.desktop-dist\win-unpacked\Po Agent Web.exe
+.desktop-dist\win-unpacked\Po Agent.exe
 ```
 
 正式的 NSIS `.exe` 只在 Release 工作流中生成。
@@ -113,7 +113,7 @@ Git Tag = v + package.json.version
 Windows 作业先构建 Next.js 并准备 standalone 资源，最后单独调用 electron-builder，预期生成：
 
 ```text
-.desktop-dist\Po Agent Web Setup <version>.exe
+.desktop-dist\Po Agent Setup <version>.exe
 ```
 
 随后计算 SHA-256 并生成 `SHA256SUMS.txt`。两个文件会上传到同名 GitHub Release。

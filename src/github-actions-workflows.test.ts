@@ -25,7 +25,11 @@ describe("GitHub Actions workflows", () => {
     expect(workflow).toContain("docker/build-push-action@");
     expect(workflow).toContain("push: false");
     expect(workflow).toContain("npm run desktop:pack");
-    expect(workflow).toContain("Po Agent Web.exe");
+    expect(workflow).toContain("po-agent:ci");
+    expect(workflow).toContain("--name po-agent-ci");
+    expect(workflow).toContain("Po Agent.exe");
+    expect(workflow).not.toContain("po-agent-web");
+    expect(workflow).not.toContain("Po Agent Web");
     expect(workflow).not.toContain("DOCKERHUB_TOKEN");
     expect(disabledCredentialCount).toBe(checkoutCount);
   });
@@ -56,6 +60,12 @@ describe("GitHub Actions workflows", () => {
     expect(workflow).toContain("gh release create");
     expect(workflow).toContain("SHA256SUMS.txt");
     expect(workflow).toContain('"v$packageVersion"');
+    expect(workflow).toContain("Po Agent Setup $env:APP_VERSION.exe");
+    expect(workflow).toContain('--title "Po Agent $tag"');
+    expect(workflow).toContain("/po-agent");
+    expect(workflow).toContain("org.opencontainers.image.title=Po Agent");
+    expect(workflow).not.toContain("po-agent-web");
+    expect(workflow).not.toContain("Po Agent Web");
     expect(windowsJobHeader).not.toContain("GH_TOKEN");
     expect(windowsJobHeader).not.toContain("WIN_CSC_LINK");
     expect(workflow).not.toMatch(/uses: [^\n]+@v\d/);

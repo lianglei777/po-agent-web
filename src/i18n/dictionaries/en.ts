@@ -42,8 +42,8 @@ export const en = {
     dragDropImages: "Drop images to attach",
     loadingSession: "Loading session...",
     welcome: {
-      eyebrow: "Po Agent Web",
-      headline: "Start building with Po Agent Web",
+      eyebrow: "Po Agent",
+      headline: "Start building with Po Agent",
       description: "Configure your workspace or start a new agent task.",
       modelDescription: "Manage providers, credentials, and available models.",
       modelConfigured: "Models configured: {count}",

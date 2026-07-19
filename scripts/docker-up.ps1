@@ -1,4 +1,4 @@
-# 启动 po-agent-web 的 Docker 部署：按宿主机 OS 自动把本机工作区挂进容器。
+# 启动 po-agent 的 Docker 部署：按宿主机 OS 自动把本机工作区挂进容器。
 # 用法：
 #   .\scripts\docker-up.ps1          # 生产模式（后台）
 #   .\scripts\docker-up.ps1 dev      # 开发模式（前台，热更新）

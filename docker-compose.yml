@@ -1,12 +1,12 @@
 services:
-  po-agent-web:
+  po-agent:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         NPM_REGISTRY: https://registry.npmmirror.com
-    image: po-agent-web:0.1.0
-    container_name: po-agent-web
+    image: po-agent:0.1.0
+    container_name: po-agent
     ports:
       - "51732:51732"
     environment:

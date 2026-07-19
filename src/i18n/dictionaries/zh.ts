@@ -44,8 +44,8 @@ export const zh = {
     dragDropImages: "拖放图片以附加",
     loadingSession: "正在加载会话...",
     welcome: {
-      eyebrow: "Po Agent Web",
-      headline: "开始使用 Po Agent Web",
+      eyebrow: "Po Agent",
+      headline: "开始使用 Po Agent",
       description: "配置工作环境，或直接开始新的 Agent 任务。",
       modelDescription: "管理 Provider、凭证和用户配置的可用模型。",
       modelConfigured: "已配置 {count} 个模型",

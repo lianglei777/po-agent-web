@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-07-02T09:30:00.000+08:00",
-  "title": "Design System: Po Agent Web",
+  "title": "Design System: Po Agent",
   "extensions": {
     "colorMeta": {
       "canvas": {
@@ -151,7 +151,7 @@
   ],
   "narrative": {
     "northStar": "The Neutral Desk",
-    "overview": "Po Agent Web is a focused desk for working with an AI coding agent. The ChatGPT-like neutral light theme provides a white canvas, soft gray sidebars and controls, neutral selection, restrained state green, and black primary actions for high-contrast CTA clarity. Hierarchy comes from tone, spacing, and border rather than decorative effects.",
+    "overview": "Po Agent is a focused desk for working with an AI coding agent. The ChatGPT-like neutral light theme provides a white canvas, soft gray sidebars and controls, neutral selection, restrained state green, and black primary actions for high-contrast CTA clarity. Hierarchy comes from tone, spacing, and border rather than decorative effects.",
     "keyCharacteristics": [
       "Single ChatGPT-like neutral light theme with white and soft gray surfaces.",
       "State green reserved for focus, live agent indicators, and explicit status.",

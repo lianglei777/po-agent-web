@@ -1,5 +1,5 @@
 ---
-name: Po Agent Web
+name: Po Agent
 description: A clean, lightweight developer workspace built on a ChatGPT-like neutral light canvas with restrained state accents and linear structure.
 colors:
   light:
@@ -37,7 +37,7 @@ motion:
   slow: "220ms"
 ---
 
-# Design System: Po Agent Web
+# Design System: Po Agent
 
 ## Direction
 

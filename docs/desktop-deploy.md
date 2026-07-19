@@ -1,10 +1,10 @@
-# Po Agent Web Desktop 部署手册
+# Po Agent Desktop 部署手册
 
-本手册说明如何在本机以 Electron 桌面应用形式运行和打包 po-agent-web。按步骤操作即可跑起来。
+本手册说明如何在本机以 Electron 桌面应用形式运行和打包 po-agent。按步骤操作即可跑起来。
 
 ## 1. 概述
 
-- po-agent-web 是**单个 Next.js 应用**:前端和"后端"(`src/app/api/*` 的 Route Handlers)同进程。Desktop 方案用一个 **Electron 壳**包住 Next.js 的 standalone server 产物,启动时在本地随机端口起 server,Electron 窗口直接 `loadURL` 加载它。
+- po-agent 是**单个 Next.js 应用**:前端和"后端"(`src/app/api/*` 的 Route Handlers)同进程。Desktop 方案用一个 **Electron 壳**包住 Next.js 的 standalone server 产物,启动时在本地随机端口起 server,Electron 窗口直接 `loadURL` 加载它。
 - 与其它运行方式的区别:
 
   | 方式 | 命令 | 说明 |
@@ -86,8 +86,8 @@ npm run desktop:dev
 
 | 命令 | 产物 | 用途 |
 |---|---|---|
-| `npm run desktop:pack` | `.desktop-dist\win-unpacked\`(免安装目录) | 本机快速验证打包结果,双击 `Po Agent Web.exe` 即跑 |
-| `npm run desktop:dist` | `.desktop-dist\Po Agent Web Setup 0.1.0.exe`(NSIS 安装包) | 分发给其他 Windows 机器安装 |
+| `npm run desktop:pack` | `.desktop-dist\win-unpacked\`(免安装目录) | 本机快速验证打包结果,双击 `Po Agent.exe` 即跑 |
+| `npm run desktop:dist` | `.desktop-dist\Po Agent Setup 0.1.0.exe`(NSIS 安装包) | 分发给其他 Windows 机器安装 |
 
 `pack` 不调用 NSIS,更快;`dist` 多一步下载 nsis 并编译安装包。两者都需要下载 `winCodeSign`(代码签名工具,`--dir` 模式也用)。
 
@@ -139,7 +139,7 @@ npm run desktop:dist
 
 ```
 .desktop-dist\win-unpacked\
-├─ Po Agent Web.exe              # 主程序(含 electron 运行时,~225MB)
+├─ Po Agent.exe              # 主程序(含 electron 运行时,~225MB)
 ├─ *.dll / *.pak / *.dat         # electron 运行时(ffmpeg、Chromium 等)
 ├─ locales\                      # 语言包
 └─ resources\
@@ -152,10 +152,10 @@ npm run desktop:dist
 
 ### NSIS 安装包(`dist` 产出)
 
-- `.desktop-dist\Po Agent Web Setup 0.1.0.exe`(~146MB,压缩后)
-- `.desktop-dist\Po Agent Web Setup 0.1.0.exe.blockmap`(差量更新块映射,**当前未启用自动更新,暂闲置**,见第 14 节)
+- `.desktop-dist\Po Agent Setup 0.1.0.exe`(~146MB,压缩后)
+- `.desktop-dist\Po Agent Setup 0.1.0.exe.blockmap`(差量更新块映射,**当前未启用自动更新,暂闲置**,见第 14 节)
 
-安装后,程序在 `%LOCALAPPDATA%\Programs\Po Agent Web\`,数据在用户数据目录(见第 9 节)。
+安装后,程序在 `%LOCALAPPDATA%\Programs\Po Agent\`,数据在用户数据目录(见第 9 节)。
 
 ### 分发安装包给他人
 
@@ -184,9 +184,9 @@ server 启动时环境变量 `PI_CODING_AGENT_DIR` 指向用户数据目录(见 
 
 | OS | 路径 |
 |---|---|
-| Windows | `%APPDATA%\Po Agent Web\pi-agent\` |
-| macOS | `~/Library/Application Support/Po Agent Web/pi-agent/` |
-| Linux | `~/.config/Po Agent Web/pi-agent/`(或 `$XDG_CONFIG_HOME`) |
+| Windows | `%APPDATA%\Po Agent\pi-agent\` |
+| macOS | `~/Library/Application Support/Po Agent/pi-agent/` |
+| Linux | `~/.config/Po Agent/pi-agent/`(或 `$XDG_CONFIG_HOME`) |
 
 目录内容:
 
@@ -211,10 +211,10 @@ Desktop 每次启动由 `findFreePort` 分配空闲端口,不固定。与 dev(51
 
 ## 11. 跨平台说明
 
-- **`win-unpacked` 产物不可跨平台使用**。它是 Windows 专属:`Po Agent Web.exe` 是 PE 格式可执行文件( macOS 需 Mach-O)、`*.dll` 是 Windows 动态库(macOS 用 `.dylib`)、electron 二进制是 `win32-x64` 版本。虽然 `resources/app.asar`(JS 业务代码)跨平台,但包裹它的运行时是 Windows 的。
+- **`win-unpacked` 产物不可跨平台使用**。它是 Windows 专属:`Po Agent.exe` 是 PE 格式可执行文件( macOS 需 Mach-O)、`*.dll` 是 Windows 动态库(macOS 用 `.dylib`)、electron 二进制是 `win32-x64` 版本。虽然 `resources/app.asar`(JS 业务代码)跨平台,但包裹它的运行时是 Windows 的。
 - **electron-builder 默认只打当前操作系统**。在 Windows 上跑只产出 win 包。
 - **macOS 的 `dmg` 只能在 macOS 上生成**(需 `hdiutil`,macOS 专有工具)。在 Windows 上即使加 `--mac` 也只能产 `zip`,产不了 `dmg`。
-- 要产出 macOS 包:在 macOS 机器上 `git clone` → `npm install` → `npm run desktop:dist:cn`,会产出 `Po Agent Web-0.1.0.dmg`。`:cn` 的双镜像在 macOS 上同样适用。
+- 要产出 macOS 包:在 macOS 机器上 `git clone` → `npm install` → `npm run desktop:dist:cn`,会产出 `Po Agent-0.1.0.dmg`。`:cn` 的双镜像在 macOS 上同样适用。
 - 要一次构建多平台,建议用 CI(如 GitHub Actions matrix,每个平台一个 runner),而非单机交叉打包。
 
 ## 12. 故障排查
@@ -235,8 +235,8 @@ Desktop 每次启动由 `findFreePort` 分配空闲端口,不固定。与 dev(51
 
 - [ ] `npm run desktop:dev` 启动,Electron 窗口打开,页面正常加载
 - [ ] UI 里"添加项目"能弹出原生目录选择框,选中目录后能注册为 workspace root
-- [ ] `npm run desktop:pack:cn` 产出 `.desktop-dist\win-unpacked\Po Agent Web.exe`,双击能跑
-- [ ] `npm run desktop:dist:cn` 产出 `.desktop-dist\Po Agent Web Setup 0.1.0.exe`
+- [ ] `npm run desktop:pack:cn` 产出 `.desktop-dist\win-unpacked\Po Agent.exe`,双击能跑
+- [ ] `npm run desktop:dist:cn` 产出 `.desktop-dist\Po Agent Setup 0.1.0.exe`
 - [ ] 安装包能在另一台 Windows 机器上安装并启动
 - [ ] 登录一个 provider、配置一个模型、添加一个项目,重启应用后仍在(数据持久化生效)
 - [ ] （可选）国内网络下 `:cn` 命令下载无超时

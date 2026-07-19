@@ -1,6 +1,6 @@
 # GitHub Actions CI/CD 使用手册
 
-本文说明如何配置并使用 Po Agent Web 的 CI/CD。架构与安全设计见 [ci-cd-design.md](ci-cd-design.md)。
+本文说明如何配置并使用 Po Agent 的 CI/CD。架构与安全设计见 [ci-cd-design.md](ci-cd-design.md)。
 
 ## 1. 首次配置 Docker Hub
 
@@ -9,14 +9,14 @@
 登录 Docker Hub，创建仓库：
 
 ```text
-po-agent-web
+po-agent
 ```
 
 公开仓库便于服务器匿名拉取；私有仓库要求服务器先执行 `docker login`。
 
 ### 1.2 创建 Access Token
 
-在 Docker Hub 的账号安全设置中创建 Access Token。Token 必须对 `po-agent-web` 具有 Read/Write 权限。
+在 Docker Hub 的账号安全设置中创建 Access Token。Token 必须对 `po-agent` 具有 Read/Write 权限。
 
 不要把 Docker Hub 密码或 Token 写入代码、工作流或文档。
 
@@ -156,14 +156,14 @@ package.json 0.1.1 -> Tag v0.1.1
 打开 GitHub 仓库的 `Releases` 页面，确认存在：
 
 ```text
-Po Agent Web Setup 0.1.1.exe
+Po Agent Setup 0.1.1.exe
 SHA256SUMS.txt
 ```
 
 在 Windows 上校验安装包：
 
 ```powershell
-Get-FileHash -Algorithm SHA256 ".\Po Agent Web Setup 0.1.1.exe"
+Get-FileHash -Algorithm SHA256 ".\Po Agent Setup 0.1.1.exe"
 ```
 
 输出应与 `SHA256SUMS.txt` 一致。
@@ -173,17 +173,17 @@ Get-FileHash -Algorithm SHA256 ".\Po Agent Web Setup 0.1.1.exe"
 确认 Docker Hub 中存在：
 
 ```text
-your-dockerhub-name/po-agent-web:0.1.1
-your-dockerhub-name/po-agent-web:0.1
-your-dockerhub-name/po-agent-web:latest
-your-dockerhub-name/po-agent-web:sha-<commit>
+your-dockerhub-name/po-agent:0.1.1
+your-dockerhub-name/po-agent:0.1
+your-dockerhub-name/po-agent:latest
+your-dockerhub-name/po-agent:sha-<commit>
 ```
 
 本机验证：
 
 ```powershell
-docker pull your-dockerhub-name/po-agent-web:0.1.1
-docker run --rm -p 51732:51732 your-dockerhub-name/po-agent-web:0.1.1
+docker pull your-dockerhub-name/po-agent:0.1.1
+docker run --rm -p 51732:51732 your-dockerhub-name/po-agent:0.1.1
 ```
 
 然后访问：
@@ -200,8 +200,8 @@ http://127.0.0.1:51732
 
 ```yaml
 services:
-  po-agent-web:
-    image: your-dockerhub-name/po-agent-web:0.1.1
+  po-agent:
+    image: your-dockerhub-name/po-agent:0.1.1
 ```
 
 更新：

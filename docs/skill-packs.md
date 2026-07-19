@@ -115,7 +115,7 @@ Source 充当操作标识。
 
 这些检查不能替代源码审查。第三方包只应从可信发布者和可信来源安装。
 
-## 在 Po Agent Web 中使用
+## 在 Po Agent 中使用
 
 ### 安装官方技能包
 
@@ -172,7 +172,7 @@ D:\agent-packs\my-workflows
 - npm 来源必须带 `npm:` 前缀；
 - Git 使用 `git:` 引用或完整的 `http`、`https`、`ssh`、`git` URL；
 - 本地来源必须是已经存在的绝对目录；
-- 本地目录不会复制到项目中，Po Agent Web 会直接读取原目录；
+- 本地目录不会复制到项目中，Po Agent 会直接读取原目录；
 - 相对路径、URL 凭据、查询参数和 fragment 不被接受。
 
 ### 更新、修复与移除

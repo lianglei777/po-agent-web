@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild Po Agent Web as a project-centered desktop workspace inspired by Codex while preserving all current Chat, session, model, skill, and file behavior.
+**Goal:** Rebuild Po Agent as a project-centered desktop workspace inspired by Codex while preserving all current Chat, session, model, skill, and file behavior.
 
 **Architecture:** Keep `AgentWorkspace` as the client-side composition root and add one explicit active-view state for Chat, Model Provider, and Skills. Keep Chat mounted while configuration views are visible, move file browsing into the file-panel feature, and let layout components coordinate features only through props and callbacks. No backend, HTTP-contract, SSE, or dependency changes are required.
 

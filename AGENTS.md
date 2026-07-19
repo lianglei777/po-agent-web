@@ -6,7 +6,7 @@ Before any Next.js work, find and read the relevant guide in
 truth because this Next.js version may differ from training data.
 <!-- END:nextjs-agent-rules -->
 
-# Po Agent Web Project Instructions
+# Po Agent Project Instructions
 
 ## Sources Of Truth
 

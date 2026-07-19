@@ -2,7 +2,7 @@
 
 ## Goal
 
-Replace the decorative empty-chat welcome treatment with a useful welcome page that introduces Po Agent Web's core capabilities without becoming a rigid onboarding wizard.
+Replace the decorative empty-chat welcome treatment with a useful welcome page that introduces Po Agent's core capabilities without becoming a rigid onboarding wizard.
 
 The page must help first-time users discover setup paths while remaining useful whenever an empty conversation is shown.
 

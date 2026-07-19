@@ -70,14 +70,14 @@ jobs:
           platforms: linux/amd64
           load: true
           push: false
-          tags: po-agent-web:ci
+          tags: po-agent:ci
           build-args: |
             NPM_REGISTRY=https://registry.npmjs.org
           cache-from: type=gha,scope=ci-docker
           cache-to: type=gha,mode=max,scope=ci-docker
 
       - name: Start container
-        run: docker run --detach --name po-agent-web-ci --publish 51732:51732 po-agent-web:ci
+        run: docker run --detach --name po-agent-ci --publish 51732:51732 po-agent:ci
 
       - name: Wait for application response
         shell: bash
@@ -95,8 +95,8 @@ jobs:
         if: always()
         shell: bash
         run: |
-          docker logs po-agent-web-ci || true
-          docker rm --force po-agent-web-ci || true
+          docker logs po-agent-ci || true
+          docker rm --force po-agent-ci || true
 
   windows-package:
     name: Windows package smoke build
@@ -135,7 +135,7 @@ jobs:
       - name: Verify Windows executable
         shell: pwsh
         run: |
-          $executable = ".desktop-dist\win-unpacked\Po Agent Web.exe"
+          $executable = ".desktop-dist\win-unpacked\Po Agent.exe"
           if (-not (Test-Path -LiteralPath $executable)) {
             throw "Windows executable was not generated: $executable"
           }

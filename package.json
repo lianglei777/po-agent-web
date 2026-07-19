@@ -1,8 +1,8 @@
 {
-  "name": "po-agent-web",
+  "name": "po-agent",
   "version": "0.1.0",
   "description": "Local desktop workspace for the Pi coding agent.",
-  "author": "Po Agent Web",
+  "author": "Leon",
   "private": true,
   "main": "desktop/main.mjs",
   "scripts": {
@@ -61,8 +61,8 @@
     "vitest": "^4.1.8"
   },
   "build": {
-    "appId": "com.poagent.web",
-    "productName": "Po Agent Web",
+    "appId": "com.poagent.app",
+    "productName": "Po Agent",
     "icon": "build/icon.png",
     "directories": {
       "output": ".desktop-dist"

@@ -15,7 +15,7 @@ function getFallbackAppDataDir() {
 }
 
 export function getPiAgentDir(appDataPath) {
-  const root = appDataPath || path.join(getFallbackAppDataDir(), "Po Agent Web");
+  const root = appDataPath || path.join(getFallbackAppDataDir(), "Po Agent");
   return path.join(root, "pi-agent");
 }
 

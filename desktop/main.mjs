@@ -121,7 +121,7 @@ async function createWindow() {
     height: 960,
     minWidth: 1024,
     minHeight: 720,
-    title: "Po Agent Web",
+    title: "Po Agent",
     icon: appIconPath,
     autoHideMenuBar: true,
     webPreferences: {
@@ -151,7 +151,7 @@ app.whenReady().then(() => {
   });
   return createWindow();
 }).catch((error) => {
-  dialog.showErrorBox("Po Agent Web failed to start", error.message);
+  dialog.showErrorBox("Po Agent failed to start", error.message);
   app.quit();
 });
 
