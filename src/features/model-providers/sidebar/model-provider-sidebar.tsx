@@ -7,7 +7,8 @@ import type {
   Selection,
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
-import { ChevronRight, Server } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronRight, Plus, Server } from "lucide-react";
 import {
   getSelectionKey,
   isProviderCollapsed,
@@ -20,7 +21,6 @@ interface Props {
   selection: Selection | null;
   onSelect: (selection: Selection) => void;
   onAddProvider: () => void;
-  onAddModel: (providerName: string) => void;
 }
 
 export function ModelProviderSidebar({
@@ -29,7 +29,6 @@ export function ModelProviderSidebar({
   selection,
   onSelect,
   onAddProvider,
-  onAddModel,
 }: Props) {
   const providers = Object.entries(config.providers ?? {});
   const [collapsedProviderNames, setCollapsedProviderNames] = useState(
@@ -69,9 +68,18 @@ export function ModelProviderSidebar({
   }
 
   return (
-    <aside className="flex w-[210px] shrink-0 flex-col border-r border-line-strong bg-panel">
+    <aside className="flex w-[210px] shrink-0 flex-col border-r border-line-strong">
       <div className="flex-1 overflow-y-auto px-1.5 py-2">
-        
+        <Button
+          type="button"
+          className="mb-1.5 w-full"
+          onClick={onAddProvider}
+        >
+          <Plus />
+          {t.models.addProvider}
+        </Button>
+        <div className="mb-2 border-t border-line-subtle" />
+
         {apiKeyProviders
           .filter((provider) => provider.configured)
           .map((provider) => (
@@ -141,32 +149,16 @@ export function ModelProviderSidebar({
                     }
                   >
                     <span className="truncate text-[11px] text-muted">
-                      {model.id || t.models.newModel}
+                      {model.id}
                     </span>
-                    {model.reasoning && (
+                    {model.reasoning !== false && (
                       <span className="ml-auto text-[11px] text-accent-deep">T</span>
                     )}
                   </NavButton>
                 ))}
-            <button
-              className="w-full rounded-md py-1 pr-2 pl-[26px] text-left text-[11px] text-dim hover:bg-hover"
-              type="button"
-              onClick={() => onAddModel(providerName)}
-            >
-              + {t.models.newModel}
-            </button>
             </div>
           );
         })}
-      </div>
-      <div className="border-t border-line-strong px-1.5 py-2">
-        <button
-          type="button"
-          onClick={onAddProvider}
-          className="w-full rounded-md border border-dashed border-line-subtle bg-transparent py-1.5 text-[12px] text-muted hover:border-line-strong hover:text-primary"
-        >
-          + {t.models.addProvider}
-        </button>
       </div>
     </aside>
   );

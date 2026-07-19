@@ -44,7 +44,7 @@ describe("dictionaries", () => {
 
   it("uses the approved workspace navigation labels", () => {
     expect(en.workspace.modelProvider).toBe("Model Provider");
-    expect(zh.workspace.modelProvider).toBe("模型供应商");
+    expect(zh.workspace.modelProvider).toBe("模型");
     expect(en.workspace.skills).toBe("Skills");
     expect(zh.workspace.skills).toBe("技能");
   });

@@ -177,29 +177,6 @@ export function useModelProviders(onSaved?: () => void) {
     [config, discovery],
   );
 
-  const addModel = useCallback(
-    (providerName: string) => {
-      const index = config.providers?.[providerName]?.models?.length ?? 0;
-      setConfig((current) => {
-        const provider = current.providers?.[providerName];
-        if (!provider) return current;
-        return {
-          ...current,
-          providers: {
-            ...(current.providers ?? {}),
-            [providerName]: {
-              ...provider,
-              models: [...(provider.models ?? []), { id: "" }],
-            },
-          },
-        };
-      });
-      setSelection({ type: "model", providerName, index });
-      setDiscovery({ phase: "idle" });
-    },
-    [config.providers],
-  );
-
   const updateModel = useCallback(
     (providerName: string, index: number, model: ModelEntry) => {
       setConfig((current) => {
@@ -290,7 +267,6 @@ export function useModelProviders(onSaved?: () => void) {
     updateProvider,
     discoverProviderModels,
     acceptDiscoveredModels,
-    addModel,
     updateModel,
     removeModel,
     save,

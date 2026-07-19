@@ -36,7 +36,6 @@ export function ModelProviderPage({
           <ModelProviderSidebar
             apiKeyProviders={modelConfig.apiKeyProviders}
             config={modelConfig.config}
-            onAddModel={modelConfig.addModel}
             onAddProvider={modelConfig.addCustomProvider}
             onSelect={modelConfig.setSelection}
             selection={modelConfig.selection}

@@ -27,6 +27,7 @@ import {
   getDefaultThinkingOnLevel,
   getSourceTone,
   getSupportedConfiguredThinkingLevels,
+  isReasoningCapabilityEnabled,
   shouldDisplaySourceBadge,
   shouldLockDiscoveredCapabilities,
 } from "./model-detail-state";
@@ -73,6 +74,7 @@ export default function ModelDetail({
   const capabilitiesLocked = shouldLockDiscoveredCapabilities(source);
   const supportedThinkingLevels = getSupportedConfiguredThinkingLevels(model);
   const defaultThinkingLevel = getDefaultThinkingOnLevel(model);
+  const reasoningEnabled = isReasoningCapabilityEnabled(model);
 
   const runTest = useCallback(async (
     testConfig: ModelsJson,
@@ -357,16 +359,15 @@ export default function ModelDetail({
               })
             }
             source={source}
-            status={hasImageInput ? t.models.supported : t.models.unsupported}
           />
           <CapabilityToggle
-            checked={!!model.reasoning}
+            checked={reasoningEnabled}
             disabled={capabilitiesLocked}
             label={t.models.reasoningThinking}
             onChange={(checked) =>
               onChange({
                 ...model,
-                reasoning: checked || undefined,
+                reasoning: checked,
                 thinkingDefaultLevel: checked
                   ? (model.thinkingDefaultLevel ??
                     defaultThinkingLevel ??
@@ -375,7 +376,6 @@ export default function ModelDetail({
               })
             }
             source={source}
-            status={model.reasoning ? t.models.supported : t.models.unsupported}
           />
         </div>
       </section>
@@ -405,14 +405,7 @@ export default function ModelDetail({
           </p>
         </Field>
 
-        <CompatEditor
-          api={effectiveApi}
-          compat={model.compat}
-          inheritedCompat={provider?.compat}
-          onChange={(compat) => onChange({ ...model, compat })}
-        />
-
-        {model.reasoning && supportedThinkingLevels.length > 0 && (
+        {reasoningEnabled && supportedThinkingLevels.length > 0 && (
           <Field label={t.models.thinkingOnDefault}>
             <select
               value={model.thinkingDefaultLevel ?? defaultThinkingLevel ?? "high"}
@@ -437,6 +430,13 @@ export default function ModelDetail({
           </Field>
         )}
       </section>
+
+      <CompatEditor
+        api={effectiveApi}
+        compat={model.compat}
+        inheritedCompat={provider?.compat}
+        onChange={(compat) => onChange({ ...model, compat })}
+      />
     </div>
   );
 }
@@ -510,14 +510,12 @@ function CapabilityToggle({
   label,
   onChange,
   source,
-  status,
 }: {
   checked: boolean;
   disabled: boolean;
   label: string;
   onChange: (checked: boolean) => void;
   source?: ModelDiscoverySource;
-  status: string;
 }) {
   return (
     <label className="flex min-h-12 items-center gap-2 rounded border border-line bg-[var(--bg-subtle)] px-3 py-2 text-[12px] text-muted">
@@ -528,10 +526,7 @@ function CapabilityToggle({
         onChange={(event) => onChange(event.target.checked)}
         type="checkbox"
       />
-      <span className="min-w-0 flex-1">
-        <span className="block text-primary">{label}</span>
-        <span className="block text-[11px] text-dim">{status}</span>
-      </span>
+      <span className="min-w-0 flex-1 text-primary">{label}</span>
       <SourceBadge source={source} />
     </label>
   );

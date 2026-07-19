@@ -22,10 +22,14 @@ export function shouldLockDiscoveredCapabilities(
   return source === "catalog";
 }
 
+export function isReasoningCapabilityEnabled(model: ModelEntry) {
+  return model.reasoning !== false;
+}
+
 export function getSupportedConfiguredThinkingLevels(
   model: ModelEntry,
 ): ConfiguredThinkingLevel[] {
-  if (!model.reasoning) return [];
+  if (!isReasoningCapabilityEnabled(model)) return [];
   return CONFIGURED_THINKING_LEVELS.filter(
     (level) => model.thinkingLevelMap?.[level] !== null,
   );

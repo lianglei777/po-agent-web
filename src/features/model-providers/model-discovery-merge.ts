@@ -25,16 +25,21 @@ export function mergeDiscoveredModels(
   const existingModels = provider.models ?? [];
   const existingIds = new Set(existingModels.map((model) => model.id));
   const newModels = suggestions
-    .map((suggestion) => ({
-      ...suggestion.model,
-      thinkingDefaultLevel:
-        suggestion.model.thinkingDefaultLevel ??
-        (suggestion.model.reasoning ? "high" : undefined),
-      provenance: {
-        source: suggestion.source,
-        confidence: suggestion.confidence,
-      },
-    }))
+    .map((suggestion) => {
+      const reasoning =
+        suggestion.source === "defaulted" ? true : suggestion.model.reasoning;
+      return {
+        ...suggestion.model,
+        reasoning,
+        thinkingDefaultLevel:
+          suggestion.model.thinkingDefaultLevel ??
+          (reasoning ? "high" : undefined),
+        provenance: {
+          source: suggestion.source,
+          confidence: suggestion.confidence,
+        },
+      };
+    })
     .filter((model) => model.id.trim() && !existingIds.has(model.id));
 
   if (newModels.length === 0) {

@@ -174,18 +174,18 @@ export default function ProviderDetail({
         </select>
       </Field>
 
-      <CompatEditor
-        api={provider.api}
-        compat={provider.compat}
-        onChange={(compat) => onChange({ ...provider, compat })}
-      />
-
       <ModelDiscoveryPanel
         providerName={name}
         provider={provider}
         discovery={discovery}
         onDiscoverModels={onDiscoverModels}
         onAcceptDiscoveredModels={onAcceptDiscoveredModels}
+      />
+
+      <CompatEditor
+        api={provider.api}
+        compat={provider.compat}
+        onChange={(compat) => onChange({ ...provider, compat })}
       />
     </div>
   );

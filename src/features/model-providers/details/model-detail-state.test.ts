@@ -35,6 +35,22 @@ describe("model detail display state", () => {
     ).toEqual(["low", "medium", "high", "xhigh"]);
   });
 
+  it("enables reasoning by default unless it is explicitly disabled", () => {
+    expect(getSupportedConfiguredThinkingLevels({ id: "default" })).toEqual([
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+    ]);
+    expect(
+      getSupportedConfiguredThinkingLevels({
+        id: "disabled",
+        reasoning: false,
+      }),
+    ).toEqual([]);
+  });
+
   it("defaults Thinking On to high when possible", () => {
     expect(
       getDefaultThinkingOnLevel({

@@ -88,6 +88,27 @@ describe("mergeDiscoveredModels", () => {
     });
   });
 
+  it("enables reasoning by default for models with defaulted metadata", () => {
+    const result = mergeDiscoveredModels(
+      { providers: { custom: {} } },
+      "custom",
+      [
+        {
+          source: "defaulted",
+          confidence: "low",
+          verification: "unverified",
+          model: { id: "unknown-model", reasoning: false },
+        },
+      ],
+    );
+
+    expect(result.config.providers?.custom.models?.[0]).toMatchObject({
+      id: "unknown-model",
+      reasoning: true,
+      thinkingDefaultLevel: "high",
+    });
+  });
+
   it("keeps selection on the provider when every suggestion already exists", () => {
     const config: ModelsJson = {
       providers: { custom: { models: [{ id: "existing" }] } },
