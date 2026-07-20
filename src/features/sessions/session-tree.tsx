@@ -19,10 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n/use-i18n";
 import { deleteSession, renameSession } from "./api";
-import {
-  formatRelativeTime,
-  getSessionTitle,
-} from "./session-utils";
+import { getSessionTitle } from "./session-utils";
 import type { SessionInfo, SessionTreeNode } from "./types";
 
 export function SessionTree({
@@ -126,7 +123,7 @@ function SessionRow({
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const title = getSessionTitle(session);
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const isDraft = Boolean(session.draft);
 
   useEffect(() => {
@@ -233,16 +230,18 @@ function SessionRow({
         >
           {title}
         </span>
-        <span
-          className={`ml-2 min-w-0 max-w-28 flex-none truncate text-caption tabular-nums ${error && !confirming ? "text-destructive" : "text-dim"}`}
-          title={error && !confirming ? error : undefined}
-        >
-          {error && !confirming
-            ? error
-            : isDraft
-              ? t.sessions.draftHint
-              : `${formatRelativeTime(session.modified, undefined, locale)} · ${session.messageCount} ${t.sessions.msgs}`}
-        </span>
+        {error && !confirming ? (
+          <span
+            className="ml-2 min-w-0 max-w-28 flex-none truncate text-caption tabular-nums text-destructive"
+            title={error}
+          >
+            {error}
+          </span>
+        ) : isDraft ? (
+          <span className="ml-2 min-w-0 max-w-28 flex-none truncate text-caption tabular-nums text-dim">
+            {t.sessions.draftHint}
+          </span>
+        ) : null}
         {isDraft ? null : (
           <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-px rounded-md bg-panel/90 pl-1 opacity-0 pointer-events-none shadow-sm transition-opacity duration-[var(--motion-fast)] group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
             <Button

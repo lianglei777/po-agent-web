@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, PackageOpen, Trash2 } from "lucide-react";
+import { LoaderCircle, PackageOpen } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -220,11 +220,7 @@ export function SkillDetail({
                   type="button"
                   variant="destructive"
                 >
-                  {removing ? (
-                    <LoaderCircle className="animate-spin" />
-                  ) : (
-                    <Trash2 />
-                  )}
+                  {removing ? <LoaderCircle className="animate-spin" /> : null}
                   {t.skills.remove}
                 </Button>
               </div>

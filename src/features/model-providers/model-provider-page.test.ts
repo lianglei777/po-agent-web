@@ -60,9 +60,9 @@ describe("Model Provider page", () => {
     expect(source).toContain("ApiKeyDetail");
   });
 
-  it("explains that confirmed deletion is saved automatically", () => {
-    expect(enSource).toContain("will be saved automatically");
-    expect(zhSource).toContain("将自动保存");
+  it("warns that confirmed deletion cannot be undone", () => {
+    expect(enSource).toContain("This action cannot be undone");
+    expect(zhSource).toContain("此操作无法撤销");
   });
 
   it("does not expose manual model creation", () => {
