@@ -62,7 +62,7 @@ export function SettingsRow({
   return (
     <div
       className={mergeClasses(
-        "grid grid-cols-[minmax(170px,0.8fr)_minmax(260px,1.2fr)] gap-6 border-t border-line-subtle px-4 py-3.5 first:border-t-0",
+        "grid grid-cols-[minmax(160px,1fr)_minmax(200px,250px)] gap-6 border-t border-line-subtle px-4 py-3.5 first:border-t-0",
         align === "center" ? "items-center" : "items-start",
       )}
     >
@@ -74,21 +74,19 @@ export function SettingsRow({
           </p>
         )}
       </div>
-      <div className="min-w-0 w-full max-w-[460px] justify-self-end">
+      <div className="min-w-0 w-full max-w-[250px] justify-self-end">
         {children}
       </div>
     </div>
   );
 }
 
+// 边框、背景、圆角通过 Tailwind 类设置，以便支持 hover/focus 状态过渡
 export const controlClassName =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1";
+  "border border-line-strong bg-elevated rounded-md transition-colors duration-[var(--motion-fast)] hover:border-accent/50 focus-visible:outline-none focus-visible:border-accent focus-visible:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent/20 focus-visible:ring-offset-1";
 
 export const inputStyle: React.CSSProperties = {
   padding: "7px 10px",
-  background: "var(--bg-elevated)",
-  border: "1px solid var(--border-strong)",
-  borderRadius: 8,
   color: "var(--text)",
   fontSize: 12,
   outline: "none",

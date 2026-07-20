@@ -70,21 +70,11 @@ export default function ProviderDetail({
 
   return (
     <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 pb-6">
-      <header className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <SectionTitle>{t.models.provider}</SectionTitle>
-          <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
-            {name}
-          </h1>
-        </div>
-        <Button
-          onClick={() => setConfirmingDelete(true)}
-          size="sm"
-          type="button"
-          variant="destructive"
-        >
-          {t.common.delete}
-        </Button>
+      <header>
+        <SectionTitle>{t.models.provider}</SectionTitle>
+        <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
+          {name}
+        </h1>
       </header>
 
       <Dialog
@@ -199,6 +189,24 @@ export default function ProviderDetail({
         compat={provider.compat}
         onChange={(compat) => onChange({ ...provider, compat })}
       />
+
+      <SettingsSection title={t.models.dangerZone}>
+        <SettingsRow
+          label={t.common.delete}
+          description={t.models.deleteProviderRowDescription}
+        >
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setConfirmingDelete(true)}
+              size="sm"
+              type="button"
+              variant="destructive"
+            >
+              {t.common.delete}
+            </Button>
+          </div>
+        </SettingsRow>
+      </SettingsSection>
     </div>
   );
 }
@@ -273,22 +281,21 @@ function ModelDiscoveryPanel({
   };
 
   return (
-    <SettingsSection title={t.models.discoverModels}>
-      <div className="flex items-start justify-between gap-4 px-4 py-3.5">
+    <SettingsSection title={t.models.modelList}>
+      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="min-w-0">
           <p className="max-w-[62ch] text-[11px] leading-4 text-dim">
             {t.models.discoverModelsDescription}
           </p>
         </div>
         <Button
-          className="shrink-0 text-muted"
+          className="shrink-0"
           disabled={discovering}
           onClick={() => onDiscoverModels(providerName)}
           size="sm"
           type="button"
-          variant="outline"
         >
-          {discovering ? t.models.discoveringModels : t.models.discoverModels}
+          {discovering ? t.models.discoveringModels : t.models.fetchModelList}
         </Button>
       </div>
 
@@ -319,11 +326,10 @@ function ModelDiscoveryPanel({
                   {newSuggestions.length}
                 </span>
                 <Button
-                  className="text-muted"
                   onClick={toggleAll}
                   size="sm"
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                 >
                   {allSelected
                     ? t.models.clearSelection
@@ -348,24 +354,16 @@ function ModelDiscoveryPanel({
                       <span className="min-w-0 flex-1 truncate font-ui-mono text-[11px] text-primary">
                         {suggestion.model.id}
                       </span>
-                      {suggestion.source !== "inferred" && (
-                        <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
-                          {sourceLabel(suggestion, t)}
-                        </span>
-                      )}
-                      <span className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-dim">
-                        {t.models.unverified}
-                      </span>
                     </label>
                   );
                 })}
               </div>
-              {existingHiddenCount > 0 && (
-                <p className="text-[11px] text-dim">
-                  {existingHiddenCount} {t.models.existingHidden}
-                </p>
-              )}
               <div className="flex items-center justify-end gap-3">
+                {existingHiddenCount > 0 && (
+                  <span className="mr-auto text-[11px] text-dim">
+                    {existingHiddenCount} {t.models.existingHidden}
+                  </span>
+                )}
                 <Button
                   className="text-muted"
                   disabled={selectedSuggestions.length === 0}
@@ -386,16 +384,6 @@ function ModelDiscoveryPanel({
       )}
     </SettingsSection>
   );
-}
-
-function sourceLabel(
-  suggestion: ModelDiscoverySuggestion,
-  t: ReturnType<typeof useI18n>["t"],
-) {
-  if (suggestion.source === "catalog") return t.models.sourceCatalog;
-  if (suggestion.source === "inferred") return t.models.sourceInferred;
-  if (suggestion.source === "remote") return t.models.sourceRemote;
-  return t.models.sourceDefaulted;
 }
 
 function SecretTextInput({

@@ -201,74 +201,13 @@ export default function ModelDetail({
 
   return (
     <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 pb-6">
-      <header className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <SectionTitle>
-            {t.models.model} · {providerName}
-          </SectionTitle>
-          <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
-            {model.name || model.id}
-          </h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {testSummary && (
-            <span
-              title={testSummary}
-              className="inline-flex h-6 max-w-[260px] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2 text-[11px]"
-              style={{
-                borderColor: testBorderColor,
-                background: testBgColor,
-                color: "var(--text)",
-                boxSizing: "border-box",
-              }}
-            >
-              {testSummary}
-            </span>
-          )}
-          <button
-            onClick={handleTest}
-            disabled={!model.id.trim() || visibleTestState.phase === "testing"}
-            className="flex items-center gap-1 rounded px-2 py-[3px] text-[11px]"
-            style={{
-              background:
-                visibleTestState.phase === "success" ? "var(--success)" : "none",
-              border:
-                visibleTestState.phase === "success"
-                  ? "1px solid var(--success)"
-                  : "1px solid var(--border)",
-              color:
-                visibleTestState.phase === "success"
-                  ? "var(--primary-foreground)"
-                  : !model.id.trim() || visibleTestState.phase === "testing"
-                    ? "var(--text-dim)"
-                    : "var(--text-muted)",
-              cursor:
-                !model.id.trim() || visibleTestState.phase === "testing"
-                  ? "not-allowed"
-                  : "pointer",
-            }}
-            type="button"
-          >
-            {visibleTestState.phase === "success" && <CheckIcon />}
-            {visibleTestState.phase === "testing"
-              ? t.models.testing
-              : visibleTestState.phase === "success"
-                ? t.models.ok
-                : t.models.test}
-          </button>
-          <button
-            onClick={() => setConfirmingDelete(true)}
-            className="cursor-pointer rounded border px-2 py-[3px] text-[11px]"
-            style={{
-              borderColor: "color-mix(in srgb, var(--destructive) 30%, transparent)",
-              color: "var(--destructive)",
-              background: "none",
-            }}
-            type="button"
-          >
-            {t.models.remove}
-          </button>
-        </div>
+      <header>
+        <SectionTitle>
+          {t.models.model} · {providerName}
+        </SectionTitle>
+        <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
+          {model.name || model.id}
+        </h1>
       </header>
 
       <Dialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
@@ -308,10 +247,6 @@ export default function ModelDetail({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <p className="text-[11px] leading-4 text-dim">
-        {t.models.realRequestCostNotice}
-      </p>
 
       {visibleTestState.phase === "error" &&
         visibleTestState.diagnostic && (
@@ -357,6 +292,42 @@ export default function ModelDetail({
             }
             style={{ ...inputStyle }}
           />
+        </SettingsRow>
+        <SettingsRow
+          label={t.models.testConnectivity}
+          description={t.models.realRequestCostNotice}
+        >
+          <div className="flex items-center justify-end gap-2">
+            {testSummary && (
+              <span
+                title={testSummary}
+                className="inline-flex h-6 max-w-[160px] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2 text-[11px]"
+                style={{
+                  borderColor: testBorderColor,
+                  background: testBgColor,
+                  color: "var(--text)",
+                  boxSizing: "border-box",
+                }}
+              >
+                {testSummary}
+              </span>
+            )}
+            <Button
+              className="min-w-[80px] justify-center"
+              onClick={handleTest}
+              disabled={!model.id.trim() || visibleTestState.phase === "testing"}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              {visibleTestState.phase === "success" && <CheckIcon />}
+              {visibleTestState.phase === "testing"
+                ? t.models.testing
+                : visibleTestState.phase === "success"
+                  ? t.models.ok
+                  : t.models.test}
+            </Button>
+          </div>
         </SettingsRow>
       </SettingsSection>
 
@@ -454,6 +425,24 @@ export default function ModelDetail({
         inheritedCompat={provider?.compat}
         onChange={(compat) => onChange({ ...model, compat })}
       />
+
+      <SettingsSection title={t.models.dangerZone}>
+        <SettingsRow
+          label={t.common.delete}
+          description={t.models.deleteModelDescription}
+        >
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setConfirmingDelete(true)}
+              size="sm"
+              type="button"
+              variant="destructive"
+            >
+              {t.common.delete}
+            </Button>
+          </div>
+        </SettingsRow>
+      </SettingsSection>
     </div>
   );
 }

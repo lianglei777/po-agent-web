@@ -13,6 +13,7 @@ import {
   selectStyle,
   SettingsSection,
 } from "../form-ui";
+import { mergeClasses } from "@/lib/utils";
 import { changeCompatValue } from "./compat-editor-state";
 
 interface Props {
@@ -141,7 +142,10 @@ function JsonCompatField({
     <Field label={<code className="font-ui-mono">{fieldKey}</code>}>
       <textarea
         aria-label={fieldKey}
-        className={controlClassName}
+        className={mergeClasses(
+          controlClassName,
+          invalid && "border-destructive hover:border-destructive",
+        )}
         rows={4}
         value={text}
         placeholder={inheritedLabel}
@@ -174,9 +178,6 @@ function JsonCompatField({
           minHeight: 88,
           resize: "vertical",
           fontFamily: "var(--font-ui-mono)",
-          borderColor: invalid
-            ? "var(--destructive)"
-            : "var(--border-strong)",
         }}
       />
       {invalid && (
