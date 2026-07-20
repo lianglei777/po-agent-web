@@ -45,6 +45,18 @@ describe("workspace composition", () => {
     expect(workspaceSource).toContain("refreshKey={explorerRefreshKey}");
   });
 
+  it("places Model Provider save feedback in the workspace top bar", () => {
+    expect(topBarSource).toContain("modelProviderSaveStatus");
+    expect(topBarSource).toContain('role="status"');
+    expect(topBarSource).toContain('role="alert"');
+    expect(workspaceSource).toContain(
+      "modelProviderSaveStatus={modelProviderSaveStatus}",
+    );
+    expect(workspaceSource).toContain(
+      "onSaveStatusChange={setModelProviderSaveStatus}",
+    );
+  });
+
   it("uses a desktop-only workspace floor", () => {
     expect(workspaceSource).toContain("min-w-[1024px]");
     expect(workspaceSource).not.toContain("max-[640px]");

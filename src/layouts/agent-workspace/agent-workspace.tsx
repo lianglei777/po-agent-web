@@ -20,7 +20,10 @@ import { ResizeHandle } from "@/components/ui/resize-handle";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatCenter, type BranchState } from "@/features/chat/chat-center";
 import { FilePanel, type OpenFile } from "@/features/files/file-panel";
-import { ModelProviderPage } from "@/features/model-providers/model-provider-page";
+import {
+  ModelProviderPage,
+  type ModelProviderSaveStatus,
+} from "@/features/model-providers/model-provider-page";
 import { loadSessions } from "@/features/sessions/api";
 import {
   getProjectName,
@@ -63,6 +66,8 @@ export function AgentWorkspace() {
   const [chatInstanceKey, setChatInstanceKey] = useState(0);
   const [branchState, setBranchState] = useState<BranchState | null>(null);
   const [modelsRevision, setModelsRevision] = useState(0);
+  const [modelProviderSaveStatus, setModelProviderSaveStatus] =
+    useState<ModelProviderSaveStatus>({ phase: "idle" });
   const [openFile, setOpenFile] = useState<OpenFile | null>(null);
   const [initialSessionId, setInitialSessionId] = useState<
     string | null | undefined
@@ -356,6 +361,7 @@ export function AgentWorkspace() {
             branchRunning={branchState?.running}
             branchTree={branchState?.tree}
             filePanelOpen={filePanelOpen}
+            modelProviderSaveStatus={modelProviderSaveStatus}
             onBranchChangeLeaf={
               branchState
                 ? (leafId) => void branchState.changeLeaf(leafId)
@@ -395,6 +401,7 @@ export function AgentWorkspace() {
             <ModelProviderPage
               onDirtyChange={setModelProviderDirty}
               onSaved={() => setModelsRevision((current) => current + 1)}
+              onSaveStatusChange={setModelProviderSaveStatus}
             />
           ) : null}
           {activeView === "skills" && activeCwd ? (

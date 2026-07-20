@@ -22,7 +22,13 @@ import {
   type ModelDiagnostic,
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
-import { SectionTitle, Field, inputStyle } from "../form-ui";
+import {
+  controlClassName,
+  SectionTitle,
+  SettingsRow,
+  SettingsSection,
+  inputStyle,
+} from "../form-ui";
 import {
   getDefaultThinkingOnLevel,
   getSourceTone,
@@ -193,10 +199,17 @@ export default function ModelDetail({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <SectionTitle>{t.models.model}</SectionTitle>
-        <div className="flex items-center gap-2">
+    <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 pb-6">
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <SectionTitle>
+            {t.models.model} · {providerName}
+          </SectionTitle>
+          <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
+            {model.name || model.id}
+          </h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
           {testSummary && (
             <span
               title={testSummary}
@@ -255,7 +268,7 @@ export default function ModelDetail({
             {t.models.remove}
           </button>
         </div>
-      </div>
+      </header>
 
       <Dialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
         <DialogContent
@@ -307,13 +320,13 @@ export default function ModelDetail({
           />
         )}
 
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2.5">
-        <Field label={t.models.id}>
+      <SettingsSection title={t.models.general}>
+        <SettingsRow label={t.models.id}>
           <div
             className="flex min-h-8 items-center gap-2 rounded border px-2.5 text-[12px]"
             style={{
               background: "var(--bg-subtle)",
-              borderColor: "var(--border)",
+              borderColor: "var(--border-strong)",
               color: "var(--text)",
             }}
           >
@@ -330,9 +343,10 @@ export default function ModelDetail({
               {copied ? t.models.copied : t.models.copyId}
             </button>
           </div>
-        </Field>
-        <Field label={t.models.name}>
+        </SettingsRow>
+        <SettingsRow label={t.models.name}>
           <input
+            className={controlClassName}
             value={model.name ?? ""}
             onChange={(e) =>
               onChange({
@@ -342,12 +356,11 @@ export default function ModelDetail({
             }
             style={{ ...inputStyle }}
           />
-        </Field>
-      </div>
+        </SettingsRow>
+      </SettingsSection>
 
-      <section className="flex flex-col gap-2">
-        <SectionTitle>{t.models.capabilities}</SectionTitle>
-        <div className="grid grid-cols-2 gap-2.5">
+      <SettingsSection title={t.models.capabilities}>
+        <SettingsRow label={t.models.imageInput}>
           <CapabilityToggle
             checked={hasImageInput}
             disabled={capabilitiesLocked}
@@ -360,6 +373,8 @@ export default function ModelDetail({
             }
             source={source}
           />
+        </SettingsRow>
+        <SettingsRow label={t.models.reasoningThinking}>
           <CapabilityToggle
             checked={reasoningEnabled}
             disabled={capabilitiesLocked}
@@ -377,13 +392,16 @@ export default function ModelDetail({
             }
             source={source}
           />
-        </div>
-      </section>
+        </SettingsRow>
+      </SettingsSection>
 
-      <section className="flex flex-col gap-2">
-        <SectionTitle>{t.models.advanced}</SectionTitle>
-        <Field label={t.models.apiProtocol}>
+      <SettingsSection title={t.models.advanced}>
+        <SettingsRow
+          label={t.models.apiProtocol}
+          description={t.models.apiProtocolDescription}
+        >
           <select
+            className={controlClassName}
             value={model.api ?? ""}
             onChange={(e) =>
               onChange(changeEntryApi(model, e.target.value || undefined))
@@ -400,14 +418,15 @@ export default function ModelDetail({
               </option>
             ))}
           </select>
-          <p className="text-[11px] leading-4 text-dim">
-            {t.models.apiProtocolDescription}
-          </p>
-        </Field>
+        </SettingsRow>
 
         {reasoningEnabled && supportedThinkingLevels.length > 0 && (
-          <Field label={t.models.thinkingOnDefault}>
+          <SettingsRow
+            label={t.models.thinkingOnDefault}
+            description={t.models.thinkingOnDefaultDescription}
+          >
             <select
+              className={controlClassName}
               value={model.thinkingDefaultLevel ?? defaultThinkingLevel ?? "high"}
               onChange={(event) =>
                 onChange({
@@ -424,12 +443,9 @@ export default function ModelDetail({
                 </option>
               ))}
             </select>
-            <p className="text-[11px] leading-4 text-dim">
-              {t.models.thinkingOnDefaultDescription}
-            </p>
-          </Field>
+          </SettingsRow>
         )}
-      </section>
+      </SettingsSection>
 
       <CompatEditor
         api={effectiveApi}
@@ -518,17 +534,27 @@ function CapabilityToggle({
   source?: ModelDiscoverySource;
 }) {
   return (
-    <label className="flex min-h-12 items-center gap-2 rounded border border-line bg-[var(--bg-subtle)] px-3 py-2 text-[12px] text-muted">
-      <input
-        checked={checked}
-        className="h-[13px] w-[13px] accent-accent"
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-        type="checkbox"
-      />
-      <span className="min-w-0 flex-1 text-primary">{label}</span>
+    <div className="flex items-center justify-end gap-2.5">
       <SourceBadge source={source} />
-    </label>
+      <label
+        className={`inline-flex items-center ${
+          disabled ? "cursor-not-allowed" : "cursor-pointer"
+        }`}
+      >
+        <span className="sr-only">{label}</span>
+        <input
+          checked={checked}
+          className="peer sr-only"
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+          type="checkbox"
+        />
+        <span
+          aria-hidden="true"
+          className="relative h-5 w-9 rounded-full bg-line-strong transition-colors after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-elevated after:transition-transform peer-checked:bg-accent peer-checked:after:translate-x-4 peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 motion-reduce:transition-none motion-reduce:after:transition-none"
+        />
+      </label>
+    </div>
   );
 }
 

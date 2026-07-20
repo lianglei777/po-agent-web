@@ -16,7 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SectionTitle, Field, inputStyle } from "../form-ui";
+import {
+  controlClassName,
+  SectionTitle,
+  SettingsRow,
+  SettingsSection,
+  inputStyle,
+} from "../form-ui";
 import { CompatEditor } from "./compat-editor";
 import { changeEntryApi } from "./compat-editor-state";
 
@@ -62,10 +68,14 @@ export default function ProviderDetail({
   const canRename = editingName !== name && editingName.trim().length > 0;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <SectionTitle>{t.models.provider}</SectionTitle>
+    <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 pb-6">
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <SectionTitle>{t.models.provider}</SectionTitle>
+          <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
+            {name}
+          </h1>
+        </div>
         <Button
           onClick={() => setConfirmingDelete(true)}
           size="sm"
@@ -74,7 +84,7 @@ export default function ProviderDetail({
         >
           {t.common.delete}
         </Button>
-      </div>
+      </header>
 
       <Dialog
         open={confirmingDelete}
@@ -114,65 +124,66 @@ export default function ProviderDetail({
         </DialogContent>
       </Dialog>
 
-      {/* Provider name */}
-      <Field label={t.models.providerName}>
-        <input
-          value={editingName}
-          onChange={(e) => setEditingName(e.target.value)}
-          className="font-ui-mono"
-          style={{ ...inputStyle }}
-        />
-        {canRename && (
-          <Button
-            className="mt-1 self-start"
-            onClick={() => onRename(name, editingName.trim())}
-            size="sm"
-            type="button"
+      <SettingsSection title={t.models.general}>
+        <SettingsRow label={t.models.providerName}>
+          <div className="flex items-center gap-2">
+            <input
+              value={editingName}
+              onChange={(e) => setEditingName(e.target.value)}
+              className={`${controlClassName} min-w-0 flex-1 font-ui-mono`}
+              style={{ ...inputStyle }}
+            />
+            {canRename && (
+              <Button
+                className="shrink-0"
+                onClick={() => onRename(name, editingName.trim())}
+                size="sm"
+                type="button"
+              >
+                {t.models.rename}
+              </Button>
+            )}
+          </div>
+        </SettingsRow>
+
+        <SettingsRow label={t.models.baseUrl}>
+          <input
+            value={provider.baseUrl ?? ""}
+            onChange={(e) => onChange({ ...provider, baseUrl: e.target.value })}
+            placeholder="https://api.example.com/v1"
+            className={`${controlClassName} font-ui-mono`}
+            style={{ ...inputStyle }}
+          />
+        </SettingsRow>
+
+        <SettingsRow label={t.models.apiKey}>
+          <SecretTextInput
+            value={provider.apiKey ?? ""}
+            onChange={(v) => onChange({ ...provider, apiKey: v })}
+            placeholder={t.models.apiKeyPlaceholder}
+            mono
+          />
+        </SettingsRow>
+
+        <SettingsRow label={t.models.apiProtocol}>
+          <select
+            className={controlClassName}
+            value={provider.api ?? ""}
+            onChange={(e) => onChange(changeEntryApi(provider, e.target.value))}
+            required
+            style={{
+              ...inputStyle,
+              color: provider.api ? "var(--text)" : "var(--text-dim)",
+            }}
           >
-            {t.models.rename}
-          </Button>
-        )}
-      </Field>
-
-      {/* Base URL */}
-      <Field label={t.models.baseUrl}>
-        <input
-          value={provider.baseUrl ?? ""}
-          onChange={(e) => onChange({ ...provider, baseUrl: e.target.value })}
-          placeholder="https://api.example.com/v1"
-          className="font-ui-mono"
-          style={{ ...inputStyle }}
-        />
-      </Field>
-
-      {/* API Key */}
-      <Field label={t.models.apiKey}>
-        <SecretTextInput
-          value={provider.apiKey ?? ""}
-          onChange={(v) => onChange({ ...provider, apiKey: v })}
-          placeholder={t.models.apiKeyPlaceholder}
-          mono
-        />
-      </Field>
-
-      {/* AI API 协议 */}
-      <Field label={t.models.apiProtocol}>
-        <select
-          value={provider.api ?? ""}
-          onChange={(e) => onChange(changeEntryApi(provider, e.target.value))}
-          required
-          style={{
-            ...inputStyle,
-            color: provider.api ? "var(--text)" : "var(--text-dim)",
-          }}
-        >
-          {API_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-      </Field>
+            {API_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </SettingsRow>
+      </SettingsSection>
 
       <ModelDiscoveryPanel
         providerName={name}
@@ -261,11 +272,10 @@ function ModelDiscoveryPanel({
   };
 
   return (
-    <section className="rounded-[8px] border border-line bg-panel p-3">
-      <div className="flex items-start justify-between gap-3">
+    <SettingsSection title={t.models.discoverModels}>
+      <div className="flex items-start justify-between gap-4 px-4 py-3.5">
         <div className="min-w-0">
-          <SectionTitle>{t.models.discoverModels}</SectionTitle>
-          <p className="mt-1 text-[12px] leading-5 text-muted">
+          <p className="max-w-[62ch] text-[11px] leading-4 text-dim">
             {t.models.discoverModelsDescription}
           </p>
         </div>
@@ -282,11 +292,13 @@ function ModelDiscoveryPanel({
       </div>
 
       {relevant?.phase === "error" && (
-        <p className="mt-2 text-[12px] text-destructive">{relevant.message}</p>
+        <p className="border-t border-line-subtle px-4 py-3 text-[12px] text-destructive">
+          {relevant.message}
+        </p>
       )}
 
       {relevant?.phase === "result" && (
-        <div className="mt-3 space-y-2">
+        <div className="space-y-2 border-t border-line-subtle px-4 py-3.5">
           {relevant.remoteError && (
             <p className="text-[12px] text-dim">
               {t.models.remoteDiscoveryFailed}: {relevant.remoteError}
@@ -371,7 +383,7 @@ function ModelDiscoveryPanel({
           )}
         </div>
       )}
-    </section>
+    </SettingsSection>
   );
 }
 
@@ -409,7 +421,7 @@ function SecretTextInput({
         placeholder={placeholder}
         autoComplete="off"
         spellCheck={false}
-        className={mono ? "font-ui-mono" : undefined}
+        className={`${controlClassName} ${mono ? "font-ui-mono" : ""}`}
         style={{ ...inputStyle, paddingRight: 34 }}
       />
       <Button

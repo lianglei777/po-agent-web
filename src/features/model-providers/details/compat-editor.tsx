@@ -6,7 +6,12 @@ import {
   type CompatFieldDefinition,
 } from "@/contracts/model-compat";
 import { useI18n } from "@/i18n/use-i18n";
-import { Field, inputStyle, SectionTitle } from "../form-ui";
+import {
+  controlClassName,
+  Field,
+  inputStyle,
+  SettingsSection,
+} from "../form-ui";
 import { changeCompatValue } from "./compat-editor-state";
 
 interface Props {
@@ -26,19 +31,18 @@ export function CompatEditor({
   const fields = getCompatFields(api);
 
   return (
-    <section className="flex flex-col gap-2">
-      <SectionTitle>{t.models.compatibility}</SectionTitle>
-      <p className="text-[11px] leading-4 text-dim">
+    <SettingsSection title={t.models.compatibility}>
+      <p className="px-4 py-3.5 text-[11px] leading-4 text-dim">
         {fields.length
           ? t.models.compatibilityDescription
           : t.models.compatibilityUnavailable}
       </p>
       {fields.length > 0 && (
-        <details className="rounded-lg border border-line bg-panel">
+        <details className="border-t border-line-subtle">
           <summary className="cursor-pointer px-3 py-2 text-[12px] text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {t.models.compatibilitySettings} · {api}
           </summary>
-          <div className="grid gap-3 border-t border-line p-3 sm:grid-cols-2">
+          <div className="grid gap-3 border-t border-line-subtle bg-subtle p-4 sm:grid-cols-2">
             {fields.map((field) => (
               <CompatField
                 key={field.key}
@@ -53,7 +57,7 @@ export function CompatEditor({
           </div>
         </details>
       )}
-    </section>
+    </SettingsSection>
   );
 }
 
@@ -89,6 +93,7 @@ function CompatField({
     <Field label={<code className="font-ui-mono">{field.key}</code>}>
       <select
         aria-label={field.key}
+        className={controlClassName}
         value={value === undefined ? "" : String(value)}
         onChange={(event) => {
           const next = event.target.value;
@@ -135,6 +140,7 @@ function JsonCompatField({
     <Field label={<code className="font-ui-mono">{fieldKey}</code>}>
       <textarea
         aria-label={fieldKey}
+        className={controlClassName}
         rows={4}
         value={text}
         placeholder={inheritedLabel}
@@ -167,7 +173,9 @@ function JsonCompatField({
           minHeight: 88,
           resize: "vertical",
           fontFamily: "var(--font-ui-mono)",
-          borderColor: invalid ? "var(--destructive)" : "var(--border)",
+          borderColor: invalid
+            ? "var(--destructive)"
+            : "var(--border-strong)",
         }}
       />
       {invalid && (

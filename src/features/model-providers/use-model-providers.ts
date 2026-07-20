@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   discoverModelsConfig,
   loadApiKeyProvider,
@@ -10,6 +10,7 @@ import {
 import { useI18n } from "@/i18n/use-i18n";
 import { mergeDiscoveredModels } from "./model-discovery-merge";
 import { isDialogDirty } from "./dialog-safety";
+import { createDebouncedSaveQueue } from "./latest-save-queue";
 import type {
   ApiKeyProvider,
   ModelDiscoveryResult,
@@ -22,6 +23,7 @@ import type {
 } from "./types";
 
 const EMPTY_CONFIG: ModelsJson = { providers: {} };
+const AUTO_SAVE_DELAY_MS = 600;
 type DiscoveryState =
   | { phase: "idle" }
   | { phase: "discovering"; providerName: string }
@@ -39,8 +41,63 @@ export function useModelProviders(onSaved?: () => void) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveRetryAvailable, setSaveRetryAvailable] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
   const [discovery, setDiscovery] = useState<DiscoveryState>({ phase: "idle" });
+  const configRef = useRef(config);
+  const onSavedRef = useRef(onSaved);
+  const failedToSaveRef = useRef(t.models.failedToSave);
+  const savedTimerRef = useRef<number | null>(null);
+  const saveQueueRef = useRef<ReturnType<
+    typeof createDebouncedSaveQueue<ModelsJson>
+  > | null>(null);
+
+  useEffect(() => {
+    configRef.current = config;
+    onSavedRef.current = onSaved;
+    failedToSaveRef.current = t.models.failedToSave;
+  }, [config, onSaved, t.models.failedToSave]);
+
+  useEffect(() => {
+    const queue = createDebouncedSaveQueue<ModelsJson>({
+      delayMs: AUTO_SAVE_DELAY_MS,
+      save: saveModelsConfig,
+      onScheduled: () => {
+        setSavedOk(false);
+        setSaveError(null);
+        setSaveRetryAvailable(false);
+      },
+      onSavingChange: setSaving,
+      onSaved: (savedConfig) => {
+        setBaselineConfig(savedConfig);
+        setSaveError(null);
+        setSaveRetryAvailable(false);
+        onSavedRef.current?.();
+        if (isDialogDirty(savedConfig, configRef.current)) return;
+        setSavedOk(true);
+        if (savedTimerRef.current !== null) {
+          window.clearTimeout(savedTimerRef.current);
+        }
+        savedTimerRef.current = window.setTimeout(() => {
+          setSavedOk(false);
+          savedTimerRef.current = null;
+        }, 2_000);
+      },
+      onError: (error) => {
+        setSaveError(toMessage(error, failedToSaveRef.current));
+        setSaveRetryAvailable(true);
+        setSavedOk(false);
+      },
+    });
+    saveQueueRef.current = queue;
+    return () => {
+      queue.dispose();
+      saveQueueRef.current = null;
+      if (savedTimerRef.current !== null) {
+        window.clearTimeout(savedTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -87,9 +144,11 @@ export function useModelProviders(onSaved?: () => void) {
       if (!newName || oldName === newName) return;
       if (config.providers?.[newName]) {
         setSaveError(`${t.models.providerExists}: "${newName}"`);
+        setSaveRetryAvailable(false);
         return;
       }
       setSaveError(null);
+      setSaveRetryAvailable(false);
       setConfig((current) => {
         const providers: Record<string, ProviderEntry> = {};
         for (const [name, provider] of Object.entries(
@@ -216,21 +275,22 @@ export function useModelProviders(onSaved?: () => void) {
     setSelection({ type: "provider", name: providerName });
   }, []);
 
-  const save = useCallback(async () => {
-    setSaving(true);
+  const dirty = baselineConfig
+    ? isDialogDirty(baselineConfig, config)
+    : false;
+
+  useEffect(() => {
+    if (!dirty || loading || loadError) return;
+    const queue = saveQueueRef.current;
+    queue?.schedule(config);
+    return () => queue?.cancelScheduled();
+  }, [config, dirty, loadError, loading]);
+
+  const retrySave = useCallback(() => {
     setSaveError(null);
-    try {
-      await saveModelsConfig(config);
-      setBaselineConfig(config);
-      onSaved?.();
-      setSavedOk(true);
-      window.setTimeout(() => setSavedOk(false), 2_000);
-    } catch (error) {
-      setSaveError(toMessage(error, t.models.failedToSave));
-    } finally {
-      setSaving(false);
-    }
-  }, [config, onSaved, t.models.failedToSave]);
+    setSaveRetryAvailable(false);
+    saveQueueRef.current?.saveNow(config);
+  }, [config]);
 
   const refreshApiKeyProvider = useCallback(
     async (providerId: string) => {
@@ -250,7 +310,7 @@ export function useModelProviders(onSaved?: () => void) {
 
   return {
     config,
-    dirty: baselineConfig ? isDialogDirty(baselineConfig, config) : false,
+    dirty,
     oauthProviders,
     apiKeyProviders,
     selection,
@@ -259,6 +319,7 @@ export function useModelProviders(onSaved?: () => void) {
     loadError,
     saving,
     saveError,
+    saveRetryAvailable,
     savedOk,
     discovery,
     addCustomProvider,
@@ -269,7 +330,7 @@ export function useModelProviders(onSaved?: () => void) {
     acceptDiscoveredModels,
     updateModel,
     removeModel,
-    save,
+    retrySave,
     refreshApiKeyProvider,
   };
 }

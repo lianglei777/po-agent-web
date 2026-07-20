@@ -18,6 +18,14 @@ const controllerSource = readFileSync(
   fileURLToPath(new URL("./use-model-providers.ts", import.meta.url)),
   "utf8",
 );
+const enSource = readFileSync(
+  fileURLToPath(new URL("../../i18n/dictionaries/en.ts", import.meta.url)),
+  "utf8",
+);
+const zhSource = readFileSync(
+  fileURLToPath(new URL("../../i18n/dictionaries/zh.ts", import.meta.url)),
+  "utf8",
+);
 
 describe("Model Provider page", () => {
   it("reuses model configuration behavior without a top-level modal", () => {
@@ -28,12 +36,33 @@ describe("Model Provider page", () => {
     expect(source).not.toContain("<Dialog open");
   });
 
-  it("keeps save feedback and nested detail components", () => {
-    expect(source).toContain("modelConfig.save");
+  it("auto-saves changes and keeps accessible feedback", () => {
+    expect(source).not.toContain("onClick={modelConfig.save}");
+    expect(source).not.toContain("<footer");
+    expect(source).not.toContain('data-testid="model-provider-save-status"');
+    expect(source).not.toContain("sticky top-0");
+    expect(source).toContain("onSaveStatusChange");
+    expect(source).toContain('phase: "pending"');
+    expect(source).toContain('phase: "error"');
+    expect(source).toContain("modelConfig.saving");
+    expect(source).toContain("modelConfig.savedOk");
+    expect(source).toContain("modelConfig.saveRetryAvailable");
+    expect(controllerSource).toContain("createDebouncedSaveQueue");
+    expect(controllerSource).toContain("AUTO_SAVE_DELAY_MS");
+    expect(controllerSource).toContain("failedToSaveRef.current");
+    expect(controllerSource).not.toContain("}, [t.models.failedToSave]);");
+  });
+
+  it("keeps nested detail components", () => {
     expect(source).toContain("ProviderDetail");
     expect(source).toContain("ModelDetail");
     expect(source).toContain("OAuthDetail");
     expect(source).toContain("ApiKeyDetail");
+  });
+
+  it("explains that confirmed deletion is saved automatically", () => {
+    expect(enSource).toContain("will be saved automatically");
+    expect(zhSource).toContain("将自动保存");
   });
 
   it("does not expose manual model creation", () => {
