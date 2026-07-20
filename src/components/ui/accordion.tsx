@@ -36,7 +36,7 @@ function AccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={mergeClasses(
-          "flex min-h-9 flex-1 cursor-pointer items-center gap-2 px-3 py-2 text-left font-ui-mono text-[11px] text-muted-foreground outline-none transition-colors duration-[var(--motion-fast)] hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&[data-state=open]>svg]:rotate-180",
+          "flex min-h-9 flex-1 cursor-pointer items-center gap-2 px-3 py-2 text-left font-ui-mono text-meta text-muted-foreground outline-none transition-colors duration-[var(--motion-fast)] hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&[data-state=open]>svg]:rotate-180",
           className,
         )}
         data-slot="accordion-trigger"
@@ -62,7 +62,7 @@ function AccordionContent({
     >
       <div
         className={mergeClasses(
-          "border-t border-line-subtle px-3 py-2.5 font-ui-mono text-[11px] leading-[1.65] whitespace-pre-wrap text-muted-foreground",
+          "border-t border-line-subtle px-3 py-2.5 font-ui-mono text-meta leading-[1.65] whitespace-pre-wrap text-muted-foreground",
           className,
         )}
       >

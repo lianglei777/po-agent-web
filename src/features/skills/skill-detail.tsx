@@ -1,5 +1,21 @@
+"use client";
+
 import { LoaderCircle, PackageOpen, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  SectionTitle,
+  SettingsRow,
+  SettingsSection,
+} from "@/components/ui/settings-form";
 import {
   Tooltip,
   TooltipContent,
@@ -27,34 +43,90 @@ export function SkillDetail({
   const enabled = !skill.disableModelInvocation;
   const managed = isManagedSkill(skill);
   const { t } = useI18n();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const canRemove =
+    !managed &&
+    (skill.sourceInfo.scope === "project" ||
+      skill.sourceInfo.scope === "user");
+
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto p-5">
-      <div className="mx-auto max-w-2xl">
-        <div className="min-w-0">
-          <h2 className="truncate text-[15px] font-semibold">{skill.name}</h2>
-          <p className="mt-1 text-[13px] leading-5 text-muted">
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 px-6 py-6">
+        <header>
+          <SectionTitle>{t.skills.title}</SectionTitle>
+          <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
+            {skill.name}
+          </h1>
+          <p className="mt-1 text-body-sm leading-5 text-muted">
             {skill.description || t.skills.noDescription}
           </p>
-        </div>
+        </header>
 
-        <div className="mt-6 rounded-lg border border-line-subtle bg-panel">
-          <div className="flex items-start justify-between gap-4 border-b border-line-subtle p-4">
-            <div>
-              <h3 className="text-sm font-medium">
-                {t.skills.modelInvocation}
-              </h3>
-              <p className="mt-1 text-xs leading-5 text-muted">
+        <Dialog
+          open={confirmingDelete}
+          onOpenChange={(open) => !open && !removing && setConfirmingDelete(false)}
+        >
+          <DialogContent
+            className="z-[1101] sm:max-w-[420px]"
+            closeLabel={t.common.close}
+            overlayClassName="z-[1100]"
+          >
+            <DialogHeader>
+              <DialogTitle>{t.skills.removeConfirmTitle}</DialogTitle>
+              <DialogDescription>
+                {t.skills.removeConfirmDescription.replace("{name}", skill.name)}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                autoFocus
+                disabled={removing}
+                onClick={() => setConfirmingDelete(false)}
+                type="button"
+                variant="outline"
+              >
+                {t.common.cancel}
+              </Button>
+              <Button
+                aria-busy={removing || undefined}
+                disabled={removing}
+                onClick={() => {
+                  setConfirmingDelete(false);
+                  onRemove();
+                }}
+                type="button"
+                variant="destructive"
+              >
+                {removing ? <LoaderCircle className="animate-spin" /> : null}
+                {t.skills.removeConfirmAction}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <SettingsSection title={t.skills.modelInvocation}>
+          <SettingsRow
+            label={t.skills.modelInvocation}
+            description={
+              <>
                 {t.skills.modelInvocationDescription}{" "}
                 <code>/skill:{skill.name}</code> {t.skills.calls}
-              </p>
-            </div>
+              </>
+            }
+          >
             {managed ? (
-              <div className="max-w-48 space-y-2 text-right">
-                <p className="text-xs leading-5 text-muted">
+              <div className="space-y-2 text-right">
+                <p className="text-meta leading-4 text-muted">
                   {t.skills.managedByPack}
                 </p>
                 {onViewPack ? (
-                  <Button onClick={onViewPack} size="sm" type="button" variant="outline">
+                  <Button
+                    onClick={onViewPack}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
                     <PackageOpen />
                     {t.skills.packs.viewPack}
                   </Button>
@@ -101,69 +173,73 @@ export function SkillDetail({
                 </TooltipContent>
               </Tooltip>
             )}
-          </div>
-          <dl className="grid gap-4 p-4 text-sm sm:grid-cols-2">
-            <Detail
-              label={t.skills.source}
-              value={sourceLabel(skill.sourceInfo.source, skill.sourceInfo.origin, t.skills)}
-            />
-            <Detail label={t.skills.scope} value={scopeLabel(skill, t)} />
-            <Detail label={t.skills.path} value={skill.displayPath} wide />
-          </dl>
-        </div>
+          </SettingsRow>
+        </SettingsSection>
 
-        <p className="mt-4 rounded-lg bg-hover px-3 py-2 text-xs leading-5 text-muted">
+        <SettingsSection title={t.skills.metadata}>
+          <SettingsRow label={t.skills.source}>
+            <span className="font-ui-mono text-xs text-primary">
+              {sourceLabel(
+                skill.sourceInfo.source,
+                skill.sourceInfo.origin,
+                t.skills,
+              )}
+            </span>
+          </SettingsRow>
+          <SettingsRow label={t.skills.scope}>
+            <span className="text-xs text-primary">
+              {scopeLabel(skill, t)}
+            </span>
+          </SettingsRow>
+          <SettingsRow label={t.skills.path} contentMaxWidth={400}>
+            <span className="break-all font-ui-mono text-xs text-primary">
+              {skill.displayPath}
+            </span>
+          </SettingsRow>
+        </SettingsSection>
+
+        <p className="rounded-lg bg-hover px-3 py-2 text-meta leading-4 text-muted">
           {!managed && !skill.canModify
             ? `${t.skills.readOnlySymlink} `
             : ""}
           {t.skills.changesNotice}
         </p>
 
-        {!managed && (skill.sourceInfo.scope === "project" ||
-        skill.sourceInfo.scope === "user") ? (
-          <div className="mt-4 flex justify-end">
-            <Button
-              aria-label={t.skills.removeSkill}
-              disabled={removing || saving}
-              onClick={onRemove}
-              size="sm"
-              type="button"
-              variant="outline"
+        {canRemove ? (
+          <SettingsSection title={t.skills.dangerZone}>
+            <SettingsRow
+              label={t.skills.removeSkill}
+              description={t.skills.removeSkillRowDescription}
             >
-              {removing ? (
-                <LoaderCircle className="animate-spin" />
-              ) : (
-                <Trash2 />
-              )}
-              {t.skills.remove}
-            </Button>
-          </div>
+              <div className="flex justify-end">
+                <Button
+                  aria-label={t.skills.removeSkill}
+                  disabled={removing || saving}
+                  onClick={() => setConfirmingDelete(true)}
+                  size="sm"
+                  type="button"
+                  variant="destructive"
+                >
+                  {removing ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    <Trash2 />
+                  )}
+                  {t.skills.remove}
+                </Button>
+              </div>
+            </SettingsRow>
+          </SettingsSection>
         ) : null}
       </div>
     </div>
   );
 }
 
-function Detail({
-  label,
-  value,
-  wide = false,
-}: {
-  label: string;
-  value: string;
-  wide?: boolean;
-}) {
-  return (
-    <div className={wide ? "sm:col-span-2" : ""}>
-      <dt className="text-xs font-medium text-dim">{label}</dt>
-      <dd className="mt-1 break-all font-ui-mono text-xs text-primary">
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function scopeLabel(skill: SkillInfo, t: ReturnType<typeof useI18n>["t"]): string {
+function scopeLabel(
+  skill: SkillInfo,
+  t: ReturnType<typeof useI18n>["t"],
+): string {
   if (skill.sourceInfo.scope === "project") return t.common.project;
   if (skill.sourceInfo.scope === "user") return t.common.global;
   return t.skills.path;

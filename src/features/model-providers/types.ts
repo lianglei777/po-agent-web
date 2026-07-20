@@ -8,8 +8,6 @@ import {
 } from "@/contracts/model-compat";
 import type {
   ModelDiagnostic,
-  ModelDiscoveryConfidence as ApiModelDiscoveryConfidence,
-  ModelDiscoverySource as ApiModelDiscoverySource,
   ModelTestResponse,
 } from "@/contracts/models";
 
@@ -54,10 +52,6 @@ export interface ModelEntry {
     cacheWrite?: number;
   };
   compat?: Record<string, unknown>;
-  provenance?: {
-    source?: ModelDiscoverySource;
-    confidence?: ModelDiscoveryConfidence;
-  };
 }
 
 export interface ProviderEntry {
@@ -74,12 +68,7 @@ export interface ModelsJson {
   providers?: Record<string, ProviderEntry>;
 }
 
-export type ModelDiscoverySource = ApiModelDiscoverySource;
-export type ModelDiscoveryConfidence = ApiModelDiscoveryConfidence;
-
 export interface ModelDiscoverySuggestion {
-  source: ModelDiscoverySource;
-  confidence: ModelDiscoveryConfidence;
   verification: "unverified";
   model: ModelEntry;
 }

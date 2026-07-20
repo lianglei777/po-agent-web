@@ -279,8 +279,6 @@ Discover 负责生成模型建议，不负责宣布模型可用。
 
 ```ts
 interface ModelDiscoverySuggestion {
-  source: "remote" | "catalog" | "inferred" | "defaulted";
-  confidence: "high" | "medium" | "low";
   verification: "unverified";
   model: ModelEntry;
 }

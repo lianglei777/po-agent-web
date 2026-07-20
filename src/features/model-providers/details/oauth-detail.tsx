@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SectionTitle } from "../form-ui";
+import { SectionTitle } from "@/components/ui/settings-form";
 import type {
   OAuthLoginState,
   OAuthProvider,
@@ -137,7 +137,7 @@ export default function OAuthDetail({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <SectionTitle>{t.models.subscription}</SectionTitle>
-        <span className="text-[11px] text-dim">
+        <span className="text-meta text-dim">
           {connected === null
             ? t.models.statusUnavailable
             : connected
@@ -150,25 +150,27 @@ export default function OAuthDetail({
 
       <div className="flex gap-2">
         {working ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => {
               sourceRef.current?.close();
               setState({ phase: "idle" });
             }}
-            className="rounded-md border border-line px-3 py-1.5 text-[12px] text-muted"
           >
             {t.common.cancel}
-          </button>
+          </Button>
         ) : (
           <>
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={startLogin}
-              className="rounded-md bg-primary px-4 py-1.5 text-[12px] font-semibold text-primary-foreground"
             >
               {t.models.login}
-            </button>
+            </Button>
             <Button
               type="button"
               onClick={() => setConfirmingDisconnect(true)}
@@ -245,14 +247,14 @@ function OAuthState({
   const { t } = useI18n();
 
   if (state.phase === "idle") {
-    return <p className="text-[13px] text-muted">{t.models.connectOAuth}</p>;
+    return <p className="text-body-sm text-muted">{t.models.connectOAuth}</p>;
   }
   if (state.phase === "connecting") {
-    return <p className="text-[13px] text-muted">{t.models.openingLogin}</p>;
+    return <p className="text-body-sm text-muted">{t.models.openingLogin}</p>;
   }
   if (state.phase === "auth") {
     return (
-      <div className="flex flex-col gap-2 text-[13px] text-muted">
+      <div className="flex flex-col gap-2 text-body-sm text-muted">
         {state.instructions && <p>{state.instructions}</p>}
         <a className="text-accent-deep hover:underline" href={state.url} target="_blank" rel="noreferrer">
           {t.models.openLoginPage}
@@ -262,7 +264,7 @@ function OAuthState({
   }
   if (state.phase === "device_code") {
     return (
-      <div className="flex flex-col gap-2 text-[13px] text-muted">
+      <div className="flex flex-col gap-2 text-body-sm text-muted">
         <p>{t.models.enterCode}</p>
         <code className="self-start rounded border border-line px-4 py-2 text-[16px] font-bold">
           {state.userCode}
@@ -277,23 +279,24 @@ function OAuthState({
     const canSubmit = state.allowEmpty || input.trim().length > 0;
     return (
       <div className="flex flex-col gap-2">
-        <p className="text-[13px] text-muted">{state.message}</p>
+        <p className="text-body-sm text-muted">{state.message}</p>
         <div className="flex gap-1.5">
           <input
             autoFocus
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder={state.placeholder}
-            className="flex-1 rounded-md border border-line bg-elevated px-2 py-1.5 text-[12px] text-primary"
+            className="flex-1 rounded-md border border-line bg-elevated px-2 py-1.5 text-xs text-primary"
           />
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             disabled={!canSubmit}
             onClick={() => submit(state.token, input)}
-            className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50"
           >
             {t.models.submit}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -301,29 +304,31 @@ function OAuthState({
   if (state.phase === "select") {
     return (
       <div className="flex flex-col gap-2">
-        <p className="text-[13px] text-muted">{state.message}</p>
+        <p className="text-body-sm text-muted">{state.message}</p>
         {state.options.map((option) => (
-          <button
+          <Button
             key={option.id}
             type="button"
+            variant="outline"
+            size="sm"
+            className="w-full justify-start"
             onClick={() => submit(state.token, option.id)}
-            className="rounded border border-line px-2.5 py-1.5 text-left text-[12px]"
           >
             {option.label}
-          </button>
+          </Button>
         ))}
       </div>
     );
   }
   if (state.phase === "success") {
     return (
-      <p className="text-[13px] text-success">
+      <p className="text-body-sm text-success">
         {t.models.connectedSuccessfully}
       </p>
     );
   }
   return (
-    <p className={`text-[13px] ${state.phase === "error" ? "text-destructive" : "text-muted"}`}>
+    <p className={`text-body-sm ${state.phase === "error" ? "text-destructive" : "text-muted"}`}>
       {state.message}
     </p>
   );

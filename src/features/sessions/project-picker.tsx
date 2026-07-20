@@ -191,13 +191,13 @@ export function ProjectPicker({
             {browseOpen ? (
               <div className="space-y-3">
               <div>
-                <p className="mb-1.5 text-[11px] font-medium text-muted">
+                <p className="mb-1.5 text-meta font-medium text-muted">
                   {t.sessions.projectLocations}
                 </p>
                 <div className="flex max-h-20 flex-wrap gap-1 overflow-y-auto">
                   {result?.roots.map((root) => (
                     <Button
-                      className="max-w-full font-ui-mono text-[11px]"
+                      className="max-w-full font-ui-mono text-meta"
                       key={root}
                       onClick={() => void navigate(root)}
                       size="sm"

@@ -55,7 +55,7 @@ export async function buildModelDiscoverySuggestions(
   if (remoteModels.length === 0) {
     return {
       models: providerCatalog.map((model) =>
-        fromCatalogModel(model, provider.api, "catalog", "high"),
+        fromCatalogModel(model, provider.api),
       ),
       remoteError,
     };
@@ -68,7 +68,7 @@ export async function buildModelDiscoverySuggestions(
       remoteModel.id,
     );
     return catalogModel
-      ? fromCatalogModel(catalogModel, provider.api, "inferred", "medium", remoteModel)
+      ? fromCatalogModel(catalogModel, provider.api, remoteModel)
       : fromRemoteModel(remoteModel, provider.api);
   });
 
@@ -137,13 +137,9 @@ function findCatalogMatch(
 function fromCatalogModel(
   model: Model<Api>,
   api: string | undefined,
-  source: ModelDiscoverySuggestion["source"],
-  confidence: ModelDiscoverySuggestion["confidence"],
   remoteModel?: RemoteModel,
 ): ModelDiscoverySuggestion {
   return compactSuggestion({
-    source,
-    confidence,
     verification: "unverified",
     model: {
       id: model.id,
@@ -165,13 +161,12 @@ function fromRemoteModel(
   api: string | undefined,
 ): ModelDiscoverySuggestion {
   return compactSuggestion({
-    source: "defaulted",
-    confidence: "low",
     verification: "unverified",
     model: {
       id: remoteModel.id,
       name: remoteModel.name ?? remoteModel.id,
       ...DEFAULT_MODEL,
+      reasoning: true,
       api,
     },
   });

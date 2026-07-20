@@ -10,6 +10,11 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  SectionTitle,
+  controlClassName,
+  inputStyle,
+} from "@/components/ui/settings-form";
 import { useI18n } from "@/i18n/use-i18n";
 import { createLocalSkill, installSkill, searchSkills } from "./api";
 import type {
@@ -134,13 +139,18 @@ export function AddSkillPanel({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto p-5">
-      <div className="mx-auto max-w-2xl">
-        <h2 className="text-[15px] font-semibold">{t.skills.addSkill}</h2>
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 px-6 py-6">
+        <header>
+          <SectionTitle>{t.skills.addSkill}</SectionTitle>
+          <h1 className="mt-1 text-lg font-semibold text-primary">
+            {t.skills.addSkill}
+          </h1>
+        </header>
 
         {/* Tab 切换 */}
         <div
-          className="mt-3 inline-flex rounded-lg border border-line-subtle bg-panel p-1"
+          className="inline-flex rounded-lg border border-line-subtle bg-panel p-1"
           role="tablist"
         >
           <button
@@ -168,12 +178,12 @@ export function AddSkillPanel({
         </div>
 
         {error ? (
-          <p className="mt-3 rounded-lg border border-destructive/25 bg-destructive/8 px-3 py-2 text-sm text-destructive">
+          <p className="rounded-lg border border-destructive/25 bg-destructive/8 px-3 py-2 text-sm text-destructive">
             {error}
           </p>
         ) : null}
         {success ? (
-          <p className="mt-3 flex items-start gap-2 rounded-lg border border-success/30 bg-success/8 px-3 py-2 text-sm text-success">
+          <p className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/8 px-3 py-2 text-sm text-success">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
             {success}
           </p>
@@ -239,16 +249,17 @@ function MarketTab({
   const { t } = useI18n();
   return (
     <>
-      <p className="mt-1 text-[13px] text-muted">
+      <p className="text-body-sm leading-5 text-muted">
         {t.skills.searchMarketDescription}
       </p>
 
-      <div className="relative mt-5">
+      <div className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-dim" />
         <input
           aria-label={t.skills.searchSkillsMarket}
           autoFocus
-          className="h-10 w-full rounded-md border border-line-subtle bg-panel pr-9 pl-9 outline-none focus:border-ring focus:ring-2 focus:ring-ring"
+          className={`${controlClassName} h-10 pl-9 pr-9`}
+          style={{ ...inputStyle, padding: "0 36px", height: 40 }}
           onChange={(event) => {
             const value = event.target.value;
             setQuery(value);
@@ -268,7 +279,7 @@ function MarketTab({
 
       <ScopeSelector scope={scope} setScope={setScope} />
 
-      <div className="mt-4 space-y-2">
+      <div className="space-y-2">
         {!searching && query.trim() && results.length === 0 && !error ? (
           <p className="rounded-lg border border-dashed border-line-subtle p-8 text-center text-sm text-muted">
             {t.skills.noMatchingSkills}
@@ -304,7 +315,7 @@ function MarketTab({
             </div>
             {/* 描述行：两行截断，空描述时回退到占位文案 */}
             <p
-              className={`mt-1.5 line-clamp-2 text-[13px] leading-5 ${
+              className={`mt-1.5 line-clamp-2 text-body-sm leading-5 ${
                 skill.description ? "text-muted" : "italic text-dim"
               }`}
             >
@@ -312,8 +323,8 @@ function MarketTab({
             </p>
             {/* 元数据 + 操作行：包引用、安装量、安装按钮 */}
             <div className="mt-2.5 flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2 text-[11px] text-dim">
-                <code className="rounded border border-line-subtle bg-subtle px-1.5 py-0.5 font-ui-mono text-[11px]">
+              <div className="flex min-w-0 items-center gap-2 text-meta text-dim">
+                <code className="rounded border border-line-subtle bg-subtle px-1.5 py-0.5 font-ui-mono text-meta">
                   {skill.packageSpec}
                 </code>
                 {skill.installs !== undefined ? (
@@ -367,14 +378,14 @@ function CreateLocalTab({
 
   return (
     <>
-      <p className="mt-1 text-[13px] text-muted">
+      <p className="text-body-sm leading-5 text-muted">
         {t.skills.createLocalDescription}
       </p>
 
-      <div className="mt-5 space-y-4">
+      <div className="space-y-4">
         <div>
           <label
-            className="block text-[13px] font-medium text-primary"
+            className="block text-body-sm font-medium text-primary"
             htmlFor="skill-file-path"
           >
             {t.skills.skillFilePath}
@@ -382,15 +393,16 @@ function CreateLocalTab({
           <input
             aria-describedby="skill-file-path-hint"
             autoFocus
-            className="mt-1.5 h-10 w-full rounded-md border border-line-subtle bg-panel px-3 font-ui-mono text-[13px] outline-none focus:border-ring focus:ring-2 focus:ring-ring"
+            className={`${controlClassName} mt-1.5 font-ui-mono`}
             disabled={creating}
             id="skill-file-path"
             onChange={(event) => setLocalFilePath(event.target.value)}
             placeholder={t.skills.skillFilePathPlaceholder}
+            style={inputStyle}
             value={localFilePath}
           />
           <p
-            className="mt-1 text-[11px] text-dim"
+            className="mt-1 text-meta text-dim"
             id="skill-file-path-hint"
           >
             {t.skills.skillFilePathHint}
@@ -428,7 +440,7 @@ function ScopeSelector({
   return (
     <div
       aria-label={t.skills.installationScope}
-      className="mt-3 inline-flex rounded-lg border border-line-subtle bg-panel p-1"
+      className="inline-flex rounded-lg border border-line-subtle bg-panel p-1"
       role="radiogroup"
     >
       {(["project", "global"] as const).map((value) => (

@@ -234,7 +234,7 @@ function SessionRow({
           {title}
         </span>
         <span
-          className={`ml-2 min-w-0 max-w-28 flex-none truncate text-[10px] tabular-nums ${error && !confirming ? "text-destructive" : "text-dim"}`}
+          className={`ml-2 min-w-0 max-w-28 flex-none truncate text-caption tabular-nums ${error && !confirming ? "text-destructive" : "text-dim"}`}
           title={error && !confirming ? error : undefined}
         >
           {error && !confirming

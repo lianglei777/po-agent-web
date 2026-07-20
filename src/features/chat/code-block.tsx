@@ -17,10 +17,10 @@ export function CodeBlock({ code, language }: { code: string; language: string }
     document.documentElement.classList.contains("dark");
   return (
     <div className="my-3 overflow-hidden rounded-2xl border border-line-subtle bg-[var(--tool-bg)]">
-      <div className="flex h-8 items-center border-b border-line-subtle px-3 text-[10px] text-muted">
+      <div className="flex h-8 items-center border-b border-line-subtle px-3 text-caption text-muted">
         <span>{language}</span>
         <Button
-          className="ml-auto h-6 px-2 text-[10px]"
+          className="ml-auto h-6 px-2 text-caption"
           onClick={() => void copyText(code).then(() => {
             setCopied(true);
             window.setTimeout(() => setCopied(false), 1500);

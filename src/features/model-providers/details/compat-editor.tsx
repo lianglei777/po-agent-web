@@ -12,7 +12,7 @@ import {
   inputStyle,
   selectStyle,
   SettingsSection,
-} from "../form-ui";
+} from "@/components/ui/settings-form";
 import { mergeClasses } from "@/lib/utils";
 import { changeCompatValue } from "./compat-editor-state";
 
@@ -34,14 +34,14 @@ export function CompatEditor({
 
   return (
     <SettingsSection title={t.models.compatibility}>
-      <p className="px-4 py-3.5 text-[11px] leading-4 text-dim">
+      <p className="px-4 py-3.5 text-meta leading-4 text-dim">
         {fields.length
           ? t.models.compatibilityDescription
           : t.models.compatibilityUnavailable}
       </p>
       {fields.length > 0 && (
         <details className="border-t border-line-subtle">
-          <summary className="cursor-pointer px-3 py-2 text-[12px] text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <summary className="cursor-pointer px-3 py-2 text-xs text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {t.models.compatibilitySettings} · {api}
           </summary>
           <div className="grid gap-3 border-t border-line-subtle bg-subtle p-4 sm:grid-cols-2">
@@ -181,7 +181,7 @@ function JsonCompatField({
         }}
       />
       {invalid && (
-        <span className="text-[11px] text-destructive">
+        <span className="text-meta text-destructive">
           {t.models.invalidJsonObject}
         </span>
       )}

@@ -86,7 +86,7 @@ export function FileTree({
 
   return (
     <section className="flex min-h-0 flex-1 flex-col bg-panel">
-      <div className="flex h-9 flex-none items-center border-b border-line-subtle px-2 text-[11px] font-medium text-muted">
+      <div className="flex h-9 flex-none items-center border-b border-line-subtle px-2 text-meta font-medium text-muted">
         <span className="flex-1">{t.files.explorer}</span>
         <Button
           aria-label={t.files.refreshFiles}
@@ -101,7 +101,7 @@ export function FileTree({
       </div>
       <ScrollArea className="min-h-0 flex-1">
         {error ? (
-          <div className="p-3 text-[11px] text-destructive">
+          <div className="p-3 text-meta text-destructive">
             <p>{error}</p>
             <Button
               className="mt-2"
@@ -158,7 +158,7 @@ function FileNodes({
   depth?: number;
 }) {
   if (!entries.length) {
-    return <div className="px-4 py-2 text-[10px] text-dim">{text.empty}</div>;
+    return <div className="px-4 py-2 text-caption text-dim">{text.empty}</div>;
   }
 
   return entries.map((entry) => {
@@ -175,7 +175,7 @@ function FileNodes({
       <div key={path}>
         <div
           aria-label={entry.name}
-          className="group flex h-6 cursor-pointer items-center rounded-sm px-1 text-[11px] hover:bg-hover focus-within:bg-selected focus-within:text-primary"
+          className="group flex h-6 cursor-pointer items-center rounded-sm px-1 text-meta hover:bg-hover focus-within:bg-selected focus-within:text-primary"
           onClick={() =>
             entry.isDir ? void onToggle(path) : onOpenFile(path, entry.name)
           }
@@ -224,7 +224,7 @@ function FileNodes({
         {entry.isDir && isExpanded ? (
           loading.has(path) ? (
             <div
-              className="h-6 text-[10px] text-dim"
+              className="h-6 text-caption text-dim"
               style={{ paddingLeft: `${20 + depth * 14}px` }}
             >
               {text.loading}

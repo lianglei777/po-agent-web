@@ -44,8 +44,6 @@ describe("buildModelDiscoverySuggestions", () => {
     expect(result).toEqual({
       models: [
         {
-          source: "inferred",
-          confidence: "medium",
           verification: "unverified",
           model: {
             id: "gpt-4.1",
@@ -59,13 +57,11 @@ describe("buildModelDiscoverySuggestions", () => {
           },
         },
         {
-          source: "defaulted",
-          confidence: "low",
           verification: "unverified",
           model: {
             id: "provider-new-model",
             name: "provider-new-model",
-            reasoning: false,
+            reasoning: true,
             input: ["text"],
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
             contextWindow: 128000,
@@ -108,8 +104,6 @@ describe("buildModelDiscoverySuggestions", () => {
 
     expect(result.models).toEqual([
       {
-        source: "catalog",
-        confidence: "high",
         verification: "unverified",
         model: {
           id: "gpt-4.1",

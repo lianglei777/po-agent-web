@@ -72,6 +72,7 @@ export function ModelProviderSidebar({
       <div className="flex-1 overflow-y-auto px-1.5 py-2">
         <Button
           type="button"
+          variant="outline"
           className="mb-1.5 w-full"
           onClick={onAddProvider}
         >
@@ -95,7 +96,7 @@ export function ModelProviderSidebar({
               }
             >
               <ProviderIcon id={provider.id} size={16} />
-              <span className="truncate text-[12px] text-primary">
+              <span className="truncate text-xs text-primary">
                 {provider.name}
               </span>
             </NavButton>
@@ -148,11 +149,11 @@ export function ModelProviderSidebar({
                       onSelect({ type: "model", providerName, index })
                     }
                   >
-                    <span className="truncate text-[11px] text-muted">
+                    <span className="truncate text-meta text-muted">
                       {model.id}
                     </span>
                     {model.reasoning !== false && (
-                      <span className="ml-auto text-[11px] text-accent-deep">T</span>
+                      <span className="ml-auto text-meta text-accent-deep">T</span>
                     )}
                   </NavButton>
                 ))}
@@ -208,7 +209,7 @@ function ProviderNavRow({
         className="flex min-w-0 flex-1 items-center gap-[7px] rounded-md py-[5px] pr-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
       >
         <ServerIcon />
-        <span className="truncate font-ui-mono text-[12px] text-primary">
+        <span className="truncate font-ui-mono text-xs text-primary">
           {label}
         </span>
       </button>

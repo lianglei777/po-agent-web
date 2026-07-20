@@ -80,7 +80,7 @@ export function ModelProviderPage({
           />
           <main className="min-w-0 flex-1 overflow-y-auto px-6 py-6">
             {modelConfig.loadError ? (
-              <p className="text-[13px] text-destructive">
+              <p className="text-body-sm text-destructive">
                 {modelConfig.loadError}
               </p>
             ) : (
@@ -163,7 +163,7 @@ function ModelsConfigDetail({
 function EmptySelection() {
   const { t } = useI18n();
   return (
-    <div className="grid h-full place-items-center text-[13px] text-dim">
+    <div className="grid h-full place-items-center text-body-sm text-dim">
       {t.models.selectProviderOrModel}
     </div>
   );

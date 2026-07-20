@@ -34,17 +34,7 @@ export interface ModelDiscoveryRequest {
   };
 }
 
-export type ModelDiscoverySource =
-  | "catalog"
-  | "remote"
-  | "inferred"
-  | "defaulted";
-
-export type ModelDiscoveryConfidence = "high" | "medium" | "low";
-
 export interface ModelDiscoverySuggestion {
-  source: ModelDiscoverySource;
-  confidence: ModelDiscoveryConfidence;
   verification: "unverified";
   model: {
     id: string;

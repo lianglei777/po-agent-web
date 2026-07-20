@@ -17,14 +17,14 @@ export function SkillList({
   return (
     <div
       aria-label={t.skills.title}
-      className="min-h-0 flex-1 overflow-y-auto p-2"
+      className="min-h-0 flex-1 overflow-y-auto px-1.5 py-2"
       role="listbox"
     >
       {groupSkills(skills).map((group) => (
         <section aria-labelledby={`skill-group-${group.id}`} key={group.id}>
           <div className="px-2 pb-1 pt-3">
             <h3
-              className="text-[11px] font-semibold uppercase tracking-[0.12em] text-dim"
+              className="text-meta font-semibold uppercase tracking-[0.12em] text-dim"
               id={`skill-group-${group.id}`}
             >
               {group.id === "builtin"
@@ -39,12 +39,11 @@ export function SkillList({
             return (
               <button
                 aria-selected={selected}
-                className={`mb-1 flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
-                  selected ? "bg-selected" : "hover:bg-hover"
-                }`}
+                className="mb-0.5 flex w-full items-center gap-[7px] rounded-md py-[5px] pl-2 pr-2 text-left hover:bg-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
                 key={skill.skillId}
                 onClick={() => onSelect(skill.skillId)}
                 role="option"
+                style={{ background: selected ? "var(--bg-selected)" : undefined }}
                 type="button"
               >
                 <span
@@ -53,7 +52,7 @@ export function SkillList({
                       ? t.skills.manualInvocationOnly
                       : t.skills.modelInvocationAllowed
                   }
-                  className="mt-1 shrink-0"
+                  className="shrink-0"
                   role="img"
                   title={
                     skill.disableModelInvocation
@@ -70,9 +69,6 @@ export function SkillList({
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">
                     {skill.name}
-                  </span>
-                  <span className="block truncate text-xs text-muted">
-                    {skill.description || skill.displayPath}
                   </span>
                 </span>
               </button>

@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SectionTitle, inputStyle } from "../form-ui";
+import { SectionTitle, inputStyle } from "@/components/ui/settings-form";
 
 interface Props {
   provider: ApiKeyProvider;
@@ -77,7 +77,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
             }}
           />
           <span
-            className="text-[11px]"
+            className="text-meta"
             style={{
               color: provider.configured
                 ? "var(--success)"
@@ -90,7 +90,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
       </div>
 
       {/* Description */}
-      <p className="text-[13px] text-muted">
+      <p className="text-body-sm text-muted">
         {provider.configured
           ? t.models.apiKeyStored
           : `${t.models.enterApiKeyPrefix} ${provider.name} ${t.models.enterApiKeyMiddle} ${provider.modelCount} ${
@@ -115,34 +115,29 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
           }
           style={{ flex: 1 }}
         />
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleSave}
           disabled={saving || !apiKey.trim() || savedOk}
-          className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[12px] font-semibold text-primary-foreground"
-          style={{
-            background: savedOk
-              ? "var(--success)"
-              : apiKey.trim()
-                ? "var(--accent)"
-                : "var(--bg-panel)",
-            color:
-              apiKey.trim() || savedOk
-                ? "var(--primary-foreground)"
-                : "var(--text-dim)",
-            cursor:
-              saving || savedOk || !apiKey.trim()
-                ? "not-allowed"
-                : "pointer",
-          }}
           type="button"
+          style={
+            savedOk
+              ? {
+                  background: "var(--success)",
+                  borderColor: "var(--success)",
+                  color: "var(--primary-foreground)",
+                }
+              : undefined
+          }
         >
           {savedOk && <CheckIcon />}
           {savedOk ? t.common.saved : saving ? t.common.saving : t.common.save}
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <p className="text-[12px] text-destructive">
+        <p className="text-xs text-destructive">
           {error}
         </p>
       )}
@@ -224,6 +219,7 @@ function SecretTextInput({
 }) {
   const [userVisible, setUserVisible] = useState(false);
   const visible = userVisible && value !== "";
+  const { t } = useI18n();
 
   return (
     <div className="relative" style={style}>
@@ -238,14 +234,16 @@ function SecretTextInput({
         className="font-ui-mono"
         style={{ ...inputStyle, paddingRight: 34 }}
       />
-      <button
+      <Button
+        aria-label={visible ? t.models.hideApiKey : t.models.showApiKey}
+        className="absolute top-1/2 right-[5px] size-6 -translate-y-1/2 text-dim"
         onClick={() => setUserVisible((v) => !v)}
-        className="absolute top-1/2 right-[5px] flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center border-none bg-transparent p-0"
-        style={{ color: "var(--text-dim)" }}
+        size="icon-sm"
         type="button"
+        variant="ghost"
       >
         {visible ? <EyeOffIcon /> : <EyeIcon />}
-      </button>
+      </Button>
     </div>
   );
 }

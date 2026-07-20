@@ -1,6 +1,4 @@
 export type {
-  ModelDiscoveryConfidence,
-  ModelDiscoverySource,
   ModelDiscoverySuggestion,
   ModelInfo,
 } from "@/contracts/models";

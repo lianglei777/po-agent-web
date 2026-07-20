@@ -23,7 +23,7 @@ import {
   SettingsSection,
   inputStyle,
   selectStyle,
-} from "../form-ui";
+} from "@/components/ui/settings-form";
 import { CompatEditor } from "./compat-editor";
 import { changeEntryApi } from "./compat-editor-state";
 
@@ -130,6 +130,7 @@ export default function ProviderDetail({
                 onClick={() => onRename(name, editingName.trim())}
                 size="sm"
                 type="button"
+                variant="outline"
               >
                 {t.models.rename}
               </Button>
@@ -137,7 +138,7 @@ export default function ProviderDetail({
           </div>
         </SettingsRow>
 
-        <SettingsRow label={t.models.baseUrl}>
+        <SettingsRow label={t.models.baseUrl} contentMaxWidth={400}>
           <input
             value={provider.baseUrl ?? ""}
             onChange={(e) => onChange({ ...provider, baseUrl: e.target.value })}
@@ -147,7 +148,7 @@ export default function ProviderDetail({
           />
         </SettingsRow>
 
-        <SettingsRow label={t.models.apiKey}>
+        <SettingsRow label={t.models.apiKey} contentMaxWidth={400}>
           <SecretTextInput
             value={provider.apiKey ?? ""}
             onChange={(v) => onChange({ ...provider, apiKey: v })}
@@ -284,7 +285,7 @@ function ModelDiscoveryPanel({
     <SettingsSection title={t.models.modelList}>
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="min-w-0">
-          <p className="max-w-[62ch] text-[11px] leading-4 text-dim">
+          <p className="max-w-[62ch] text-meta leading-4 text-dim">
             {t.models.discoverModelsDescription}
           </p>
         </div>
@@ -294,13 +295,14 @@ function ModelDiscoveryPanel({
           onClick={() => onDiscoverModels(providerName)}
           size="sm"
           type="button"
+          variant="outline"
         >
           {discovering ? t.models.discoveringModels : t.models.fetchModelList}
         </Button>
       </div>
 
       {relevant?.phase === "error" && (
-        <p className="border-t border-line-subtle px-4 py-3 text-[12px] text-destructive">
+        <p className="border-t border-line-subtle px-4 py-3 text-xs text-destructive">
           {relevant.message}
         </p>
       )}
@@ -308,12 +310,12 @@ function ModelDiscoveryPanel({
       {relevant?.phase === "result" && (
         <div className="space-y-2 border-t border-line-subtle px-4 py-3.5">
           {relevant.remoteError && (
-            <p className="text-[12px] text-dim">
+            <p className="text-xs text-dim">
               {t.models.remoteDiscoveryFailed}: {relevant.remoteError}
             </p>
           )}
           {newSuggestions.length === 0 ? (
-            <p className="text-[12px] text-dim">
+            <p className="text-xs text-dim">
               {existingHiddenCount > 0
                 ? t.models.allDiscoveredModelsExist
                 : t.models.noDiscoveredModels}
@@ -321,7 +323,7 @@ function ModelDiscoveryPanel({
           ) : (
             <>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[12px] text-dim">
+                <span className="text-xs text-dim">
                   {t.models.selectedCount} {selectedSuggestions.length} /{" "}
                   {newSuggestions.length}
                 </span>
@@ -351,7 +353,7 @@ function ModelDiscoveryPanel({
                         className="h-[13px] w-[13px] cursor-pointer"
                         style={{ accentColor: "var(--accent)" }}
                       />
-                      <span className="min-w-0 flex-1 truncate font-ui-mono text-[11px] text-primary">
+                      <span className="min-w-0 flex-1 truncate font-ui-mono text-meta text-primary">
                         {suggestion.model.id}
                       </span>
                     </label>
@@ -360,12 +362,11 @@ function ModelDiscoveryPanel({
               </div>
               <div className="flex items-center justify-end gap-3">
                 {existingHiddenCount > 0 && (
-                  <span className="mr-auto text-[11px] text-dim">
+                  <span className="mr-auto text-meta text-dim">
                     {existingHiddenCount} {t.models.existingHidden}
                   </span>
                 )}
                 <Button
-                  className="text-muted"
                   disabled={selectedSuggestions.length === 0}
                   onClick={() => {
                     onAcceptDiscoveredModels(providerName, selectedSuggestions);

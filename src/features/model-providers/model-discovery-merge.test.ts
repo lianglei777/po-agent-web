@@ -14,14 +14,10 @@ describe("mergeDiscoveredModels", () => {
     };
     const suggestions: ModelDiscoverySuggestion[] = [
       {
-        source: "remote",
-        confidence: "medium",
         verification: "unverified",
         model: { id: "existing", name: "Existing" },
       },
       {
-        source: "defaulted",
-        confidence: "low",
         verification: "unverified",
         model: {
           id: "new-model",
@@ -45,7 +41,6 @@ describe("mergeDiscoveredModels", () => {
                 thinkingDefaultLevel: "high",
                 contextWindow: 128000,
                 maxTokens: 16384,
-                provenance: { source: "defaulted", confidence: "low" },
               },
             ],
           },
@@ -62,14 +57,10 @@ describe("mergeDiscoveredModels", () => {
     };
     const suggestions: ModelDiscoverySuggestion[] = [
       {
-        source: "remote",
-        confidence: "medium",
         verification: "unverified",
         model: { id: "new-a" },
       },
       {
-        source: "remote",
-        confidence: "medium",
         verification: "unverified",
         model: { id: "new-b" },
       },
@@ -88,22 +79,20 @@ describe("mergeDiscoveredModels", () => {
     });
   });
 
-  it("enables reasoning by default for models with defaulted metadata", () => {
+  it("defaults thinkingDefaultLevel to high for reasoning models without one", () => {
     const result = mergeDiscoveredModels(
       { providers: { custom: {} } },
       "custom",
       [
         {
-          source: "defaulted",
-          confidence: "low",
           verification: "unverified",
-          model: { id: "unknown-model", reasoning: false },
+          model: { id: "reasoner-model", reasoning: true },
         },
       ],
     );
 
     expect(result.config.providers?.custom.models?.[0]).toMatchObject({
-      id: "unknown-model",
+      id: "reasoner-model",
       reasoning: true,
       thinkingDefaultLevel: "high",
     });
@@ -117,8 +106,6 @@ describe("mergeDiscoveredModels", () => {
     expect(
       mergeDiscoveredModels(config, "custom", [
         {
-          source: "remote",
-          confidence: "medium",
           verification: "unverified",
           model: { id: "existing" },
         },

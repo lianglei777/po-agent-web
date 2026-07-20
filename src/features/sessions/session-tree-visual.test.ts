@@ -40,7 +40,7 @@ describe("session tree destructive actions", () => {
     expect(sessionTreeSource).toContain('h-9 min-w-0');
     expect(sessionTreeSource).toContain('min-w-0 flex-1 truncate text-xs');
     expect(sessionTreeSource).toContain(
-      'ml-2 min-w-0 max-w-28 flex-none truncate text-[10px]',
+      'ml-2 min-w-0 max-w-28 flex-none truncate text-caption',
     );
     expect(sessionTreeSource).toContain("session.messageCount");
     expect(sessionTreeSource).toContain("max-w-28");

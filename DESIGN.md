@@ -65,7 +65,16 @@ Feature components consume semantic tokens or shared primitives. Do not introduc
 - Use the native system sans stack for all interface text, headings, navigation, forms, and chat prose.
 - Paths, code, compact metadata, model identifiers, and technical values use the mono stack.
 - Headings use weight 600 with restrained negative tracking; there is no decorative display serif.
-- Default UI text is 14px; compact code and technical metadata are generally 11–12px.
+- Font sizes use a semantic token scale — do not use arbitrary `text-[Npx]` values:
+  - `text-caption` (10px, lh 1.2) — badges, timestamps, micro labels
+  - `text-meta` (11px, lh 1.25) — technical metadata, section labels
+  - `text-xs` (12px) — sidebar items, compact values
+  - `text-body-sm` (13px, lh 1.4) — descriptions, secondary text
+  - `text-sm` (14px) — default UI text
+  - `text-prose` (15px, lh 1.5) — chat composer body
+  - `text-base` (16px) — body prose
+  - `text-lg` (18px) — section headings
+- Default UI text is 14px (`text-sm`); compact code and technical metadata use 11–12px (`text-meta`, `text-xs`).
 - Body prose should generally remain within 65–75 characters per line.
 
 ## Boundaries, shape, and elevation

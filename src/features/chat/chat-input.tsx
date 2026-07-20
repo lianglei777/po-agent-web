@@ -238,7 +238,7 @@ export function ChatInput({
           {running && agentPhase ? (
             <div
               aria-live="polite"
-              className="flex items-center gap-2 border-b border-line-subtle px-4 py-2 text-[11px] text-warning"
+              className="flex items-center gap-2 border-b border-line-subtle px-4 py-2 text-meta text-warning"
             >
               <span className="relative flex size-2">
                 <span className="absolute inline-flex size-full rounded-full bg-warning/35 motion-safe:animate-ping" />
@@ -279,7 +279,7 @@ export function ChatInput({
           {/* 文字输入 textarea */}
           <Textarea
             aria-label={t.chat.input.messageLabel}
-            className="min-h-[72px] max-h-[220px] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-5 pt-4 pb-2 text-[15px] leading-[1.6] shadow-none placeholder:text-dim focus-visible:border-0 focus-visible:ring-0"
+            className="min-h-[72px] max-h-[220px] resize-none overflow-y-auto rounded-none border-0 bg-transparent px-5 pt-4 pb-2 text-prose leading-[1.6] shadow-none placeholder:text-dim focus-visible:border-0 focus-visible:ring-0"
             onChange={(event) => {
               setDraft(event.target.value);
               resizeTextarea();
@@ -444,7 +444,7 @@ export function ChatInput({
             )}
           </div>
         </div>
-        <p className="mt-2 text-center text-[11px] leading-5 text-dim">
+        <p className="mt-2 text-center text-meta leading-5 text-dim">
           {t.chat.input.disclaimer}
         </p>
       </div>

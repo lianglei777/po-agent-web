@@ -6,7 +6,7 @@ import { mergeClasses } from "@/lib/utils";
 
 export function SectionTitle({ children }: { children: ReactNode }) {
   return (
-    <div className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-dim">
+    <div className="mb-0.5 text-meta font-semibold uppercase tracking-[0.06em] text-dim">
       {children}
     </div>
   );
@@ -21,7 +21,7 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-medium text-muted">{label}</label>
+      <label className="text-meta font-medium text-muted">{label}</label>
       {children}
     </div>
   );
@@ -38,7 +38,7 @@ export function SettingsSection({
 }) {
   return (
     <section className={mergeClasses("flex flex-col gap-2.5", className)}>
-      <h2 className="px-0.5 text-[13px] font-semibold text-primary">
+      <h2 className="px-0.5 text-body-sm font-semibold text-primary">
         {title}
       </h2>
       <Card className="overflow-hidden rounded-xl border-line-subtle bg-elevated">
@@ -53,28 +53,36 @@ export function SettingsRow({
   description,
   children,
   align = "center",
+  contentMaxWidth = 250,
 }: {
   label: ReactNode;
   description?: ReactNode;
   children: ReactNode;
   align?: "center" | "start";
+  contentMaxWidth?: number;
 }) {
   return (
     <div
       className={mergeClasses(
-        "grid grid-cols-[minmax(160px,1fr)_minmax(200px,250px)] gap-6 border-t border-line-subtle px-4 py-3.5 first:border-t-0",
+        "grid gap-6 border-t border-line-subtle px-4 py-3.5 first:border-t-0",
         align === "center" ? "items-center" : "items-start",
       )}
+      style={{
+        gridTemplateColumns: `minmax(160px,1fr) minmax(200px,${contentMaxWidth}px)`,
+      }}
     >
       <div className="min-w-0">
-        <div className="text-[12px] font-medium text-primary">{label}</div>
+        <div className="text-xs font-medium text-primary">{label}</div>
         {description && (
-          <p className="mt-1 max-w-[54ch] text-[11px] leading-4 text-dim">
+          <p className="mt-1 max-w-[54ch] text-meta leading-4 text-dim">
             {description}
           </p>
         )}
       </div>
-      <div className="min-w-0 w-full max-w-[250px] justify-self-end">
+      <div
+        className="min-w-0 w-full justify-self-end"
+        style={{ maxWidth: contentMaxWidth }}
+      >
         {children}
       </div>
     </div>

@@ -302,7 +302,7 @@ function AssistantTurnView({
   return (
     <div>
       <div
-        className="mb-2 text-[11px] font-medium text-dim"
+        className="mb-2 text-meta font-medium text-dim"
         title={
           identityMessage?.provider && identityMessage.model
             ? `${identityMessage.provider}:${identityMessage.model}`
@@ -346,11 +346,11 @@ function AssistantTurnView({
                   <summary className="cursor-pointer text-xs font-medium text-muted hover:text-primary">
                     {t.chat.error.technicalDetails}
                   </summary>
-                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-2xl border border-line-subtle bg-[var(--tool-bg)] p-2 font-ui-mono text-[11px] text-muted">
+                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-2xl border border-line-subtle bg-[var(--tool-bg)] p-2 font-ui-mono text-meta text-muted">
                     {error.technicalMessage}
                   </pre>
                   <Button
-                    className="mt-2 h-7 px-2 text-[10px]"
+                    className="mt-2 h-7 px-2 text-caption"
                     onClick={() =>
                       void copyText(error.technicalMessage ?? "").then(() => {
                         setErrorCopied(true);
@@ -380,7 +380,7 @@ function AssistantTurnView({
       ) : null}
 
       {!turn.streaming ? (
-        <div className="mt-2 flex min-h-7 items-center gap-2 text-[10px] text-dim opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="mt-2 flex min-h-7 items-center gap-2 text-caption text-dim opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
           {/*  copy button */}
           {text ? (
             <SmallAction
@@ -497,7 +497,7 @@ function ExecutionStep({
           title={summary ? `${block.toolName} ${summary}` : block.toolName}
         >
           <GitBranch className="size-3.5 text-muted" />
-          <span className="min-w-0 truncate font-ui-mono text-[11px] text-muted">
+          <span className="min-w-0 truncate font-ui-mono text-meta text-muted">
             <span className="font-medium text-primary">{block.toolName}</span>
             {summary ? ` ${summary}` : ""}
           </span>
@@ -511,7 +511,7 @@ function ExecutionStep({
           </Badge>
           <ChevronRight className={styles.stepChevron} />
         </summary>
-        <pre className="max-h-[400px] overflow-auto border-t border-line-subtle bg-[var(--tool-bg)] px-3 py-2.5 font-ui-mono text-[11px] leading-[1.65] whitespace-pre-wrap text-muted">
+        <pre className="max-h-[400px] overflow-auto border-t border-line-subtle bg-[var(--tool-bg)] px-3 py-2.5 font-ui-mono text-meta leading-[1.65] whitespace-pre-wrap text-muted">
           {JSON.stringify(block.input, null, 2)}
           {"\n\n"}
           {result ? resultText(result, t) : t.chat.message.waitingForOutput}
@@ -529,14 +529,14 @@ function ExecutionStep({
     <details className={styles.stepDetails}>
       <summary className={styles.stepSummary}>
         <span className="size-1.5 justify-self-center rounded-full bg-line-strong" />
-        <span className="min-w-0 truncate text-[11px] text-muted">
+        <span className="min-w-0 truncate text-meta text-muted">
           <span className="font-medium text-primary">{label}</span>
           {content ? ` ${firstLine(content, 100)}` : ""}
         </span>
         <span />
         <ChevronRight className={styles.stepChevron} />
       </summary>
-      <div className="border-t border-line-subtle bg-[var(--tool-bg)] px-3 py-2.5 text-[11px] leading-[1.65] whitespace-pre-wrap text-muted">
+      <div className="border-t border-line-subtle bg-[var(--tool-bg)] px-3 py-2.5 text-meta leading-[1.65] whitespace-pre-wrap text-muted">
         {block.type === "text" ? <Markdown text={content} /> : content}
       </div>
     </details>
@@ -637,7 +637,7 @@ function SmallAction({
   return (
     <Button
       aria-label={label}
-      className="h-7 gap-1 px-2 text-[10px]"
+      className="h-7 gap-1 px-2 text-caption"
       disabled={disabled}
       onClick={onClick}
       size="sm"

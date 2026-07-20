@@ -1,7 +1,6 @@
 import type {
   ConfiguredThinkingLevel,
   ModelEntry,
-  ModelDiscoverySource,
 } from "../types";
 
 const CONFIGURED_THINKING_LEVELS: ConfiguredThinkingLevel[] = [
@@ -11,16 +10,6 @@ const CONFIGURED_THINKING_LEVELS: ConfiguredThinkingLevel[] = [
   "high",
   "xhigh",
 ];
-
-export function shouldDisplaySourceBadge(source?: ModelDiscoverySource) {
-  return source !== undefined && source !== "inferred";
-}
-
-export function shouldLockDiscoveredCapabilities(
-  source?: ModelDiscoverySource,
-) {
-  return source === "catalog";
-}
 
 export function isReasoningCapabilityEnabled(model: ModelEntry) {
   return model.reasoning !== false;
@@ -48,10 +37,4 @@ export function getDefaultThinkingOnLevel(
   }
   if (levels.includes("high")) return "high";
   return levels.find((level) => level !== "xhigh") ?? levels[0] ?? null;
-}
-
-export function getSourceTone(source?: ModelDiscoverySource) {
-  if (source === "catalog" || source === "inferred") return "known";
-  if (source === "remote") return "partial";
-  return "unknown";
 }

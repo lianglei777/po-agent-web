@@ -106,7 +106,7 @@ export function WorkspaceSidebar({
               type="button"
               variant="ghost"
             >
-              <span className="font-ui-mono text-[10px] font-semibold">
+              <span className="font-ui-mono text-caption font-semibold">
                 {locale === "zh" ? "中" : "EN"}
               </span>
             </Button>

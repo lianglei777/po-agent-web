@@ -227,7 +227,7 @@ export function SessionSidebar({
 
   return (
     <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex h-8 flex-none items-center gap-1 px-2 text-[11px] font-medium text-muted">
+      <div className="flex h-8 flex-none items-center gap-1 px-2 text-meta font-medium text-muted">
         <span className="flex-1">{t.workspace.projects}</span>
         <ProjectPicker onSelect={(cwd) => void handleProjectSelected(cwd)} />
         <Tooltip>
@@ -251,7 +251,7 @@ export function SessionSidebar({
       </div>
 
       {projectError ? (
-        <p className="px-2 py-1 text-[11px] text-destructive">
+        <p className="px-2 py-1 text-meta text-destructive">
           {projectError}
         </p>
       ) : null}
@@ -270,7 +270,7 @@ export function SessionSidebar({
             <Skeleton className="h-14 w-[72%]" />
           </div>
         ) : error ? (
-          <div className="p-3 text-[11px] text-destructive">
+          <div className="p-3 text-meta text-destructive">
             <p>{error}</p>
             <Button
               className="mt-2"
@@ -293,7 +293,7 @@ export function SessionSidebar({
                   <div className="group flex items-center px-1">
                     <Button
                       aria-expanded={expanded}
-                      className="h-8 min-w-0 flex-1 justify-start gap-1.5 px-1 text-[11px]"
+                      className="h-8 min-w-0 flex-1 justify-start gap-1.5 px-1 text-meta"
                       onClick={() => selectProject(group.cwd)}
                       title={group.cwd}
                       type="button"
@@ -325,7 +325,7 @@ export function SessionSidebar({
                         >
                           <div>
                             <div>{t.sessions.removeProject}</div>
-                            <div className="text-[10px] text-dim">
+                            <div className="text-caption text-dim">
                               {t.sessions.removeProjectDescription}
                             </div>
                           </div>
@@ -351,7 +351,7 @@ export function SessionSidebar({
                         />
                       </div>
                     ) : (
-                      <div className="px-7 py-2 text-[10px] text-dim">
+                      <div className="px-7 py-2 text-caption text-dim">
                         {t.sessions.noSessions}
                       </div>
                     )
@@ -361,7 +361,7 @@ export function SessionSidebar({
             })}
           </div>
         ) : (
-          <div className="space-y-2 p-4 text-center text-[11px] text-dim">
+          <div className="space-y-2 p-4 text-center text-meta text-dim">
             <p>{t.sessions.noProjects}</p>
             <ProjectPicker
               onSelect={(cwd) => void handleProjectSelected(cwd)}

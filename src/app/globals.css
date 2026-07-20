@@ -42,6 +42,15 @@
   --radius-lg: 12px;
   --font-ui-mono: var(--font-noto-mono), "JetBrains Mono", "Fira Code",
     Consolas, ui-monospace, "PingFang SC", "Microsoft YaHei", monospace;
+  /* 字号 token — 生成 text-caption / text-meta / text-body-sm / text-prose 工具类 */
+  --text-caption: var(--fs-caption);
+  --text-caption--line-height: 1.2;
+  --text-meta: var(--fs-meta);
+  --text-meta--line-height: 1.25;
+  --text-body-sm: var(--fs-body-sm);
+  --text-body-sm--line-height: 1.4;
+  --text-prose: var(--fs-prose);
+  --text-prose--line-height: 1.5;
 }
 
 :root {
@@ -59,6 +68,11 @@
   --text: #1a1c1f;
   --text-muted: #62666d;
   --text-dim: #8b9098;
+  /* 字号 token — 扩展 Tailwind 默认刻度，补充项目所需的中间值 */
+  --fs-caption: 10px;
+  --fs-meta: 11px;
+  --fs-body-sm: 13px;
+  --fs-prose: 15px;
   --accent: #339cff;
   --accent-hover: #1689f5;
   --accent-deep: #0670d3;

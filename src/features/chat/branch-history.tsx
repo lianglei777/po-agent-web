@@ -38,7 +38,7 @@ export function BranchHistory({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          className="h-7 gap-1.5 px-2 text-[11px]"
+          className="h-7 gap-1.5 px-2 text-meta"
           size="sm"
           type="button"
           variant="outline"

@@ -357,7 +357,7 @@ export function ChatMinimap({
 
             return (
               <div
-                className="pointer-events-none absolute right-full z-[100] mr-1.5 w-[200px] rounded border-y border-r bg-panel px-[7px] text-[11px] leading-[18px] transition-[top,opacity]"
+                className="pointer-events-none absolute right-full z-[100] mr-1.5 w-[200px] rounded border-y border-r bg-panel px-[7px] text-meta leading-[18px] transition-[top,opacity]"
                 key={`${node.id}-tooltip`}
                 style={{
                   borderLeftColor: roleBorder,

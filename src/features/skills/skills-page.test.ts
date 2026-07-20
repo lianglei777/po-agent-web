@@ -23,10 +23,10 @@ describe("Skills page", () => {
     expect(source).toContain("skills.diagnostics");
   });
 
-  it("delegates removal confirmation to a dedicated dialog component", () => {
-    expect(source).toContain("ConfirmRemoveDialog");
+  it("delegates removal to the detail component with inline confirmation", () => {
     expect(source).toContain("skills.removeSkill()");
     expect(source).toContain("skills.removingSkillId");
+    expect(source).not.toContain("ConfirmRemoveDialog");
   });
 
   it("provides Skills and Skill Packs views", () => {
@@ -35,7 +35,6 @@ describe("Skills page", () => {
     expect(source).toContain("useSkillPacks(cwd)");
     expect(source).toContain("SkillPackList");
     expect(source).toContain("SkillPackDetail");
-    expect(source).toContain("ConfirmSkillPackDialog");
     expect(source).toContain("AddSkillPackDialog");
     expect(source).toContain("bg-selected text-foreground");
   });
@@ -57,7 +56,7 @@ describe("Skills page", () => {
 
   it("shares the Codex-style settings rail hierarchy", () => {
     expect(source).toContain('w-[224px]');
-    expect(source).toContain('border-line-subtle bg-panel');
+    expect(source).toContain('border-line-subtle');
     expect(source).toContain('className="flex min-h-0 min-w-0 flex-1 flex-col bg-canvas"');
   });
 });

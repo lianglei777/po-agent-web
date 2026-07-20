@@ -1259,15 +1259,6 @@ Content-Type: application/json
 }
 ```
 
-`source` 可能是：
-
-| source | 说明 |
-| --- | --- |
-| `catalog` | 直接来自 Pi SDK 内置模型目录 |
-| `remote` | 来自远程发现，未使用目录补齐 |
-| `inferred` | 远程发现模型 ID 后，用内置目录补齐参数 |
-| `defaulted` | 远程发现模型 ID 后，使用保守默认参数 |
-
 `remoteError` 只表示远程发现失败；如果内置目录仍能给出建议，响应仍可包含 `models`。
 
 `verification` 当前固定为 `unverified`。Discover 只发现候选模型和补齐目录元数据，

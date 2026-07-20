@@ -12,12 +12,10 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/use-i18n";
 import { AddSkillPanel } from "./add-skill-panel";
 import { AddSkillPackDialog } from "./add-skill-pack-dialog";
-import { ConfirmRemoveDialog } from "./confirm-remove-dialog";
-import { ConfirmSkillPackDialog } from "./confirm-skill-pack-dialog";
 import { SkillDetail } from "./skill-detail";
 import { SkillList } from "./skill-list";
 import { SkillPackDetail } from "./skill-pack-detail";
-import { SkillPackList, packCopy } from "./skill-pack-list";
+import { SkillPackList } from "./skill-pack-list";
 import { findOwningSkillPack } from "./skill-state";
 import { useSkillPacks } from "./use-skill-packs";
 import { useSkills } from "./use-skills";
@@ -26,11 +24,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
   const [adding, setAdding] = useState(false);
   const [addingPack, setAddingPack] = useState(false);
   const [view, setView] = useState<"skills" | "packs">("skills");
-  const [removeTarget, setRemoveTarget] = useState<string | null>(null);
   const [removeSuccess, setRemoveSuccess] = useState<string | null>(null);
-  const [packOperation, setPackOperation] = useState<
-    "install" | "remove" | null
-  >(null);
   const [packSuccess, setPackSuccess] = useState<string | null>(null);
   const skills = useSkills(cwd);
   const packs = useSkillPacks(cwd);
@@ -52,31 +46,34 @@ export function SkillsPage({ cwd }: { cwd: string }) {
     document.getElementById(`skills-${next}-tab`)?.focus();
   }
 
-  async function handleRemoveConfirm() {
+  async function handleRemove() {
     if (!skills.selectedSkill) return;
     const skillName = skills.selectedSkill.name;
+    setRemoveSuccess(null);
     const ok = await skills.removeSkill();
     if (ok) {
       setRemoveSuccess(`${t.skills.removed} ${skillName}.`);
     }
-    setRemoveTarget(null);
   }
 
-  async function handlePackConfirm(scope: "global" | "project") {
-    if (!packs.selectedPack || !packOperation) return;
-    const ok =
-      packOperation === "install"
-        ? await packs.install(packs.selectedPack.packId, scope)
-        : await packs.remove(packs.selectedPack.packId);
+  async function handlePackInstall(scope: "global" | "project") {
+    if (!packs.selectedPack) return;
+    setPackSuccess(null);
+    const ok = await packs.install(packs.selectedPack.packId, scope);
     if (ok) {
-      setPackSuccess(
-        packOperation === "install"
-          ? t.skills.packs.installedSuccess
-          : t.skills.packs.removedSuccess,
-      );
+      setPackSuccess(t.skills.packs.installedSuccess);
       void skills.refresh();
     }
-    setPackOperation(null);
+  }
+
+  async function handlePackRemove() {
+    if (!packs.selectedPack) return;
+    setPackSuccess(null);
+    const ok = await packs.remove(packs.selectedPack.packId);
+    if (ok) {
+      setPackSuccess(t.skills.packs.removedSuccess);
+      void skills.refresh();
+    }
   }
 
   async function handlePackLifecycle(operation: "update" | "repair") {
@@ -114,7 +111,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
 
   return (
     <div className="flex min-h-0 flex-1 bg-canvas">
-      <aside className="flex min-h-0 w-[224px] shrink-0 flex-col border-r border-line-subtle bg-panel">
+      <aside className="flex min-h-0 w-[224px] shrink-0 flex-col border-r border-line-subtle">
         <div className="grid grid-cols-2 gap-1 border-b border-line p-2" role="tablist">
           {(["skills", "packs"] as const).map((tab) => (
             <Button
@@ -250,7 +247,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
                   </span>
                   <span>{diagnostic.message}</span>
                   {diagnostic.path ? (
-                    <span className="mt-0.5 block break-all font-ui-mono text-[11px] text-dim">
+                    <span className="mt-0.5 block break-all font-ui-mono text-meta text-dim">
                       {diagnostic.path}
                     </span>
                   ) : null}
@@ -308,14 +305,8 @@ export function SkillsPage({ cwd }: { cwd: string }) {
           packs.selectedPack ? (
             <SkillPackDetail
               busy={packBusy}
-              onInstall={() => {
-                setPackSuccess(null);
-                setPackOperation("install");
-              }}
-              onRemove={() => {
-                setPackSuccess(null);
-                setPackOperation("remove");
-              }}
+              onInstall={(scope) => void handlePackInstall(scope)}
+              onRemove={() => void handlePackRemove()}
               onRepair={() => void handlePackLifecycle("repair")}
               onUpdate={() => void handlePackLifecycle("update")}
               pack={packs.selectedPack}
@@ -339,10 +330,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
           />
         ) : skills.selectedSkill ? (
           <SkillDetail
-            onRemove={() => {
-              setRemoveSuccess(null);
-              setRemoveTarget(skills.selectedSkill!.skillId);
-            }}
+            onRemove={() => void handleRemove()}
             onToggle={() => void skills.toggleModelInvocation()}
             onViewPack={
               selectedSkillOwnerPack
@@ -363,24 +351,6 @@ export function SkillsPage({ cwd }: { cwd: string }) {
         )}
       </main>
 
-      <ConfirmRemoveDialog
-        onClose={() => setRemoveTarget(null)}
-        onConfirm={() => void handleRemoveConfirm()}
-        open={removeTarget !== null}
-        removing={removing}
-        skillName={skills.selectedSkill?.name ?? ""}
-      />
-      <ConfirmSkillPackDialog
-        busy={packBusy}
-        onClose={() => setPackOperation(null)}
-        onConfirm={(scope) => void handlePackConfirm(scope)}
-        operation={packOperation}
-        packName={
-          packs.selectedPack
-            ? packCopy(packs.selectedPack).name
-            : ""
-        }
-      />
       <AddSkillPackDialog
         busy={packs.mutation?.operation === "install-source"}
         onClose={() => setAddingPack(false)}

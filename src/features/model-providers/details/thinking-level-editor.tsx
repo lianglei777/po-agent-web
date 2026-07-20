@@ -64,11 +64,11 @@ export default function ThinkingLevelMapEditor({ value, onChange }: Props) {
   return (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-medium text-muted">Thinking level map</span>
+        <span className="text-meta font-medium text-muted">Thinking level map</span>
         {Object.keys(map).length > 0 && (
           <button
             onClick={() => onChange(undefined)}
-            className="cursor-pointer border-none bg-transparent text-[10px] text-dim hover:text-primary"
+            className="cursor-pointer border-none bg-transparent text-caption text-dim hover:text-primary"
             type="button"
           >
             Clear all
@@ -104,7 +104,7 @@ export default function ThinkingLevelMapEditor({ value, onChange }: Props) {
                 }}
               />
               <span
-                className="font-ui-mono text-[11px]"
+                className="font-ui-mono text-meta"
                 style={{
                   color: state === "null" ? "var(--text-dim)" : "var(--text-muted)",
                   textDecoration: state === "null" ? "line-through" : "none",
@@ -168,7 +168,7 @@ export default function ThinkingLevelMapEditor({ value, onChange }: Props) {
                 }}
                 placeholder={level}
                 maxLength={10}
-                className="border-none font-ui-mono text-[11px] transition-[background,color] duration-[var(--motion-fast)] outline-none"
+                className="border-none font-ui-mono text-meta transition-[background,color] duration-[var(--motion-fast)] outline-none"
                 style={{
                   width: "12ch",
                   background: state === "string" ? "var(--bg)" : "var(--bg-panel)",

@@ -72,7 +72,7 @@ function DropdownMenuLabel({
   return (
     <DropdownMenuPrimitive.Label
       className={mergeClasses(
-        "px-2 py-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase",
+        "px-2 py-1.5 text-caption font-semibold tracking-wide text-muted-foreground uppercase",
         inset && "pl-8",
         className,
       )}

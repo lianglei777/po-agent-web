@@ -16,7 +16,6 @@ import {
   API_OPTIONS,
   type ConfiguredThinkingLevel,
   type ModelEntry,
-  type ModelDiscoverySource,
   type ModelsJson,
   type ModelTestState,
   type ModelDiagnostic,
@@ -29,14 +28,11 @@ import {
   SettingsSection,
   inputStyle,
   selectStyle,
-} from "../form-ui";
+} from "@/components/ui/settings-form";
 import {
   getDefaultThinkingOnLevel,
-  getSourceTone,
   getSupportedConfiguredThinkingLevels,
   isReasoningCapabilityEnabled,
-  shouldDisplaySourceBadge,
-  shouldLockDiscoveredCapabilities,
 } from "./model-detail-state";
 import { CompatEditor } from "./compat-editor";
 import {
@@ -76,9 +72,7 @@ export default function ModelDetail({
   );
   const provider = config.providers?.[providerName];
   const effectiveApi = getEffectiveApi(provider?.api, model.api);
-  const source = model.provenance?.source;
   const hasImageInput = model.input?.includes("image") ?? false;
-  const capabilitiesLocked = shouldLockDiscoveredCapabilities(source);
   const supportedThinkingLevels = getSupportedConfiguredThinkingLevels(model);
   const defaultThinkingLevel = getDefaultThinkingOnLevel(model);
   const reasoningEnabled = isReasoningCapabilityEnabled(model);
@@ -259,7 +253,7 @@ export default function ModelDetail({
       <SettingsSection title={t.models.general}>
         <SettingsRow label={t.models.id}>
           <div
-            className="flex min-h-8 items-center gap-2 rounded border px-2.5 text-[12px]"
+            className="flex min-h-8 items-center gap-2 rounded border px-2.5 text-xs"
             style={{
               background: "var(--bg-subtle)",
               borderColor: "var(--border-strong)",
@@ -269,15 +263,15 @@ export default function ModelDetail({
             <span className="min-w-0 flex-1 truncate font-ui-mono">
               {model.id}
             </span>
-            <SourceBadge source={source} />
-            <button
-              className="rounded px-1.5 py-0.5 text-[11px] text-muted hover:bg-hover hover:text-primary"
+            <Button
+              variant="ghost"
+              size="sm"
               disabled={!model.id}
               onClick={() => void copyModelId()}
               type="button"
             >
               {copied ? t.models.copied : t.models.copyId}
-            </button>
+            </Button>
           </div>
         </SettingsRow>
         <SettingsRow label={t.models.name}>
@@ -301,7 +295,7 @@ export default function ModelDetail({
             {testSummary && (
               <span
                 title={testSummary}
-                className="inline-flex h-6 max-w-[160px] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2 text-[11px]"
+                className="inline-flex h-6 max-w-[160px] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded border px-2 text-meta"
                 style={{
                   borderColor: testBorderColor,
                   background: testBgColor,
@@ -335,7 +329,6 @@ export default function ModelDetail({
         <SettingsRow label={t.models.imageInput}>
           <CapabilityToggle
             checked={hasImageInput}
-            disabled={capabilitiesLocked}
             label={t.models.imageInput}
             onChange={(checked) =>
               onChange({
@@ -343,13 +336,11 @@ export default function ModelDetail({
                 input: checked ? ["text", "image"] : ["text"],
               })
             }
-            source={source}
           />
         </SettingsRow>
         <SettingsRow label={t.models.reasoningThinking}>
           <CapabilityToggle
             checked={reasoningEnabled}
-            disabled={capabilitiesLocked}
             label={t.models.reasoningThinking}
             onChange={(checked) =>
               onChange({
@@ -362,7 +353,6 @@ export default function ModelDetail({
                   : undefined,
               })
             }
-            source={source}
           />
         </SettingsRow>
       </SettingsSection>
@@ -466,42 +456,44 @@ function DiagnosticPanel({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-ui-mono text-[11px] text-destructive">
+          <div className="font-ui-mono text-meta text-destructive">
             {diagnostic.code}
           </div>
-          <p className="mt-1 text-[12px] leading-5 text-primary">
+          <p className="mt-1 text-xs leading-5 text-primary">
             {diagnostic.summary}
           </p>
         </div>
         {diagnostic.suggestedPatch && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
             onClick={onApplyAndRetest}
-            className="shrink-0 rounded border border-line bg-panel px-2.5 py-1.5 text-[11px] text-primary hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {t.models.applySuggestionAndRetest}
-          </button>
+          </Button>
         )}
       </div>
       {diagnostic.suggestedPatch && (
         <div className="mt-2 rounded border border-line bg-panel p-2">
-          <div className="text-[11px] font-medium text-muted">
+          <div className="text-meta font-medium text-muted">
             {t.models.suggestedChange}
           </div>
-          <pre className="mt-1 overflow-x-auto font-ui-mono text-[11px] leading-4 text-primary">
+          <pre className="mt-1 overflow-x-auto font-ui-mono text-meta leading-4 text-primary">
             {JSON.stringify(diagnostic.suggestedPatch.changes, null, 2)}
           </pre>
-          <p className="mt-1 text-[11px] leading-4 text-dim">
+          <p className="mt-1 text-meta leading-4 text-dim">
             {diagnostic.suggestedPatch.reason}
           </p>
         </div>
       )}
       {diagnostic.technicalMessage && (
         <details className="mt-2">
-          <summary className="cursor-pointer text-[11px] text-muted">
+          <summary className="cursor-pointer text-meta text-muted">
             {t.models.diagnosticDetails}
           </summary>
-          <pre className="mt-1 max-h-36 overflow-auto whitespace-pre-wrap break-words rounded border border-line bg-panel p-2 font-ui-mono text-[11px] leading-4 text-muted">
+          <pre className="mt-1 max-h-36 overflow-auto whitespace-pre-wrap break-words rounded border border-line bg-panel p-2 font-ui-mono text-meta leading-4 text-muted">
             {diagnostic.technicalMessage}
           </pre>
         </details>
@@ -512,81 +504,30 @@ function DiagnosticPanel({
 
 function CapabilityToggle({
   checked,
-  disabled,
   label,
   onChange,
-  source,
 }: {
   checked: boolean;
-  disabled: boolean;
   label: string;
   onChange: (checked: boolean) => void;
-  source?: ModelDiscoverySource;
 }) {
   return (
     <div className="flex items-center justify-end gap-2.5">
-      <SourceBadge source={source} />
-      <label
-        className={`inline-flex items-center ${
-          disabled ? "cursor-not-allowed" : "cursor-pointer"
-        }`}
-      >
+      <label className="inline-flex items-center cursor-pointer">
         <span className="sr-only">{label}</span>
         <input
           checked={checked}
           className="peer sr-only"
-          disabled={disabled}
           onChange={(event) => onChange(event.target.checked)}
           type="checkbox"
         />
         <span
           aria-hidden="true"
-          className="relative h-5 w-9 rounded-full bg-line-strong transition-colors after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-elevated after:transition-transform peer-checked:bg-accent peer-checked:after:translate-x-4 peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 motion-reduce:transition-none motion-reduce:after:transition-none"
+          className="relative h-5 w-9 rounded-full bg-line-strong transition-colors after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-elevated after:transition-transform peer-checked:bg-accent peer-checked:after:translate-x-4 peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:after:transition-none"
         />
       </label>
     </div>
   );
-}
-
-function SourceBadge({
-  source,
-}: {
-  source?: ModelDiscoverySource;
-}) {
-  const { t } = useI18n();
-  if (!shouldDisplaySourceBadge(source)) return null;
-  const label = sourceLabel(t.models, source);
-  const tone = getSourceTone(source);
-  return (
-    <span
-      className="shrink-0 rounded-full border px-1.5 py-0.5 text-[10px]"
-      style={{
-        borderColor:
-          tone === "known"
-            ? "rgba(22,163,74,0.25)"
-            : tone === "partial"
-              ? "rgba(113,113,122,0.28)"
-              : "var(--border)",
-        color: tone === "known" ? "var(--success)" : "var(--text-dim)",
-        background:
-          tone === "known" ? "rgba(22,163,74,0.08)" : "var(--bg-panel)",
-      }}
-      title={label}
-    >
-      {label}
-    </span>
-  );
-}
-
-function sourceLabel(
-  models: ReturnType<typeof useI18n>["t"]["models"],
-  source?: ModelDiscoverySource,
-) {
-  if (source === "catalog") return models.sourceCatalog;
-  if (source === "inferred") return models.sourceInferred;
-  if (source === "remote") return models.sourceRemote;
-  if (source === "defaulted") return models.sourceDefaulted;
-  return "";
 }
 
 function CheckIcon() {
