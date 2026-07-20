@@ -56,8 +56,8 @@ describe("chat execution process visual contract", () => {
     expect(styles).toContain("border-top: 1px solid var(--border-subtle);");
   });
 
-  it("uses ChatGPT-like neutral message and tool surfaces", () => {
-    expect(source).toContain("max-w-[72%] rounded-3xl bg-[var(--user-bg)]");
+  it("uses Codex-like neutral message and tool surfaces", () => {
+    expect(source).toContain("max-w-[78%] rounded-2xl bg-[var(--user-bg)]");
     expect(source).toContain(
       "rounded-2xl border border-line-subtle bg-[var(--tool-bg)]",
     );

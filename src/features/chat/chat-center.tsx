@@ -297,10 +297,8 @@ function Welcome({
         <p className={styles.description}>{t.chat.welcome.description}</p>
       </div>
 
-      <div className={styles.cards}>
-        <WelcomeCard
-          action={t.chat.welcome.modelAction}
-          description={t.chat.welcome.modelDescription}
+      <div className={styles.actions}>
+        <WelcomeAction
           emphasized={!modelReady}
           icon={ServerCog}
           onClick={onOpenModelProvider}
@@ -312,33 +310,22 @@ function Welcome({
                 )
               : t.chat.welcome.modelMissing
           }
-          title={t.workspace.modelProvider}
+          label={t.workspace.modelProvider}
         />
-        <WelcomeCard
-          action={t.chat.welcome.skillsAction}
-          description={t.chat.welcome.skillsDescription}
+        <WelcomeAction
           disabledReason={skillsDisabledReason}
           icon={Puzzle}
           onClick={onOpenSkills}
           status={skillsDisabledReason ?? t.chat.welcome.skillsReady}
-          title={t.workspace.skills}
+          label={t.workspace.skills}
         />
-        <WelcomeCard
-          action={t.chat.welcome.sessionAction}
-          description={
-            projectName
-              ? t.chat.welcome.sessionDescription.replace(
-                  "{project}",
-                  projectName,
-                )
-              : t.chat.welcome.sessionDescriptionNoProject
-          }
+        <WelcomeAction
           disabledReason={sessionDisabledReason}
           emphasized={!sessionDisabledReason}
           icon={MessageSquarePlus}
           onClick={onStart}
           status={sessionDisabledReason ?? t.chat.welcome.sessionReady}
-          title={t.workspace.newChat}
+          label={t.workspace.newChat}
         />
       </div>
 
@@ -352,57 +339,46 @@ function Welcome({
   );
 }
 
-function WelcomeCard({
-  action,
-  description,
+function WelcomeAction({
   disabledReason = null,
   emphasized = false,
   icon: Icon,
+  label,
   onClick,
   status,
-  title,
 }: {
-  action: string;
-  description: string;
   disabledReason?: string | null;
   emphasized?: boolean;
   icon: LucideIcon;
+  label: string;
   onClick: () => void;
   status: string;
-  title: string;
 }) {
-  const card = (
+  const action = (
     <button
       aria-disabled={disabledReason ? true : undefined}
-      className={`${styles.card} ${emphasized ? styles.emphasized : ""}`}
+      className={`${styles.actionButton} ${emphasized ? styles.emphasized : ""}`}
       onClick={disabledReason ? undefined : onClick}
       type="button"
     >
-      <span className={styles.cardHeader}>
-        <span className={styles.icon}>
-          <Icon aria-hidden="true" />
-        </span>
-        <span className={styles.status}>
-          <span aria-hidden="true" className={styles.statusDot} />
-          {status}
-        </span>
+      <span className={styles.actionIcon}>
+        <Icon aria-hidden="true" />
       </span>
-      <strong className={styles.cardTitle}>{title}</strong>
-      <span className={styles.cardDescription}>{description}</span>
-      <span className={styles.action}>
-        {action}
-        <span aria-hidden="true">→</span>
+      <span className={styles.actionLabel}>{label}</span>
+      <span className={styles.status}>
+        <span aria-hidden="true" className={styles.statusDot} />
+        {status}
       </span>
     </button>
   );
 
   return disabledReason ? (
     <Tooltip>
-      <TooltipTrigger asChild>{card}</TooltipTrigger>
+      <TooltipTrigger asChild>{action}</TooltipTrigger>
       <TooltipContent>{disabledReason}</TooltipContent>
     </Tooltip>
   ) : (
-    card
+    action
   );
 }
 

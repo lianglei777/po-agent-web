@@ -27,38 +27,39 @@ const agentWorkspace = readFileSync(
 );
 
 describe("visual foundation contract", () => {
-  test("defines the approved ChatGPT-like neutral light tokens", () => {
+  test("defines the approved Codex light tokens", () => {
     expect(css).toContain("--bg: #ffffff");
-    expect(css).toContain("--bg-panel: #f7f7f8");
+    expect(css).toContain("--bg-panel: #f5f5f5");
     expect(css).toContain("--bg-elevated: #ffffff");
-    expect(css).toContain("--bg-subtle: #f7f7f8");
-    expect(css).toContain("--bg-hover: #ececf1");
-    expect(css).toContain("--bg-selected: #ececf1");
-    expect(css).toContain("--text: #0d0d0d");
-    expect(css).toContain("--text-muted: #565869");
-    expect(css).toContain("--text-dim: #8e8ea0");
-    expect(css).toContain("--border-subtle: #ececf1");
-    expect(css).toContain("--border-strong: #d9d9e3");
-    expect(css).toContain("--accent: #10a37f");
-    expect(css).toContain("--accent-deep: #08755f");
-    expect(css).toContain("--user-bg: #f7f7f8");
-    expect(css).toContain("--tool-bg: #f7f7f8");
+    expect(css).toContain("--sidebar-bg: #f7f7f7");
+    expect(css).toContain("--bg-subtle: #f7f7f7");
+    expect(css).toContain("--bg-hover: #ededed");
+    expect(css).toContain("--bg-selected: #e8e8e8");
+    expect(css).toContain("--text: #1a1c1f");
+    expect(css).toContain("--text-muted: #62666d");
+    expect(css).toContain("--text-dim: #8b9098");
+    expect(css).toContain("--border-subtle: #e8e8e8");
+    expect(css).toContain("--border-strong: #d7d7d7");
+    expect(css).toContain("--accent: #339cff");
+    expect(css).toContain("--accent-deep: #0670d3");
+    expect(css).toContain("--ring: #0670d3");
+    expect(css).toContain("--user-bg: #f1f1f1");
+    expect(css).toContain("--tool-bg: #f7f7f7");
     expect(css).toContain("--primary-foreground: #ffffff");
     expect(css).toContain("color-scheme: light");
-    expect(css).not.toContain("--bg: #fbfbf8");
-    expect(css).not.toContain("--bg-selected: #e8f5ee");
+    expect(css).not.toContain("#10a37f");
 
     // 暗色主题已被移除
     expect(css).not.toContain("html.dark");
     expect(css).not.toContain("color-scheme: dark");
   });
 
-  test("registers approved display fonts without replacing the UI font", () => {
-    expect(layout).toContain("Playfair_Display");
-    expect(layout).toContain("Noto_Serif_SC");
-    expect(layout).toContain("--font-display-latin");
-    expect(layout).toContain("--font-display-cjk");
-    expect(css).toContain("--font-display:");
+  test("uses the Codex system sans and mono stacks without display serifs", () => {
+    expect(layout).toContain("Noto_Sans_Mono");
+    expect(layout).not.toContain("Playfair_Display");
+    expect(layout).not.toContain("Noto_Serif_SC");
+    expect(css).toContain("-apple-system, BlinkMacSystemFont");
+    expect(css).not.toContain("--font-display:");
   });
 
   test("defines reduced-motion fallback and shared motion durations", () => {
@@ -69,10 +70,10 @@ describe("visual foundation contract", () => {
   });
 
   test("applies the visual foundation to the chat sample", () => {
-    expect(topBar).toContain("truncate text-xs font-medium text-primary");
+    expect(topBar).toContain("truncate text-sm font-medium text-primary");
     expect(chatInput).not.toContain("rounded-[20px]");
     expect(chatInput).not.toContain("linear-gradient");
-    expect(chatInput).toContain("rounded-lg");
+    expect(chatInput).toContain("rounded-[22px]");
     expect(messageView).toContain("border-line-subtle");
   });
 
@@ -80,8 +81,9 @@ describe("visual foundation contract", () => {
     expect(agentWorkspace).toContain("bg-panel");
     expect(agentWorkspace).toContain("bg-canvas");
     expect(topBar).toContain("border-line-subtle bg-canvas");
+    expect(topBar).not.toContain("backdrop-blur");
     expect(chatInput).not.toContain("rounded-[14px]");
-    expect(chatInput).not.toContain("shadow-[var(--shadow-composer)]");
+    expect(chatInput).toContain("shadow-[var(--shadow-composer)]");
   });
 
   test("enforces the desktop workspace floor", () => {
@@ -92,8 +94,8 @@ describe("visual foundation contract", () => {
 
   test("keeps the design sidecar synchronized with the approved theme", () => {
     expect(designSidecar).toContain('"canonical": "#ffffff"');
-    expect(designSidecar).toContain('"canonical": "#10a37f"');
-    expect(designSidecar).toContain("ChatGPT-like neutral light");
+    expect(designSidecar).toContain('"canonical": "#339cff"');
+    expect(designSidecar).toContain("Codex-like neutral light");
     expect(designSidecar).not.toContain("Deep Focus");
     expect(designSidecar).not.toContain("Adaptive Workbench");
     expect(designSidecar).not.toContain("rounded-20px");

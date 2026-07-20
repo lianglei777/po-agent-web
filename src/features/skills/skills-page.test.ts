@@ -54,4 +54,10 @@ describe("Skills page", () => {
     expect(source).toContain("setSelectedPackId");
     expect(source).toContain('selectView("packs")');
   });
+
+  it("shares the Codex-style settings rail hierarchy", () => {
+    expect(source).toContain('w-[224px]');
+    expect(source).toContain('border-line-subtle bg-panel');
+    expect(source).toContain('className="flex min-h-0 min-w-0 flex-1 flex-col bg-canvas"');
+  });
 });

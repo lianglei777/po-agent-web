@@ -42,28 +42,27 @@
   --radius-lg: 12px;
   --font-ui-mono: var(--font-noto-mono), "JetBrains Mono", "Fira Code",
     Consolas, ui-monospace, "PingFang SC", "Microsoft YaHei", monospace;
-  --font-display: var(--font-display-cjk), var(--font-display-latin), Georgia,
-    "Times New Roman", serif;
 }
 
 :root {
   --bg: #ffffff;
-  --bg-panel: #f7f7f8;
+  --bg-panel: #f5f5f5;
+  --sidebar-bg: #f7f7f7;
   --bg-elevated: #ffffff;
-  --bg-subtle: #f7f7f8;
-  --bg-hover: #ececf1;
-  --bg-selected: #ececf1;
-  --border-subtle: #ececf1;
-  --border-strong: #d9d9e3;
-  --border-emphasis: #10a37f;
+  --bg-subtle: #f7f7f7;
+  --bg-hover: #ededed;
+  --bg-selected: #e8e8e8;
+  --border-subtle: #e8e8e8;
+  --border-strong: #d7d7d7;
+  --border-emphasis: #339cff;
   --border: var(--border-subtle);
-  --text: #0d0d0d;
-  --text-muted: #565869;
-  --text-dim: #8e8ea0;
-  --accent: #10a37f;
-  --accent-hover: #0e8f70;
-  --accent-deep: #08755f;
-  --accent-soft: #e6f4ef;
+  --text: #1a1c1f;
+  --text-muted: #62666d;
+  --text-dim: #8b9098;
+  --accent: #339cff;
+  --accent-hover: #1689f5;
+  --accent-deep: #0670d3;
+  --accent-soft: #eaf4ff;
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--bg-panel);
@@ -71,27 +70,28 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text);
   --primary-foreground: #ffffff;
-  --secondary: #f7f7f8;
-  --secondary-foreground: #0d0d0d;
+  --secondary: #f1f1f1;
+  --secondary-foreground: #1a1c1f;
   --muted-foreground: var(--text-muted);
-  --accent-foreground: #0d0d0d;
+  --accent-foreground: #1a1c1f;
   --destructive: #d92d20;
   --destructive-foreground: #ffffff;
   --success: #12b76a;
   --warning: #b54708;
-  --disabled-surface: #f4f4f4;
-  --disabled-text: #b4b4b4;
+  --disabled-surface: #f1f1f1;
+  --disabled-text: #a6abb2;
   --input: var(--border);
-  --ring: #0d0d0d;
+  --ring: #0670d3;
   --radius: 1rem;
-  --user-bg: #f7f7f8;
+  --user-bg: #f1f1f1;
   --assistant-bg: #ffffff;
-  --tool-bg: #f7f7f8;
+  --tool-bg: #f7f7f7;
   --motion-fast: 150ms;
   --motion-standard: 200ms;
   --motion-slow: 220ms;
-  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.10);
-  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.06);
+  --shadow-floating: 0 12px 32px rgba(18, 22, 28, 0.12);
+  --shadow-soft: 0 1px 6px rgba(18, 22, 28, 0.06);
+  --shadow-composer: 0 6px 24px rgba(18, 22, 28, 0.09);
   --shadow-card: none;
   color-scheme: light;
 }
@@ -116,7 +116,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family:
-    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, ui-sans-serif,
     "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 14px;
   font-synthesis: none;
@@ -146,14 +146,14 @@ body {
   to   { stroke-dashoffset: 0; }
 }
 
-/* 展示字体工具类：用于标题等需要衬线展示字体的场景 */
+/* 标题沿用系统无衬线字体，保持 Codex 工作台的紧凑语气 */
 .font-display {
-  font-family: var(--font-display);
+  font-family: inherit;
   font-synthesis: none;
 }
 
 .text-display {
-  font-family: var(--font-display);
+  font-family: inherit;
   font-weight: 600;
   letter-spacing: -0.02em;
   text-wrap: balance;

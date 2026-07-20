@@ -16,7 +16,7 @@ Po Agent is the local desktop Web interface for the Pi coding agent. It turns pr
 
 Clean, smart, lightweight, trustworthy.
 
-Voice is quiet and confident. The UI gets out of the way so the user can focus on code and decisions. Every visual choice should feel intentional and load-bearing — no decoration for its own sake. The mint-green accent signals state and life; the black primary action signals commitment.
+Voice is quiet and confident. The UI gets out of the way so the user can focus on code and decisions. Every visual choice should feel intentional and load-bearing — no decoration for its own sake. A restrained Codex-blue accent signals focus and live state; the near-black primary action signals commitment.
 
 ## References
 
@@ -31,10 +31,10 @@ Focused productivity tools: Linear, Vercel dashboard, Notion. The relevant quali
 ## Design Principles
 
 1. **Information density is a feature.** Project and session navigation stay visible, while Chat, configuration, and the optional File Workspace reveal only the context needed for the current task.
-2. **Quiet surfaces, active states.** At rest the UI is neutral and breathable; focus, hover, and selection provide the only mint-green accent.
+2. **Quiet surfaces, active states.** At rest the UI is neutral and breathable; blue appears only for focus, links, switches, live state, and explicit status.
 3. **The agent is a tool, not a character.** No personality avatars, no confetti, no cheerleading copy.
 4. **Respect system conventions.** Support reduced motion and keep keyboard paths obvious.
-5. **Mint accent for state.** The mint-green accent is used sparingly for status, selection, and live agent state. Black is used for primary actions. The palette should feel like a well-tuned code editor, not a brand campaign.
+5. **Codex blue for state.** The `#339cff` accent is used sparingly for focus, links, switches, and live agent state. Near-black is used for primary actions, while passive selection remains neutral gray. The palette should feel like a well-tuned code editor, not a brand campaign.
 6. **Stable workflows over novelty.** Preserve Chat state and established operation paths while central workspace views change; configuration navigation must not interrupt a running conversation.
 7. **Explicit destructive actions.** Important deletion, credential removal, and disconnect operations require confirmation with concrete action language.
 8. **Dialogs close deliberately.** Dialogs remain open on backdrop clicks and Escape; users leave through visible close, cancel, save, or confirmation actions.

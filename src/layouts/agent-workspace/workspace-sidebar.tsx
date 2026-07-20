@@ -36,7 +36,7 @@ export function WorkspaceSidebar({
   const selectedCwd = sessionProps.selectedCwd;
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-panel p-2">
+    <div className="flex h-full min-h-0 flex-col bg-[var(--sidebar-bg)] p-2.5">
       <Tooltip>
         <TooltipTrigger asChild>
           <span className="inline-flex">

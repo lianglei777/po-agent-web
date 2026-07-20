@@ -23,7 +23,7 @@ function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={mergeClasses(
-        "flex h-8 items-center justify-between gap-2 rounded-full border border-line-strong bg-elevated px-2.5 text-xs whitespace-nowrap text-foreground outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] hover:border-line-strong hover:bg-hover disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:ring-2 focus-visible:ring-ring/20 [&>span]:truncate [&_svg]:size-3.5 [&_svg]:opacity-60",
+        "flex h-8 items-center justify-between gap-2 rounded-lg border border-line-strong bg-elevated px-2.5 text-xs whitespace-nowrap text-foreground outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] hover:border-line-strong hover:bg-hover disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:ring-2 focus-visible:ring-ring [&>span]:truncate [&_svg]:size-3.5 [&_svg]:opacity-60",
         className,
       )}
       data-slot="select-trigger"

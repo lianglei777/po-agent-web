@@ -53,13 +53,15 @@ describe("workspace sidebar", () => {
     expect(sessionsSource).toContain("groupSessionsByProject");
   });
 
-  it("uses neutral ChatGPT-like workspace surfaces", () => {
-    expect(source).toContain("bg-panel p-2");
+  it("uses quiet Codex-like workspace surfaces without glass effects", () => {
+    expect(source).toContain("bg-[var(--sidebar-bg)] p-2.5");
+    expect(source).not.toContain("backdrop-blur");
     expect(source).toContain(
       'variant={activeView === "model-provider" ? "secondary" : "ghost"}',
     );
     expect(source).not.toContain("bg-selected");
     expect(workspaceSource).toContain("bg-canvas");
     expect(topBarSource).toContain("border-line-subtle bg-canvas");
+    expect(topBarSource).not.toContain("backdrop-blur");
   });
 });

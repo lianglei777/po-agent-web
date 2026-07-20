@@ -36,6 +36,19 @@ describe("session tree destructive actions", () => {
     );
   });
 
+  it("uses compact single-line Codex-style session rows", () => {
+    expect(sessionTreeSource).toContain('h-9 min-w-0');
+    expect(sessionTreeSource).toContain('min-w-0 flex-1 truncate text-xs');
+    expect(sessionTreeSource).toContain(
+      'ml-2 min-w-0 max-w-28 flex-none truncate text-[10px]',
+    );
+    expect(sessionTreeSource).toContain("session.messageCount");
+    expect(sessionTreeSource).toContain("max-w-28");
+    expect(sessionTreeSource).toContain("truncate");
+    expect(sessionTreeSource).not.toContain('h-[44px]');
+    expect(sessionTreeSource).not.toContain('mt-0.5 truncate');
+  });
+
   it("defaults focus to cancel and uses explicit deletion copy", () => {
     expect(sessionTreeSource).toContain("t.sessions.deleteSessionTitle");
     expect(sessionTreeSource).toContain("t.sessions.deleteSessionDescription");

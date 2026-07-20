@@ -8,7 +8,7 @@ function Textarea({
   return (
     <textarea
       className={mergeClasses(
-        "flex min-h-16 w-full rounded-xl border border-line-strong bg-elevated px-3 py-2 text-sm outline-none transition-[color,border-color,box-shadow] duration-[var(--motion-fast)] placeholder:text-muted hover:border-line-strong disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/15",
+        "flex min-h-16 w-full rounded-lg border border-line-strong bg-elevated px-3 py-2 text-sm outline-none transition-[color,border-color,box-shadow] duration-[var(--motion-fast)] placeholder:text-dim hover:border-line-strong disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring",
         className,
       )}
       data-slot="textarea"

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-02T09:30:00.000+08:00",
+  "generatedAt": "2026-07-20T13:00:00.000+08:00",
   "title": "Design System: Po Agent",
   "extensions": {
     "colorMeta": {
@@ -13,62 +13,62 @@
       "panel": {
         "role": "neutral",
         "displayName": "Sidebar Gray",
-        "canonical": "#f7f7f8",
-        "tonalRamp": ["#0d0d0d", "#565869", "#8e8ea0", "#b4b4b4", "#d9d9e3", "#ececf1", "#f7f7f8", "#ffffff"]
+        "canonical": "#f5f5f5",
+        "tonalRamp": ["#1a1c1f", "#62666d", "#8b9098", "#a6abb2", "#d7d7d7", "#e8e8e8", "#f5f5f5", "#ffffff"]
       },
       "hover": {
         "role": "neutral",
         "displayName": "Neutral Hover",
-        "canonical": "#ececf1",
-        "tonalRamp": ["#0d0d0d", "#565869", "#8e8ea0", "#b4b4b4", "#d9d9e3", "#ececf1", "#f7f7f8", "#ffffff"]
+        "canonical": "#ededed",
+        "tonalRamp": ["#1a1c1f", "#62666d", "#8b9098", "#a6abb2", "#d7d7d7", "#e8e8e8", "#ededed", "#ffffff"]
       },
       "selected": {
         "role": "neutral",
         "displayName": "Neutral Selected",
-        "canonical": "#ececf1",
-        "tonalRamp": ["#0d0d0d", "#565869", "#8e8ea0", "#b4b4b4", "#d9d9e3", "#ececf1", "#f7f7f8", "#ffffff"]
+        "canonical": "#e8e8e8",
+        "tonalRamp": ["#1a1c1f", "#62666d", "#8b9098", "#a6abb2", "#d7d7d7", "#e8e8e8", "#ededed", "#ffffff"]
       },
       "border": {
         "role": "neutral",
         "displayName": "Neutral Line",
-        "canonical": "#ececf1",
-        "tonalRamp": ["#0d0d0d", "#565869", "#8e8ea0", "#b4b4b4", "#d9d9e3", "#ececf1", "#f7f7f8", "#ffffff"]
+        "canonical": "#e8e8e8",
+        "tonalRamp": ["#1a1c1f", "#62666d", "#8b9098", "#a6abb2", "#d7d7d7", "#e8e8e8", "#ededed", "#ffffff"]
       },
       "ink": {
         "role": "neutral",
         "displayName": "High Contrast Ink",
-        "canonical": "#0d0d0d",
-        "tonalRamp": ["#0d0d0d", "#565869", "#8e8ea0", "#b4b4b4", "#d9d9e3", "#ececf1", "#f7f7f8", "#ffffff"]
+        "canonical": "#1a1c1f",
+        "tonalRamp": ["#1a1c1f", "#62666d", "#8b9098", "#a6abb2", "#d7d7d7", "#e8e8e8", "#f5f5f5", "#ffffff"]
       },
       "muted": {
         "role": "neutral",
-        "displayName": "Chat Muted",
-        "canonical": "#565869",
-        "tonalRamp": ["#0d0d0d", "#343541", "#565869", "#6e6e80", "#8e8ea0", "#b4b4b4", "#d9d9e3", "#f7f7f8"]
+        "displayName": "Codex Muted",
+        "canonical": "#62666d",
+        "tonalRamp": ["#1a1c1f", "#34373b", "#62666d", "#737880", "#8b9098", "#a6abb2", "#d7d7d7", "#f5f5f5"]
       },
       "accent": {
         "role": "primary",
-        "displayName": "State Green",
-        "canonical": "#10a37f",
-        "tonalRamp": ["#08755f", "#0e8f70", "#10a37f", "#35c19b", "#8adbbf", "#ccefe4", "#e6f4ef", "#f7f7f8"]
+        "displayName": "Codex Blue",
+        "canonical": "#339cff",
+        "tonalRamp": ["#075eaa", "#0670d3", "#1689f5", "#339cff", "#79bdff", "#bdddff", "#eaf4ff", "#f7f7f7"]
       },
       "accent-deep": {
         "role": "primary",
-        "displayName": "Deep State Green",
-        "canonical": "#08755f",
-        "tonalRamp": ["#063f34", "#08755f", "#0e8f70", "#10a37f", "#35c19b", "#8adbbf", "#ccefe4", "#e6f4ef"]
+        "displayName": "Deep Codex Blue",
+        "canonical": "#0670d3",
+        "tonalRamp": ["#075eaa", "#0670d3", "#1689f5", "#339cff", "#79bdff", "#bdddff", "#eaf4ff", "#ffffff"]
       },
       "accent-soft": {
         "role": "primary",
-        "displayName": "Soft State Green",
-        "canonical": "#e6f4ef",
-        "tonalRamp": ["#08755f", "#0e8f70", "#10a37f", "#8adbbf", "#ccefe4", "#e6f4ef", "#f7f7f8", "#ffffff"]
+        "displayName": "Soft Codex Blue",
+        "canonical": "#eaf4ff",
+        "tonalRamp": ["#0670d3", "#1689f5", "#339cff", "#79bdff", "#bdddff", "#eaf4ff", "#f7f7f7", "#ffffff"]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Welcome headline only."
+        "purpose": "System sans headings with compact weight and tracking."
       },
       "body": {
         "displayName": "Body",
@@ -87,7 +87,7 @@
       },
       {
         "name": "floating",
-        "value": "0 8px 24px rgba(0, 0, 0, 0.10)",
+        "value": "0 12px 32px rgba(18, 22, 28, 0.12)",
         "purpose": "Dialogs, dropdowns, selects, and tooltips."
       }
     ],
@@ -122,7 +122,7 @@
       "refersTo": "button-primary",
       "description": "Black rounded primary action with high-contrast white text and visible focus ring.",
       "html": "<button class=\"ds-btn-primary\">Send</button>",
-      "css": ".ds-btn-primary { display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:8px 16px;border:0;border-radius:999px;background:var(--primary,#0d0d0d);color:var(--primary-foreground,#fff);font:500 14px ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms,transform 150ms; }.ds-btn-primary:hover{background:color-mix(in srgb,var(--primary,#0d0d0d) 85%,transparent)}.ds-btn-primary:focus-visible{outline:2px solid var(--ring,#0d0d0d);outline-offset:2px}.ds-btn-primary:active{transform:scale(.98)}"
+      "css": ".ds-btn-primary { display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:8px 16px;border:0;border-radius:8px;background:var(--primary,#1a1c1f);color:var(--primary-foreground,#fff);font:500 14px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;transition:background-color 150ms; }.ds-btn-primary:hover{background:color-mix(in srgb,var(--primary,#1a1c1f) 88%,transparent)}.ds-btn-primary:focus-visible{outline:2px solid var(--ring,#0670d3);outline-offset:2px}"
     },
     {
       "name": "Outline Button",
@@ -130,7 +130,7 @@
       "refersTo": "button-outline",
       "description": "Secondary action with a quiet panel surface and structural border.",
       "html": "<button class=\"ds-btn-outline\">Review changes</button>",
-      "css": ".ds-btn-outline { display:inline-flex;align-items:center;justify-content:center;height:36px;padding:8px 12px;border:1px solid var(--border-strong,#d9d9e3);border-radius:999px;background:var(--card,#f7f7f8);color:var(--text,#0d0d0d);font:500 14px ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms,border-color 150ms; }.ds-btn-outline:hover{background:var(--bg-hover,#ececf1);border-color:var(--border-strong,#d9d9e3)}.ds-btn-outline:focus-visible{outline:2px solid var(--ring,#0d0d0d);outline-offset:2px}"
+      "css": ".ds-btn-outline { display:inline-flex;align-items:center;justify-content:center;height:36px;padding:8px 12px;border:1px solid var(--border-strong,#d7d7d7);border-radius:8px;background:var(--card,#f7f7f7);color:var(--text,#1a1c1f);font:500 14px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;transition:background-color 150ms,border-color 150ms; }.ds-btn-outline:hover{background:var(--bg-hover,#ededed);border-color:var(--border-strong,#d7d7d7)}.ds-btn-outline:focus-visible{outline:2px solid var(--ring,#0670d3);outline-offset:2px}"
     },
     {
       "name": "Input",
@@ -138,7 +138,7 @@
       "refersTo": "input",
       "description": "Compact field with readable placeholder and semantic focus.",
       "html": "<input class=\"ds-input\" placeholder=\"Select project...\" />",
-      "css": ".ds-input { width:100%;height:36px;padding:4px 12px;border:1px solid var(--border-strong,#d9d9e3);border-radius:12px;background:var(--card,#ffffff);color:var(--text,#0d0d0d);font:14px ui-sans-serif,system-ui,sans-serif;outline:none; }.ds-input::placeholder{color:var(--text-muted,#565869)}.ds-input:hover{border-color:var(--border-strong,#d9d9e3)}.ds-input:focus-visible{border-color:var(--ring,#0d0d0d);box-shadow:0 0 0 2px color-mix(in srgb,var(--ring,#0d0d0d) 15%,transparent)}"
+      "css": ".ds-input { width:100%;height:36px;padding:4px 12px;border:1px solid var(--border-strong,#d7d7d7);border-radius:8px;background:var(--card,#ffffff);color:var(--text,#1a1c1f);font:14px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;outline:none; }.ds-input::placeholder{color:var(--text-dim,#8b9098)}.ds-input:hover{border-color:var(--border-strong,#d7d7d7)}.ds-input:focus-visible{border-color:var(--ring,#0670d3);box-shadow:0 0 0 2px var(--ring,#0670d3)}"
     },
     {
       "name": "Chat Composer",
@@ -146,15 +146,15 @@
       "refersTo": "composer",
       "description": "Persistent floating input surface with a large radius and subtle shadow.",
       "html": "<div class=\"ds-composer\"><textarea class=\"ds-composer-input\" placeholder=\"Ask Pi to build, explain, or fix something...\"></textarea></div>",
-      "css": ".ds-composer{overflow:hidden;border:1px solid var(--border-strong,#d9d9e3);border-radius:24px;background:var(--card,#ffffff);box-shadow:var(--shadow-soft,0 2px 10px rgba(0,0,0,.06));transition:border-color 200ms,box-shadow 200ms}.ds-composer:focus-within{border-color:var(--ring,#0d0d0d);box-shadow:0 0 0 2px color-mix(in srgb,var(--ring,#0d0d0d) 10%,transparent),var(--shadow-soft,0 2px 10px rgba(0,0,0,.06))}.ds-composer-input{width:100%;min-height:72px;padding:16px;border:0;background:transparent;color:var(--text,#0d0d0d);font:15px/1.6 ui-sans-serif,system-ui,sans-serif;resize:none;outline:none}.ds-composer-input::placeholder{color:var(--text-muted,#565869)}"
+      "css": ".ds-composer{overflow:hidden;border:1px solid var(--border-strong,#d7d7d7);border-radius:22px;background:var(--card,#ffffff);box-shadow:var(--shadow-composer,0 6px 24px rgba(18,22,28,.09));transition:border-color 200ms,box-shadow 200ms}.ds-composer:focus-within{border-color:var(--ring,#0670d3);box-shadow:0 0 0 2px var(--ring,#0670d3),var(--shadow-composer,0 6px 24px rgba(18,22,28,.09))}.ds-composer-input{width:100%;min-height:72px;padding:16px;border:0;background:transparent;color:var(--text,#1a1c1f);font:15px/1.6 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;resize:none;outline:none}.ds-composer-input::placeholder{color:var(--text-dim,#8b9098)}"
     }
   ],
   "narrative": {
     "northStar": "The Neutral Desk",
-    "overview": "Po Agent is a focused desk for working with an AI coding agent. The ChatGPT-like neutral light theme provides a white canvas, soft gray sidebars and controls, neutral selection, restrained state green, and black primary actions for high-contrast CTA clarity. Hierarchy comes from tone, spacing, and border rather than decorative effects.",
+    "overview": "Po Agent is a focused desk for working with an AI coding agent. The Codex-like neutral light theme provides a white canvas, translucent gray sidebars, compact controls, neutral selection, restrained blue state accents, and dark primary actions. Hierarchy comes from tone, spacing, and border rather than decorative effects.",
     "keyCharacteristics": [
-      "Single ChatGPT-like neutral light theme with white and soft gray surfaces.",
-      "State green reserved for focus, live agent indicators, and explicit status.",
+      "Single Codex-like neutral light theme with white and soft gray surfaces.",
+      "Codex blue reserved for focus, links, switches, live agent indicators, and explicit status.",
       "Black primary actions for high-contrast CTA clarity.",
       "Flat resting surfaces; floating composer, dialogs, and menus use restrained shadows.",
       "Rounded controls and larger composer radii without playful decoration.",
@@ -174,7 +174,7 @@
     ],
     "dos": [
       "Do keep the canvas white and sidebars soft gray.",
-      "Do use state green for focus, status, and live indicators only.",
+      "Do use Codex blue for focus, links, switches, status, and live indicators only.",
       "Do use black for primary action buttons.",
       "Do use neutral gray for selected navigation and passive highlights.",
       "Do rely on tone, border, and spacing for hierarchy.",

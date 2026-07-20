@@ -18,13 +18,17 @@ const workspaceSource = readFileSync(
 );
 
 describe("welcome page", () => {
-  it("exposes the three approved feature cards", () => {
+  it("exposes compact Codex-style quick actions without onboarding cards", () => {
     expect(chatSource).toContain("ServerCog");
     expect(chatSource).toContain("Puzzle");
     expect(chatSource).toContain("MessageSquarePlus");
-    expect(chatSource).toContain("t.chat.welcome.modelDescription");
-    expect(chatSource).toContain("t.chat.welcome.skillsDescription");
-    expect(chatSource).toContain("t.chat.welcome.sessionDescription");
+    expect(chatSource).toContain("function WelcomeAction");
+    expect(chatSource).not.toContain("function WelcomeCard");
+    expect(styleSource).toContain(".actions");
+    expect(styleSource).toContain(".actionButton");
+    expect(styleSource).toContain("border-radius: var(--radius-md)");
+    expect(styleSource).not.toContain(".cards");
+    expect(styleSource).not.toContain("min-height: 176px");
   });
 
   it("uses runtime workspace and model state", () => {
@@ -39,5 +43,6 @@ describe("welcome page", () => {
     expect(chatSource).not.toContain("neonSlice");
     expect(styleSource).not.toContain("linear-gradient");
     expect(styleSource).not.toContain("@keyframes");
+    expect(styleSource).not.toContain("var(--font-display)");
   });
 });

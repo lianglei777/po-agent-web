@@ -27,4 +27,10 @@ describe("file panel visual contract", () => {
     expect(source).not.toContain("Editor");
     expect(source).not.toContain("Search");
   });
+
+  it("uses the same quiet header and rail widths as settings", () => {
+    expect(source).toContain('h-11 flex-none');
+    expect(source).toContain('border-line-subtle bg-canvas');
+    expect(source).toContain('w-[clamp(160px,42%,224px)]');
+  });
 });

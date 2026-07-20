@@ -7,12 +7,12 @@ const read = (name: string) =>
   readFileSync(`${root}/src/components/ui/${name}.tsx`, "utf8");
 
 describe("shared UI visual contract", () => {
-  test("uses the ChatGPT-like rounded control scale", () => {
-    expect(read("button")).toContain("rounded-full");
-    expect(read("input")).toContain("rounded-xl");
-    expect(read("textarea")).toContain("rounded-xl");
-    expect(read("select")).toContain("rounded-full");
-    expect(read("dialog")).toContain("rounded-lg");
+  test("uses the Codex compact rounded control scale", () => {
+    expect(read("button")).toContain("rounded-lg");
+    expect(read("input")).toContain("rounded-lg");
+    expect(read("textarea")).toContain("rounded-lg");
+    expect(read("select")).toContain("rounded-lg");
+    expect(read("dialog")).toContain("rounded-xl");
     expect(read("button")).not.toContain("active:translate-y-px");
   });
 
@@ -47,19 +47,22 @@ describe("shared UI visual contract", () => {
     const select = read("select");
     const badge = read("badge");
 
-    expect(button).toContain("focus-visible:ring-ring/20");
-    expect(button).toContain("active:scale-[0.98]");
+    expect(button).toContain("focus-visible:ring-ring");
+    expect(button).not.toContain("focus-visible:ring-ring/");
+    expect(button).toContain("active:bg-primary/75");
+    expect(button).toContain("active:bg-selected");
     expect(button).toContain("disabled:border-transparent");
-    expect(button).toContain("default: \"bg-primary text-primary-foreground hover:bg-primary/85\"");
-    expect(button).toContain("bg-secondary text-secondary-foreground hover:bg-hover");
-    expect(button).toContain("ghost: \"text-muted-foreground hover:bg-hover hover:text-foreground\"");
+    expect(button).toContain("bg-primary text-primary-foreground hover:bg-primary/85 active:bg-primary/75");
+    expect(button).toContain("bg-secondary text-secondary-foreground hover:bg-hover active:bg-selected");
+    expect(button).toContain("text-muted-foreground hover:bg-hover hover:text-foreground active:bg-selected");
     expect(input).toContain("hover:border-line-strong");
     expect(input).toContain("bg-elevated");
-    expect(input).toContain("placeholder:text-muted");
+    expect(input).toContain("placeholder:text-dim");
     expect(textarea).toContain("hover:border-line-strong");
     expect(textarea).toContain("bg-elevated");
-    expect(textarea).toContain("placeholder:text-muted");
-    expect(select).toContain("focus-visible:ring-ring/20");
+    expect(textarea).toContain("placeholder:text-dim");
+    expect(select).toContain("focus-visible:ring-ring");
+    expect(select).not.toContain("focus-visible:ring-ring/");
     expect(badge).not.toContain("bg-accent text-accent-foreground");
   });
 });

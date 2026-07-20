@@ -167,7 +167,7 @@ function SessionRow({
 
   if (editing) {
     return (
-      <div className="flex h-[44px] items-center gap-1 px-2">
+      <div className="flex h-9 items-center gap-1 px-2">
         <Input
           aria-label={`${t.sessions.rename} ${title}`}
           className="h-7 text-xs"
@@ -192,7 +192,7 @@ function SessionRow({
   return (
     <>
       <div
-        className={`group relative mx-1 flex h-[44px] min-w-0 cursor-pointer items-center rounded-md border pr-1 transition-colors duration-[var(--motion-fast)] focus-within:bg-hover focus-within:ring-2 focus-within:ring-ring/10 ${
+        className={`group relative mx-1 flex h-9 min-w-0 cursor-pointer items-center rounded-md border pr-1 transition-colors duration-[var(--motion-fast)] focus-within:bg-hover ${
           selected
             ? "border-transparent bg-selected"
             : hasChildren && !collapsed
@@ -228,21 +228,21 @@ function SessionRow({
         ) : (
           <span className="w-6 flex-none" />
         )}
-        <div className="min-w-0 flex-1 pr-14">
-          <div
-            className={`truncate text-xs ${selected ? "font-semibold text-primary" : "font-medium text-primary"}`}
-          >
-            {title}
-          </div>
-          <div className="mt-0.5 truncate text-[11px] tabular-nums text-dim">
-            {isDraft
+        <span
+          className={`min-w-0 flex-1 truncate text-xs ${selected ? "font-semibold text-primary" : "font-medium text-primary"}`}
+        >
+          {title}
+        </span>
+        <span
+          className={`ml-2 min-w-0 max-w-28 flex-none truncate text-[10px] tabular-nums ${error && !confirming ? "text-destructive" : "text-dim"}`}
+          title={error && !confirming ? error : undefined}
+        >
+          {error && !confirming
+            ? error
+            : isDraft
               ? t.sessions.draftHint
               : `${formatRelativeTime(session.modified, undefined, locale)} · ${session.messageCount} ${t.sessions.msgs}`}
-          </div>
-          {error && !confirming ? (
-            <div className="truncate text-[11px] text-destructive">{error}</div>
-          ) : null}
-        </div>
+        </span>
         {isDraft ? null : (
           <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-px rounded-md bg-panel/90 pl-1 opacity-0 pointer-events-none shadow-sm transition-opacity duration-[var(--motion-fast)] group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
             <Button

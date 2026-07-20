@@ -68,7 +68,7 @@ export function SkillDetail({
                       aria-busy={saving || undefined}
                       aria-checked={enabled}
                       aria-label={t.skills.allowModelInvocation}
-                      className={`group relative h-6 w-11 shrink-0 rounded-full border outline-none transition-colors duration-[var(--motion-fast)] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:border-line-subtle disabled:bg-[var(--disabled-surface)] ${
+                      className={`group relative h-6 w-11 shrink-0 rounded-full border outline-none transition-colors duration-[var(--motion-fast)] focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:border-line-subtle disabled:bg-[var(--disabled-surface)] ${
                         enabled
                           ? "border-accent bg-accent"
                           : "border-line-strong bg-subtle"

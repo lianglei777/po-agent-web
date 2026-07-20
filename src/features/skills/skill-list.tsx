@@ -39,7 +39,7 @@ export function SkillList({
             return (
               <button
                 aria-selected={selected}
-                className={`mb-1 flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 ${
+                className={`mb-1 flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
                   selected ? "bg-selected" : "hover:bg-hover"
                 }`}
                 key={skill.skillId}

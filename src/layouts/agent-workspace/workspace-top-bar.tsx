@@ -55,7 +55,7 @@ export function WorkspaceTopBar({
         : sessionTitle ?? t.workspace.newChat;
 
   return (
-    <header className="flex h-10 flex-none items-center border-b border-line-subtle bg-canvas">
+    <header className="flex h-11 flex-none items-center border-b border-line-subtle bg-canvas">
       <TopBarIconButton
         label={sidebarOpen ? t.workspace.hideSidebar : t.workspace.showSidebar}
         onClick={onToggleSidebar}
@@ -64,7 +64,7 @@ export function WorkspaceTopBar({
       </TopBarIconButton>
 
       <div className="min-w-0 flex-1 px-3">
-        <div className="truncate text-xs font-medium text-primary">{title}</div>
+        <div className="truncate text-sm font-medium text-primary">{title}</div>
       </div>
 
       {activeView === "model-provider" ? (

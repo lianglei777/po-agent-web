@@ -114,7 +114,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
 
   return (
     <div className="flex min-h-0 flex-1 bg-canvas">
-      <aside className="flex min-h-0 w-[210px] shrink-0 flex-col border-r border-line-strong bg-panel">
+      <aside className="flex min-h-0 w-[224px] shrink-0 flex-col border-r border-line-subtle bg-panel">
         <div className="grid grid-cols-2 gap-1 border-b border-line p-2" role="tablist">
           {(["skills", "packs"] as const).map((tab) => (
             <Button
@@ -263,7 +263,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
 
       <main
         aria-labelledby={`skills-${view}-tab`}
-        className="flex min-h-0 min-w-0 flex-1 flex-col"
+        className="flex min-h-0 min-w-0 flex-1 flex-col bg-canvas"
         id="skills-view-panel"
         role="tabpanel"
       >

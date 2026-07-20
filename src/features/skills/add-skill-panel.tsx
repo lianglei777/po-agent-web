@@ -145,7 +145,7 @@ export function AddSkillPanel({
         >
           <button
             aria-selected={mode === "market"}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
+            className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               mode === "market" ? "bg-selected text-primary" : "text-muted"
             }`}
             onClick={() => setMode("market")}
@@ -156,7 +156,7 @@ export function AddSkillPanel({
           </button>
           <button
             aria-selected={mode === "local"}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
+            className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               mode === "local" ? "bg-selected text-primary" : "text-muted"
             }`}
             onClick={() => setMode("local")}
@@ -248,7 +248,7 @@ function MarketTab({
         <input
           aria-label={t.skills.searchSkillsMarket}
           autoFocus
-          className="h-10 w-full rounded-md border border-line-subtle bg-panel pr-9 pl-9 outline-none focus:border-ring focus:ring-2 focus:ring-ring/35"
+          className="h-10 w-full rounded-md border border-line-subtle bg-panel pr-9 pl-9 outline-none focus:border-ring focus:ring-2 focus:ring-ring"
           onChange={(event) => {
             const value = event.target.value;
             setQuery(value);
@@ -382,7 +382,7 @@ function CreateLocalTab({
           <input
             aria-describedby="skill-file-path-hint"
             autoFocus
-            className="mt-1.5 h-10 w-full rounded-md border border-line-subtle bg-panel px-3 font-ui-mono text-[13px] outline-none focus:border-ring focus:ring-2 focus:ring-ring/35"
+            className="mt-1.5 h-10 w-full rounded-md border border-line-subtle bg-panel px-3 font-ui-mono text-[13px] outline-none focus:border-ring focus:ring-2 focus:ring-ring"
             disabled={creating}
             id="skill-file-path"
             onChange={(event) => setLocalFilePath(event.target.value)}
@@ -434,7 +434,7 @@ function ScopeSelector({
       {(["project", "global"] as const).map((value) => (
         <button
           aria-checked={scope === value}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
+          className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring ${
             scope === value ? "bg-selected text-primary" : "text-muted"
           }`}
           key={value}

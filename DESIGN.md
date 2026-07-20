@@ -1,36 +1,36 @@
 ---
 name: Po Agent
-description: A clean, lightweight developer workspace built on a ChatGPT-like neutral light canvas with restrained state accents and linear structure.
+description: A precise Codex-inspired desktop workspace with a white canvas, quiet neutral rails, compact controls, and restrained blue state accents.
 colors:
   light:
     canvas: "#ffffff"
-    panel: "#f7f7f8"
+    panel: "#f5f5f5"
     elevated: "#ffffff"
-    subtle: "#f7f7f8"
-    hover: "#ececf1"
-    selected: "#ececf1"
-    text: "#0d0d0d"
-    muted: "#565869"
-    dim: "#8e8ea0"
-    borderSubtle: "#ececf1"
-    borderStrong: "#d9d9e3"
-    borderEmphasis: "#10a37f"
-    accent: "#10a37f"
-    accentHover: "#0e8f70"
-    accentDeep: "#08755f"
-    accentSoft: "#e6f4ef"
-    accentForeground: "#0d0d0d"
+    subtle: "#f7f7f7"
+    hover: "#ededed"
+    selected: "#e8e8e8"
+    text: "#1a1c1f"
+    muted: "#62666d"
+    dim: "#8b9098"
+    borderSubtle: "#e8e8e8"
+    borderStrong: "#d7d7d7"
+    borderEmphasis: "#339cff"
+    accent: "#339cff"
+    accentHover: "#1689f5"
+    accentDeep: "#0670d3"
+    accentSoft: "#eaf4ff"
+    accentForeground: "#1a1c1f"
     destructive: "#d92d20"
     success: "#12b76a"
     warning: "#b54708"
 typography:
-  display: "Noto Serif SC, Playfair Display, Georgia, serif"
-  ui: "Inter, ui-sans-serif, system-ui, sans-serif"
+  ui: "-apple-system, BlinkMacSystemFont, Segoe UI, Inter, PingFang SC, Microsoft YaHei, sans-serif"
   mono: "Noto Sans Mono, JetBrains Mono, Fira Code, Consolas, monospace"
 radius:
   small: "6px"
   control: "8px"
   floating: "12px"
+  composer: "22px"
 motion:
   fast: "150ms"
   standard: "200ms"
@@ -41,15 +41,16 @@ motion:
 
 ## Direction
 
-The interface is a focused desktop developer tool, not a marketing surface. Preserve its project-centered navigation and established workflows without requiring every panel to remain visible. The theme is ChatGPT-like Neutral Light: a white canvas, soft gray sidebars and controls, restrained boundaries, and black primary actions for high-contrast CTA clarity. Green is a state accent only, not the main visual identity.
+Po Agent is a focused desktop developer tool, not a marketing or entertainment surface. Its visual north star is the Codex desktop workspace: white content canvas, quiet gray navigation rails, compact information density, system typography, restrained blue state accents, and dark primary actions. The implementation borrows interaction and presentation principles without adding features that the product does not actually support.
 
 ## Workspace architecture
 
-- Left navigation owns New chat, Model Provider, Skills, projects, sessions, and locale.
+- The left rail owns New chat, Model Provider, Skills, projects, sessions, and locale.
 - The central workspace switches views while Chat remains mounted.
 - The right File Workspace is user-opened, resizable, and hidden on configuration views without losing state.
 - The minimum supported viewport width is 1024px; there is no mobile-specific layout.
-- Use the ChatGPT-like neutral semantic palette with accent reserved for focus, live state, and status indicators.
+- Projects and sessions use compact single-line rows. Secondary metadata must not overpower titles or displace row actions.
+- Model Provider and Skills share a 224px settings rail. The File tree adapts between 160px and 224px so the preview remains usable in a narrow file panel.
 
 ## Token architecture
 
@@ -57,89 +58,79 @@ The dependency direction is:
 
 `base values → semantic tokens → shared UI components → feature surfaces`
 
-Feature components must consume semantic tokens or shared primitives. Do not introduce one-off colors, radii, shadows, or transition durations.
+Feature components consume semantic tokens or shared primitives. Do not introduce one-off colors, radii, shadows, or transition durations.
 
 ## Typography
 
-- Use Playfair Display for Latin display text and Noto Serif SC for Chinese display text.
-- Display serif is limited to the welcome title, current session title, and major Dialog titles.
-- UI labels, controls, forms, lists, chat content, and navigation remain sans-serif.
-- Paths, code, compact metadata, and technical values use the mono stack.
-- Display titles use weight 600 and letter spacing no tighter than `-0.03em`.
+- Use the native system sans stack for all interface text, headings, navigation, forms, and chat prose.
+- Paths, code, compact metadata, model identifiers, and technical values use the mono stack.
+- Headings use weight 600 with restrained negative tracking; there is no decorative display serif.
+- Default UI text is 14px; compact code and technical metadata are generally 11–12px.
 - Body prose should generally remain within 65–75 characters per line.
 
-## Linear structure
+## Boundaries, shape, and elevation
 
 Use three boundary roles:
 
 1. `border-subtle` for internal dividers, rows, form groups, and message details.
-2. `border-strong` for composer boundaries and controls that need stronger structure.
-3. A complete `border-strong` frame plus `shadow-floating` for Dialogs, Dropdowns, Select content, Tooltips, and Popovers.
+2. `border-strong` for the composer and controls that need stronger structure.
+3. A complete border plus `shadow-floating` for Dialogs, Dropdowns, Select content, Tooltips, and Popovers.
 
-Do not use thick colored side stripes, repeated heavy rules, decorative grids, noise, or textured backgrounds.
-
-## Shape and elevation
-
-- Small icon controls: 6px.
-- Buttons, inputs, textareas, and inline controls: 8px.
-- Cards, panels, and floating surfaces: 12px.
-- Pills and circles are reserved for badges, status dots, and switch tracks.
-- Cards are flat by default and rely on tone, spacing, and border for hierarchy.
-- Genuine floating surfaces (Dialogs, Dropdowns, Tooltips) use `--shadow-floating`.
+- Small icon controls use 6px corners; standard controls use 8px; grouped/floating surfaces use 12px.
+- The chat composer is the intentional exception at 22px.
+- Pills and circles are reserved for badges, status dots, switches, and the send icon button.
+- Resting cards are flat. Shadows appear only where a surface genuinely floats.
+- Do not use decorative grids, textures, gradients, neon, or layered glass effects.
 
 ## Component states
 
-Every interactive component must account for default, hover, focus-visible, active, selected, disabled, loading, and error states.
+Every interactive component accounts for default, hover, focus-visible, active, selected, disabled, loading, and error states.
 
 - Hover changes tone, not geometry.
-- Focus-visible uses a clear 2px semantic focus ring.
-- Selected state combines background, text weight, and boundary.
-- Disabled state blocks interaction and uses disabled surface/text tokens.
-- Loading prevents duplicate submission and keeps labels understandable.
-- Error, success, and warning use semantic color plus text, icon, border, or shape.
+- Focus-visible uses a clear 2px `#0670d3` semantic ring; the brighter `#339cff` remains the product accent.
+- Selected navigation uses neutral gray plus text weight; blue is not a blanket selection fill.
+- Disabled controls block interaction and explain the specific reason through visible copy or a tooltip.
+- Loading states prevent duplicate actions while keeping labels understandable.
+- Error, success, and warning states combine color with text, icon, border, or shape.
 
 ## Color usage
 
-Accent green is for state only. The accent color (`#10a37f`) is reserved for focus, live agent state, success-adjacent status, and explicit status indicators. Selected navigation and passive highlights use neutral gray. Primary actions use black (`--text`) for high-contrast CTA clarity. Use `--accent-deep` (`#08755f`) for accent-colored text and links to ensure WCAG AA contrast.
+Codex blue (`#339cff`) is reserved for active state fills, switches, live state, and explicit status. Selected navigation and passive highlights remain neutral gray. Primary actions use near-black (`#1a1c1f`) with white text. Use the deeper accessible blue (`#0670d3`) for focus rings, links, and small blue text.
 
-## Chat execution process
+## Chat
 
-- Consecutive assistant thinking and tool activity from one user request is presented as one execution process with one model label.
-- The execution process is open while running, collapses when the assistant turn completes, and remains open only when the assistant turn itself fails. A recoverable tool failure stays local to its step and does not mark the whole process as failed.
-- Final answer content stays outside the execution process and remains directly readable.
-- Tool rows reserve stable columns for the command summary, textual status, and disclosure control so long commands cannot move or hide status.
-- Process rows use visible separators and right-to-down disclosure arrows; inherited markdown or code whitespace styles must not change the row layout.
+- User messages use a compact neutral bubble; assistant answers remain on the canvas without an enclosing decorative card.
+- Consecutive thinking and tool activity from one user request is one execution process with one model label.
+- The process is open while running and collapses after completion; recoverable tool failures remain local to their step.
+- Final answer content stays outside the execution disclosure and remains directly readable.
+- Tool rows reserve stable columns for command summary, status, and disclosure controls.
+- The floating Composer keeps model, thinking, compaction, attachments, queue/steer/stop, and send controls in one compact toolbar.
+
+## Settings and detail pages
+
+- Configuration views use a quiet 224px navigation rail and one centered reading column.
+- Settings are grouped into bordered sections with label and description on the left and the control on the right.
+- Rows use dividers instead of separate cards. Destructive actions remain visually separated and explicitly confirmed.
+- Auto-save status stays in the workspace chrome; do not reintroduce a fake manual-save workflow.
 
 ## Dialog safety
 
-- Backdrop clicks never close Dialogs.
-- Escape never closes Dialogs.
+- Backdrop clicks and Escape do not close Dialogs.
 - A visible close, cancel, save, or confirmation action is always available.
-- Unsaved model configuration requires a discard confirmation.
+- Unsaved model configuration requires discard confirmation.
 - The safe action receives default focus in destructive confirmations.
-- Provider deletion, model removal, API key removal, and OAuth disconnect require confirmation.
-- Session deletion uses the standard destructive confirmation Dialog and names the session being deleted.
-- Dangerous buttons use specific verbs rather than a generic "Confirm".
+- Provider deletion, model removal, API key removal, OAuth disconnect, and session deletion require explicit confirmation.
 
-## Motion
+## Motion and accessibility
 
-- State transitions use 150–220ms.
-- Animate color, opacity, transform, and short shadows only when they communicate state.
-- Avoid decorative page entrances, background motion, particles, magnetic effects, and cursor trails.
-- `prefers-reduced-motion: reduce` changes non-essential animation to near-instant transitions.
-- ReactBits is not part of this implementation and requires a separate proposal.
-
-## Do
-
-- Use the ChatGPT-like neutral light theme consistently across the workspace.
-- Prefer semantic tokens and shared primitives.
-- Keep focus visible, keyboard paths intact, and labels accessible.
-- Use accent for state, focus, and live indicators; use black for primary actions.
+- State transitions use 150–220ms and animate only color, opacity, transform, or short shadows when they communicate state.
+- `prefers-reduced-motion: reduce` makes non-essential animation near-instant.
+- Preserve semantic HTML, accessible names, keyboard paths, visible focus, and WCAG AA contrast.
 - Verify 1024px, 1440px, and 1920px desktop widths in both languages.
 
 ## Do not
 
-- Do not use gradients, glassmorphism, neon, decorative textures, or marketing-page patterns.
-- Do not apply serif type to buttons, navigation, forms, lists, or long chat content.
-- Do not create cards for every piece of information.
-- Do not silently change business logic, API contracts, or operation paths.
+- Do not add unsupported Codex features, placeholder metrics, or controls without real backend behavior.
+- Do not create a card for every piece of information.
+- Do not use mascot-like elements, playful copy, gradients, neon, decorative textures, or marketing-page patterns.
+- Do not silently change business logic, API contracts, cancellation behavior, or operation paths.

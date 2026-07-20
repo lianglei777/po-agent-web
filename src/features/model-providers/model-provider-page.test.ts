@@ -70,4 +70,10 @@ describe("Model Provider page", () => {
     expect(sidebarSource).not.toContain("onAddModel");
     expect(controllerSource).not.toMatch(/\baddModel\b/);
   });
+
+  it("uses a Codex-style settings rail and centered content column", () => {
+    expect(source).toContain('className="min-w-0 flex-1 overflow-y-auto px-6 py-8"');
+    expect(sidebarSource).toContain('w-[224px]');
+    expect(sidebarSource).toContain('border-line-subtle bg-panel');
+  });
 });
