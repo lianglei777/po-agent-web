@@ -78,7 +78,7 @@ export function ModelProviderPage({
             onSelect={modelConfig.setSelection}
             selection={modelConfig.selection}
           />
-          <main className="min-w-0 flex-1 overflow-y-auto px-6 py-8">
+          <main className="min-w-0 flex-1 overflow-y-auto px-6 py-6">
             {modelConfig.loadError ? (
               <p className="text-[13px] text-destructive">
                 {modelConfig.loadError}

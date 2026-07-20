@@ -28,6 +28,7 @@ import {
   SettingsRow,
   SettingsSection,
   inputStyle,
+  selectStyle,
 } from "../form-ui";
 import {
   getDefaultThinkingOnLevel,
@@ -407,7 +408,7 @@ export default function ModelDetail({
               onChange(changeEntryApi(model, e.target.value || undefined))
             }
             style={{
-              ...inputStyle,
+              ...selectStyle,
               color: model.api ? "var(--text)" : "var(--text-dim)",
             }}
           >
@@ -435,7 +436,7 @@ export default function ModelDetail({
                     .value as ConfiguredThinkingLevel,
                 })
               }
-              style={{ ...inputStyle }}
+              style={{ ...selectStyle }}
             >
               {supportedThinkingLevels.map((level) => (
                 <option key={level} value={level}>

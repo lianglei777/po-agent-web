@@ -284,7 +284,7 @@ function OAuthState({
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder={state.placeholder}
-            className="flex-1 rounded-md border border-line bg-panel px-2 py-1.5 text-[12px] text-primary"
+            className="flex-1 rounded-md border border-line bg-elevated px-2 py-1.5 text-[12px] text-primary"
           />
           <button
             type="button"

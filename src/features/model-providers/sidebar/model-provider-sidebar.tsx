@@ -68,7 +68,7 @@ export function ModelProviderSidebar({
   }
 
   return (
-    <aside className="flex w-[224px] shrink-0 flex-col border-r border-line-subtle bg-panel">
+    <aside className="flex w-[224px] shrink-0 flex-col border-r border-line-subtle">
       <div className="flex-1 overflow-y-auto px-1.5 py-2">
         <Button
           type="button"

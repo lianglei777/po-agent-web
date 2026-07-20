@@ -41,7 +41,7 @@ export function SettingsSection({
       <h2 className="px-0.5 text-[13px] font-semibold text-primary">
         {title}
       </h2>
-      <Card className="overflow-hidden rounded-xl border-line-subtle">
+      <Card className="overflow-hidden rounded-xl border-line-subtle bg-elevated">
         {children}
       </Card>
     </section>
@@ -86,7 +86,7 @@ export const controlClassName =
 
 export const inputStyle: React.CSSProperties = {
   padding: "7px 10px",
-  background: "var(--bg-panel)",
+  background: "var(--bg-elevated)",
   border: "1px solid var(--border-strong)",
   borderRadius: 8,
   color: "var(--text)",
@@ -94,4 +94,16 @@ export const inputStyle: React.CSSProperties = {
   outline: "none",
   width: "100%",
   boxSizing: "border-box",
+};
+
+// 原生 select 样式：隐藏默认箭头，自定义箭头距右边框 10px，与文本左边距保持一致
+export const selectStyle: React.CSSProperties = {
+  ...inputStyle,
+  appearance: "none",
+  backgroundImage:
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9098' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "right 10px center",
+  backgroundSize: "12px",
+  paddingRight: "28px",
 };

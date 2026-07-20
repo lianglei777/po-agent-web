@@ -22,6 +22,7 @@ import {
   SettingsRow,
   SettingsSection,
   inputStyle,
+  selectStyle,
 } from "../form-ui";
 import { CompatEditor } from "./compat-editor";
 import { changeEntryApi } from "./compat-editor-state";
@@ -172,7 +173,7 @@ export default function ProviderDetail({
             onChange={(e) => onChange(changeEntryApi(provider, e.target.value))}
             required
             style={{
-              ...inputStyle,
+              ...selectStyle,
               color: provider.api ? "var(--text)" : "var(--text-dim)",
             }}
           >

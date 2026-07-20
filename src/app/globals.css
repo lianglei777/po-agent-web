@@ -131,6 +131,11 @@ body {
     color: inherit;
     font: inherit;
   }
+  /* 原生 select 下拉选项保持白色底，避免继承控件底色 */
+  select option {
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
 }
 
 /* ModelsConfig save button animations */

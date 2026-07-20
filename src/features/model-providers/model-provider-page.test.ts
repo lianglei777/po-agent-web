@@ -72,8 +72,9 @@ describe("Model Provider page", () => {
   });
 
   it("uses a Codex-style settings rail and centered content column", () => {
-    expect(source).toContain('className="min-w-0 flex-1 overflow-y-auto px-6 py-8"');
+    expect(source).toContain('className="min-w-0 flex-1 overflow-y-auto px-6 py-6"');
     expect(sidebarSource).toContain('w-[224px]');
-    expect(sidebarSource).toContain('border-line-subtle bg-panel');
+    expect(sidebarSource).toContain('border-line-subtle');
+    expect(sidebarSource).not.toContain('bg-panel');
   });
 });

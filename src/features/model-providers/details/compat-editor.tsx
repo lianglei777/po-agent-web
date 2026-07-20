@@ -10,6 +10,7 @@ import {
   controlClassName,
   Field,
   inputStyle,
+  selectStyle,
   SettingsSection,
 } from "../form-ui";
 import { changeCompatValue } from "./compat-editor-state";
@@ -101,7 +102,7 @@ function CompatField({
           else if (field.kind === "boolean") onChange(next === "true");
           else onChange(next);
         }}
-        style={inputStyle}
+        style={selectStyle}
       >
         <option value="">{inheritedLabel}</option>
         {field.kind === "boolean" ? (
