@@ -42,13 +42,13 @@ export function WorkspaceSidebar({
           <span className="inline-flex">
             <Button
               aria-current={activeView === "chat" ? "page" : undefined}
-              className="w-full justify-start"
+              className="w-full justify-start text-xs text-primary"
               disabled={!selectedCwd}
               onClick={onNewChat}
               type="button"
               variant="ghost"
             >
-              <MessageSquarePlus />
+              <MessageSquarePlus className="size-3.5" />
               {t.workspace.newChat}
             </Button>
           </span>
@@ -60,12 +60,12 @@ export function WorkspaceSidebar({
 
       <Button
         aria-current={activeView === "model-provider" ? "page" : undefined}
-        className="mt-0.5 w-full justify-start"
+        className="mt-0.5 w-full justify-start text-xs text-primary"
         onClick={onOpenModelProvider}
         type="button"
         variant={activeView === "model-provider" ? "secondary" : "ghost"}
       >
-        <Cpu />
+        <Cpu className="size-3.5" />
         {t.workspace.modelProvider}
       </Button>
 
@@ -74,13 +74,13 @@ export function WorkspaceSidebar({
           <span className="inline-flex">
             <Button
               aria-current={activeView === "skills" ? "page" : undefined}
-              className="mt-0.5 w-full justify-start"
+              className="mt-0.5 w-full justify-start text-xs text-primary"
               disabled={!selectedCwd}
               onClick={onOpenSkills}
               type="button"
               variant={activeView === "skills" ? "secondary" : "ghost"}
             >
-              <Sparkles />
+              <Sparkles className="size-3.5" />
               {t.workspace.skills}
             </Button>
           </span>

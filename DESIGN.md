@@ -66,15 +66,15 @@ Feature components consume semantic tokens or shared primitives. Do not introduc
 - Paths, code, compact metadata, model identifiers, and technical values use the mono stack.
 - Headings use weight 600 with restrained negative tracking; there is no decorative display serif.
 - Font sizes use a semantic token scale — do not use arbitrary `text-[Npx]` values:
-  - `text-caption` (10px, lh 1.2) — badges, timestamps, micro labels
-  - `text-meta` (11px, lh 1.25) — technical metadata, section labels
-  - `text-xs` (12px) — sidebar items, compact values
-  - `text-body-sm` (13px, lh 1.4) — descriptions, secondary text
-  - `text-sm` (14px) — default UI text
-  - `text-prose` (15px, lh 1.5) — chat composer body
-  - `text-base` (16px) — body prose
-  - `text-lg` (18px) — section headings
-- Default UI text is 14px (`text-sm`); compact code and technical metadata use 11–12px (`text-meta`, `text-xs`).
+  - `text-caption` (11px, lh 1.2) — badges, timestamps, micro labels
+  - `text-meta` (12px, lh 1.25) — technical metadata, section labels
+  - `text-xs` (13px) — sidebar items, compact values
+  - `text-body-sm` (14px, lh 1.4) — descriptions, secondary text
+  - `text-sm` (15px) — default UI text
+  - `text-prose` (16px, lh 1.5) — chat composer body
+  - `text-base` (17px) — body prose
+  - `text-lg` (19px) — section headings
+- Default UI text is 15px (`text-sm`); compact code and technical metadata use 12–13px (`text-meta`, `text-xs`).
 - Body prose should generally remain within 65–75 characters per line.
 
 ## Boundaries, shape, and elevation

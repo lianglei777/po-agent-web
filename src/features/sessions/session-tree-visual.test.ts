@@ -23,17 +23,33 @@ describe("session tree destructive actions", () => {
   it("keeps row actions stable at narrow sidebar widths", () => {
     // 操作按钮使用绝对定位叠加在文本之上，确保窄 sidebar 也能完整显示
     expect(sessionTreeSource).toContain(
-      "absolute right-1 top-1/2 flex -translate-y-1/2 items-center",
+      "absolute right-1 top-1/2 -translate-y-1/2",
     );
-    expect(sessionTreeSource).toContain("opacity-0 pointer-events-none");
-    expect(sessionTreeSource).toContain("group-hover:opacity-100");
-    expect(sessionTreeSource).toContain("group-focus-within:opacity-100");
+    // hover 时通过 display 切换显示按钮，不使用透明度渐变
+    expect(sessionTreeSource).toContain("hidden bg-inherit group-hover:flex");
+    expect(sessionTreeSource).not.toContain("opacity-0");
+    expect(sessionTreeSource).not.toContain("group-hover:opacity-100");
     expect(sessionTreeSource).not.toContain(
       "hidden items-center group-hover:flex",
     );
     expect(sessionSidebarSource).toContain(
       'viewportClassName="[&>div]:block!"',
     );
+  });
+
+  it("uses a dropdown menu for row actions", () => {
+    // hover 时显示 "..." 按钮，点击展开菜单提供重命名和删除选项
+    expect(sessionTreeSource).toContain("MoreHorizontal");
+    expect(sessionTreeSource).toContain("<DropdownMenu");
+    expect(sessionTreeSource).toContain("<DropdownMenuTrigger");
+    expect(sessionTreeSource).toContain("<DropdownMenuContent");
+    expect(sessionTreeSource).toContain("<DropdownMenuItem");
+    expect(sessionTreeSource).toContain("t.sessions.sessionActions");
+    // 菜单项保留图标 + 文字，维持可发现性
+    expect(sessionTreeSource).toContain("<Pencil");
+    expect(sessionTreeSource).toContain("<Trash2");
+    // 支持双击行标题直接进入重命名模式
+    expect(sessionTreeSource).toContain("onDoubleClick");
   });
 
   it("uses compact single-line Codex-style session rows", () => {

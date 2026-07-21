@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   GitFork,
+  MoreHorizontal,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -16,6 +17,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n/use-i18n";
 import { deleteSession, renameSession } from "./api";
@@ -197,6 +204,12 @@ function SessionRow({
               : "border-transparent hover:bg-hover"
         }`}
         onClick={() => onSelect(session)}
+        onDoubleClick={(event) => {
+          if (isDraft) return;
+          event.stopPropagation();
+          setEditing(true);
+          setError("");
+        }}
         style={{ paddingLeft: `${depth * 12}px` }}
         title={title}
       >
@@ -243,35 +256,43 @@ function SessionRow({
           </span>
         ) : null}
         {isDraft ? null : (
-          <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-px rounded-md bg-panel/90 pl-1 opacity-0 pointer-events-none shadow-sm transition-opacity duration-[var(--motion-fast)] group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
-            <Button
-              aria-label={`${t.sessions.rename} ${title}`}
-              className="size-7 hover:text-accent-deep"
-              onClick={(event) => {
-                event.stopPropagation();
-                setEditing(true);
-                setError("");
-              }}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <Pencil className="size-3.5" />
-            </Button>
-            <Button
-              aria-label={`${t.common.delete} ${title}`}
-              className="size-7 hover:text-destructive"
-              onClick={(event) => {
-                event.stopPropagation();
-                setConfirming(true);
-                setError("");
-              }}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 hidden bg-inherit group-hover:flex group-focus-within:flex">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  aria-label={t.sessions.sessionActions}
+                  className="size-7"
+                  onClick={(event) => event.stopPropagation()}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                >
+                  <MoreHorizontal className="size-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem
+                  className="justify-center"
+                  onSelect={() => {
+                    setEditing(true);
+                    setError("");
+                  }}
+                >
+                  <Pencil className="size-3.5" />
+                  <span>{t.sessions.rename}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="justify-center text-destructive focus:text-destructive"
+                  onSelect={() => {
+                    setConfirming(true);
+                    setError("");
+                  }}
+                >
+                  <Trash2 className="size-3.5" />
+                  <span>{t.common.delete}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>
