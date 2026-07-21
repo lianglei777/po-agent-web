@@ -256,7 +256,7 @@ function SessionRow({
           </span>
         ) : null}
         {isDraft ? null : (
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 hidden bg-inherit group-hover:flex group-focus-within:flex">
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 hidden bg-inherit group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

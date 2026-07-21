@@ -31,6 +31,13 @@ truth because this Next.js version may differ from training data.
   artifacts to `docs/` only after they have been reviewed and accepted.
 - Do not scatter superpowers outputs in `docs/`, `src/`, or the repository root. -->
 
+## Superpowers Workflow
+
+- Do not invoke or follow any Superpowers skill or workflow unless the user
+  explicitly requests Superpowers for the current task. The availability of a
+  Superpowers skill, or a judgment that one might apply, does not count as an
+  explicit request.
+
 ## Required Workflow
 
 1. Inspect the owning module, its callers, its tests, and relevant docs.

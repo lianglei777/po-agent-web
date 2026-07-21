@@ -23,17 +23,21 @@ function DropdownMenuTrigger(
 }
 
 function DropdownMenuContent({
+  align = "start",
   className,
+  collisionPadding = 8,
   sideOffset = 6,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
+        align={align}
         className={mergeClasses(
-          "z-[1000] min-w-44 overflow-hidden rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
+          "z-[1000] max-h-[var(--radix-dropdown-menu-content-available-height)] w-max min-w-32 max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))] overflow-x-hidden overflow-y-auto rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
           className,
         )}
+        collisionPadding={collisionPadding}
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         {...props}
@@ -52,7 +56,7 @@ function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={mergeClasses(
-        "relative flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)]",
+        "relative flex min-w-0 max-w-full cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-xs break-words outline-none select-none focus:bg-hover focus:text-foreground data-[highlighted]:bg-hover data-[highlighted]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)] data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         inset && "pl-8",
         className,
       )}
@@ -105,7 +109,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       checked={checked}
       className={mergeClasses(
-        "relative flex cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-8 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)]",
+        "relative flex min-w-0 max-w-full cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-8 text-xs break-words outline-none select-none focus:bg-hover focus:text-foreground data-[highlighted]:bg-hover data-[highlighted]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)] data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       data-slot="dropdown-menu-checkbox-item"
@@ -140,7 +144,7 @@ function DropdownMenuRadioItem({
   return (
     <DropdownMenuPrimitive.RadioItem
       className={mergeClasses(
-        "relative flex cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-8 text-xs outline-none select-none focus:bg-hover focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)]",
+        "relative flex min-w-0 max-w-full cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-8 text-xs break-words outline-none select-none focus:bg-hover focus:text-foreground data-[highlighted]:bg-hover data-[highlighted]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)] data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       data-slot="dropdown-menu-radio-item"
@@ -173,7 +177,7 @@ function DropdownMenuSubTrigger({
   return (
     <DropdownMenuPrimitive.SubTrigger
       className={mergeClasses(
-        "flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-xs outline-none select-none focus:bg-hover data-[state=open]:bg-hover",
+        "flex min-w-0 max-w-full cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-xs break-words outline-none select-none focus:bg-hover data-[highlighted]:bg-hover data-[state=open]:bg-hover data-[disabled]:pointer-events-none data-[disabled]:text-[var(--disabled-text)] data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         inset && "pl-8",
         className,
       )}
@@ -188,14 +192,16 @@ function DropdownMenuSubTrigger({
 
 function DropdownMenuSubContent({
   className,
+  collisionPadding = 8,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
   return (
     <DropdownMenuPrimitive.SubContent
       className={mergeClasses(
-        "z-[1000] min-w-40 overflow-hidden rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
+        "z-[1000] max-h-[var(--radix-dropdown-menu-content-available-height)] w-max min-w-32 max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))] overflow-x-hidden overflow-y-auto rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
         className,
       )}
+      collisionPadding={collisionPadding}
       data-slot="dropdown-menu-sub-content"
       {...props}
     />

@@ -24,6 +24,42 @@ describe("shared UI visual contract", () => {
     expect(read("select")).toContain("shadow-[var(--shadow-floating)]");
   });
 
+  test("keeps dropdown menus content-sized and viewport-constrained", () => {
+    const dropdownMenu = read("dropdown-menu");
+    const content = dropdownMenu.slice(
+      dropdownMenu.indexOf("function DropdownMenuContent"),
+      dropdownMenu.indexOf("function DropdownMenuItem"),
+    );
+    const subContent = dropdownMenu.slice(
+      dropdownMenu.indexOf("function DropdownMenuSubContent"),
+      dropdownMenu.indexOf("export {"),
+    );
+
+    expect(content).toContain('align = "start"');
+    expect(content).toContain("align={align}");
+    expect(content).toContain("collisionPadding = 8");
+    expect(content).toContain("collisionPadding={collisionPadding}");
+    expect(content).toContain("w-max min-w-32");
+    expect(content).toContain(
+      "max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))]",
+    );
+    expect(content).toContain(
+      "max-h-[var(--radix-dropdown-menu-content-available-height)]",
+    );
+    expect(content).toContain("overflow-x-hidden overflow-y-auto");
+    expect(subContent).toContain("collisionPadding = 8");
+    expect(subContent).toContain("collisionPadding={collisionPadding}");
+    expect(subContent).toContain("w-max min-w-32");
+    expect(subContent).toContain(
+      "max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))]",
+    );
+    expect(subContent).toContain(
+      "max-h-[var(--radix-dropdown-menu-content-available-height)]",
+    );
+    expect(subContent).toContain("overflow-x-hidden overflow-y-auto");
+    expect(dropdownMenu).not.toContain("min-w-44");
+  });
+
   test("uses shared motion tokens for interactive controls", () => {
     expect(read("button")).toContain("duration-[var(--motion-fast)]");
     expect(read("accordion")).toContain("duration-[var(--motion-standard)]");

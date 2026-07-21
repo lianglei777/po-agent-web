@@ -49,7 +49,7 @@ export function BranchHistory({
           <span className="text-dim">{leaves.length}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="max-w-80" side="bottom">
+      <DropdownMenuContent align="end" side="bottom">
         {leaves.map((node) => {
           const active = node.entry.id === activeLeafId;
           return (

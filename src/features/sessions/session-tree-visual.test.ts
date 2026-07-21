@@ -52,6 +52,13 @@ describe("session tree destructive actions", () => {
     expect(sessionTreeSource).toContain("onDoubleClick");
   });
 
+  it("uses the shared start-aligned menu behavior in the session sidebar", () => {
+    expect(sessionSidebarSource).toContain("<DropdownMenuContent>");
+    expect(sessionSidebarSource).not.toContain(
+      '<DropdownMenuContent align="end">',
+    );
+  });
+
   it("uses compact single-line Codex-style session rows", () => {
     expect(sessionTreeSource).toContain('h-9 min-w-0');
     expect(sessionTreeSource).toContain('min-w-0 flex-1 truncate text-xs');

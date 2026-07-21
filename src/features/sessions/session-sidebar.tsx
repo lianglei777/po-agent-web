@@ -290,10 +290,12 @@ export function SessionSidebar({
                 (selected && collapsedSelectedCwd !== group.cwd);
               return (
                 <div key={group.cwd}>
-                  <div className="group flex items-center px-1">
+                  <div
+                    className={`group flex items-center rounded-md px-1 transition-colors duration-[var(--motion-fast)] hover:bg-hover focus-within:bg-hover ${selected ? "bg-secondary" : ""}`}
+                  >
                     <Button
                       aria-expanded={expanded}
-                      className="h-8 min-w-0 flex-1 justify-start gap-1.5 px-1 text-meta"
+                      className="h-8 min-w-0 flex-1 justify-start gap-1.5 px-1 text-meta bg-transparent"
                       onClick={() => selectProject(group.cwd)}
                       title={group.cwd}
                       type="button"
@@ -307,31 +309,33 @@ export function SessionSidebar({
                         {getProjectName(group.cwd)}
                       </span>
                     </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-label={t.sessions.removeProject}
-                          size="icon-sm"
-                          type="button"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          disabled={removingProject === group.cwd}
-                          onSelect={() => void removeFromList(group.cwd)}
-                        >
-                          <div>
-                            <div>{t.sessions.removeProject}</div>
-                            <div className="text-caption text-dim">
-                              {t.sessions.removeProjectDescription}
+                    <div className="hidden group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-label={t.sessions.removeProject}
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            disabled={removingProject === group.cwd}
+                            onSelect={() => void removeFromList(group.cwd)}
+                          >
+                            <div>
+                              <div>{t.sessions.removeProject}</div>
+                              <div className="text-caption text-dim">
+                                {t.sessions.removeProjectDescription}
+                              </div>
                             </div>
-                          </div>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                   {expanded ? (
                     group.nodes.length ? (
