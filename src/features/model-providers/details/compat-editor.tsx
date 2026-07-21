@@ -8,9 +8,9 @@ import {
 import { useI18n } from "@/i18n/use-i18n";
 import {
   controlClassName,
-  Field,
   inputStyle,
   selectStyle,
+  SettingsRow,
   SettingsSection,
 } from "@/components/ui/settings-form";
 import { mergeClasses } from "@/lib/utils";
@@ -31,6 +31,11 @@ export function CompatEditor({
 }: Props) {
   const { t } = useI18n();
   const fields = getCompatFields(api);
+  // 字段描述按 `${api}.${fieldKey}` 查字典；类型上以索引签名访问
+  const descriptions = t.models.compatFieldDescriptions as Record<
+    string,
+    string
+  >;
 
   return (
     <SettingsSection title={t.models.compatibility}>
@@ -44,11 +49,12 @@ export function CompatEditor({
           <summary className="cursor-pointer px-3 py-2 text-xs text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {t.models.compatibilitySettings} · {api}
           </summary>
-          <div className="grid gap-3 border-t border-line-subtle bg-subtle p-4 sm:grid-cols-2">
+          <div className="border-t border-line-subtle">
             {fields.map((field) => (
               <CompatField
                 key={field.key}
                 field={field}
+                description={descriptions[`${api}.${field.key}`]}
                 value={compat?.[field.key]}
                 inheritedValue={inheritedCompat?.[field.key]}
                 onChange={(value) =>
@@ -65,11 +71,13 @@ export function CompatEditor({
 
 function CompatField({
   field,
+  description,
   value,
   inheritedValue,
   onChange,
 }: {
   field: CompatFieldDefinition;
+  description?: string;
   value: unknown;
   inheritedValue: unknown;
   onChange: (value: unknown) => void;
@@ -79,20 +87,53 @@ function CompatField({
     inheritedValue === undefined
       ? t.models.auto
       : `${t.models.inherited}: ${formatValue(inheritedValue)}`;
+  const label = <code className="font-ui-mono">{field.key}</code>;
 
   if (field.kind === "object") {
     return (
-      <JsonCompatField
-        fieldKey={field.key}
-        value={value}
-        inheritedLabel={inheritedLabel}
-        onChange={onChange}
-      />
+      <SettingsRow
+        label={label}
+        description={description}
+        align="start"
+        contentMaxWidth={400}
+      >
+        <JsonCompatTextarea
+          ariaLabel={field.key}
+          value={value}
+          inheritedLabel={inheritedLabel}
+          onChange={onChange}
+        />
+      </SettingsRow>
+    );
+  }
+
+  // 带显式默认值且无继承上下文（Provider 级）的布尔字段：渲染为二态，
+  // 默认值即默认显示，避免 "Auto" 误导（如 supportsDeveloperRole 默认 false）。
+  if (
+    field.kind === "boolean" &&
+    field.defaultValue !== undefined &&
+    inheritedValue === undefined
+  ) {
+    const resolved =
+      typeof value === "boolean" ? value : field.defaultValue;
+    return (
+      <SettingsRow label={label} description={description}>
+        <select
+          aria-label={field.key}
+          className={controlClassName}
+          value={String(resolved)}
+          onChange={(event) => onChange(event.target.value === "true")}
+          style={selectStyle}
+        >
+          <option value="true">{t.models.enabled}</option>
+          <option value="false">{t.models.disabled}</option>
+        </select>
+      </SettingsRow>
     );
   }
 
   return (
-    <Field label={<code className="font-ui-mono">{field.key}</code>}>
+    <SettingsRow label={label} description={description}>
       <select
         aria-label={field.key}
         className={controlClassName}
@@ -119,17 +160,17 @@ function CompatField({
           ))
         )}
       </select>
-    </Field>
+    </SettingsRow>
   );
 }
 
-function JsonCompatField({
-  fieldKey,
+function JsonCompatTextarea({
+  ariaLabel,
   value,
   inheritedLabel,
   onChange,
 }: {
-  fieldKey: string;
+  ariaLabel: string;
   value: unknown;
   inheritedLabel: string;
   onChange: (value: unknown) => void;
@@ -139,9 +180,9 @@ function JsonCompatField({
   const [invalid, setInvalid] = useState(false);
 
   return (
-    <Field label={<code className="font-ui-mono">{fieldKey}</code>}>
+    <div className="flex flex-col gap-1">
       <textarea
-        aria-label={fieldKey}
+        aria-label={ariaLabel}
         className={mergeClasses(
           controlClassName,
           invalid && "border-destructive hover:border-destructive",
@@ -185,7 +226,7 @@ function JsonCompatField({
           {t.models.invalidJsonObject}
         </span>
       )}
-    </Field>
+    </div>
   );
 }
 

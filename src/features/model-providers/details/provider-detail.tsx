@@ -285,7 +285,10 @@ function ModelDiscoveryPanel({
     <SettingsSection title={t.models.modelList}>
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="min-w-0">
-          <p className="max-w-[62ch] text-meta leading-4 text-dim">
+          <div className="text-xs font-medium text-primary">
+            {t.models.addModels}
+          </div>
+          <p className="mt-1 max-w-[62ch] text-meta leading-4 text-dim">
             {t.models.discoverModelsDescription}
           </p>
         </div>

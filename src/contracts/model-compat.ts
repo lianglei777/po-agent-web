@@ -8,13 +8,13 @@ export const MODEL_API_PROTOCOLS = [
 export type ModelApiProtocol = (typeof MODEL_API_PROTOCOLS)[number];
 
 export type CompatFieldDefinition =
-  | { key: string; kind: "boolean" }
+  | { key: string; kind: "boolean"; defaultValue?: boolean }
   | { key: string; kind: "enum"; values: readonly string[] }
   | { key: string; kind: "object" };
 
 const OPENAI_COMPLETIONS_FIELDS = [
   { key: "supportsStore", kind: "boolean" },
-  { key: "supportsDeveloperRole", kind: "boolean" },
+  { key: "supportsDeveloperRole", kind: "boolean", defaultValue: false },
   { key: "supportsReasoningEffort", kind: "boolean" },
   { key: "supportsUsageInStreaming", kind: "boolean" },
   {
@@ -110,9 +110,15 @@ export function sanitizeCompat(
       }
     }
   }
-  // openai-completions: 仅在显式设置为 true 时支持 developer role，其余默认 false
-  if (api === "openai-completions" && output.supportsDeveloperRole !== true) {
-    output.supportsDeveloperRole = false;
+  // 带显式默认值的布尔字段：未设置时落盘为默认值（如 supportsDeveloperRole 默认 false）
+  for (const field of getCompatFields(api)) {
+    if (
+      field.kind === "boolean" &&
+      field.defaultValue !== undefined &&
+      output[field.key] === undefined
+    ) {
+      output[field.key] = field.defaultValue;
+    }
   }
   return Object.keys(output).length ? output : undefined;
 }

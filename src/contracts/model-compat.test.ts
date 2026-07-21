@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { en } from "@/i18n/dictionaries/en";
+import { zh } from "@/i18n/dictionaries/zh";
 import {
   getCompatFields,
   getEffectiveApi,
+  MODEL_API_PROTOCOLS,
   sanitizeCompat,
   sanitizeModelsConfig,
 } from "./model-compat";
@@ -23,6 +26,17 @@ describe("model compatibility contract", () => {
         (field) => field.key === "supportsDeveloperRole",
       ),
     ).toBe(false);
+  });
+
+  it("marks supportsDeveloperRole as a bounded boolean defaulting to false", () => {
+    const field = getCompatFields("openai-completions").find(
+      (f) => f.key === "supportsDeveloperRole",
+    );
+    expect(field).toBeDefined();
+    expect(field?.kind).toBe("boolean");
+    if (field?.kind === "boolean") {
+      expect(field.defaultValue).toBe(false);
+    }
   });
 
   it("uses a model api override before the provider api", () => {
@@ -140,5 +154,25 @@ describe("model compatibility contract", () => {
         { strictApi: true },
       ),
     ).toThrow("Unsupported API protocol: future-api");
+  });
+
+  it("ships a compat field description for every field of every protocol", () => {
+    // 字段描述键约定为 `${api}.${fieldKey}`，必须在中英字典中都存在，
+    // 避免新增兼容性字段时遗漏用户可见说明。
+    const enDescriptions = en.models.compatFieldDescriptions as Record<
+      string,
+      unknown
+    >;
+    const zhDescriptions = zh.models.compatFieldDescriptions as Record<
+      string,
+      unknown
+    >;
+    for (const api of MODEL_API_PROTOCOLS) {
+      for (const field of getCompatFields(api)) {
+        const key = `${api}.${field.key}`;
+        expect(enDescriptions[key], key).toBeTypeOf("string");
+        expect(zhDescriptions[key], key).toBeTypeOf("string");
+      }
+    }
   });
 });
