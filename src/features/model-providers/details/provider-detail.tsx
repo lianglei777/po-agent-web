@@ -8,6 +8,9 @@ import {
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Dialog,
   DialogContent,
@@ -17,12 +20,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  controlClassName,
   SectionTitle,
   SettingsRow,
   SettingsSection,
-  inputStyle,
-  selectStyle,
 } from "@/components/ui/settings-form";
 import { CompatEditor } from "./compat-editor";
 import { changeEntryApi } from "./compat-editor-state";
@@ -116,13 +116,14 @@ export default function ProviderDetail({
       </Dialog>
 
       <SettingsSection title={t.models.general}>
-        <SettingsRow label={t.models.providerName}>
+        <SettingsRow label={t.models.providerName} labelFor="provider-name">
           <div className="flex items-center gap-2">
-            <input
+            <Input
+              density="compact"
+              id="provider-name"
               value={editingName}
               onChange={(e) => setEditingName(e.target.value)}
-              className={`${controlClassName} min-w-0 flex-1 font-ui-mono`}
-              style={{ ...inputStyle }}
+              className="min-w-0 flex-1 font-ui-mono"
             />
             {canRename && (
               <Button
@@ -138,18 +139,28 @@ export default function ProviderDetail({
           </div>
         </SettingsRow>
 
-        <SettingsRow label={t.models.baseUrl} contentMaxWidth={400}>
-          <input
+        <SettingsRow
+          label={t.models.baseUrl}
+          labelFor="provider-base-url"
+          contentMaxWidth={400}
+        >
+          <Input
+            density="compact"
+            id="provider-base-url"
             value={provider.baseUrl ?? ""}
             onChange={(e) => onChange({ ...provider, baseUrl: e.target.value })}
             placeholder="https://api.example.com/v1"
-            className={`${controlClassName} font-ui-mono`}
-            style={{ ...inputStyle }}
+            className="font-ui-mono"
           />
         </SettingsRow>
 
-        <SettingsRow label={t.models.apiKey} contentMaxWidth={400}>
+        <SettingsRow
+          label={t.models.apiKey}
+          labelFor="provider-api-key"
+          contentMaxWidth={400}
+        >
           <SecretTextInput
+            id="provider-api-key"
             value={provider.apiKey ?? ""}
             onChange={(v) => onChange({ ...provider, apiKey: v })}
             placeholder={t.models.apiKeyPlaceholder}
@@ -157,23 +168,20 @@ export default function ProviderDetail({
           />
         </SettingsRow>
 
-        <SettingsRow label={t.models.apiProtocol}>
-          <select
-            className={controlClassName}
+        <SettingsRow label={t.models.apiProtocol} labelFor="provider-api-protocol">
+          <NativeSelect
+            id="provider-api-protocol"
             value={provider.api ?? ""}
             onChange={(e) => onChange(changeEntryApi(provider, e.target.value))}
             required
-            style={{
-              ...selectStyle,
-              color: provider.api ? "var(--text)" : "var(--text-dim)",
-            }}
+            className={provider.api ? "text-primary" : "text-dim"}
           >
             {API_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </SettingsRow>
       </SettingsSection>
 
@@ -305,7 +313,7 @@ function ModelDiscoveryPanel({
       </div>
 
       {relevant?.phase === "error" && (
-        <p className="border-t border-line-subtle px-4 py-3 text-xs text-destructive">
+        <p className="border-t border-line-subtle px-4 py-3 text-xs text-destructive-text">
           {relevant.message}
         </p>
       )}
@@ -349,12 +357,9 @@ function ModelDiscoveryPanel({
                       key={suggestion.model.id}
                       className="flex cursor-pointer items-center gap-2 border-b border-line px-2.5 py-2 last:border-b-0 hover:bg-hover"
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={checked}
-                        onChange={() => toggleModel(suggestion.model.id)}
-                        className="h-[13px] w-[13px] cursor-pointer"
-                        style={{ accentColor: "var(--accent)" }}
+                        onCheckedChange={() => toggleModel(suggestion.model.id)}
                       />
                       <span className="min-w-0 flex-1 truncate font-ui-mono text-meta text-primary">
                         {suggestion.model.id}
@@ -391,11 +396,13 @@ function ModelDiscoveryPanel({
 }
 
 function SecretTextInput({
+  id,
   value,
   onChange,
   placeholder,
   mono,
 }: {
+  id?: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -407,15 +414,16 @@ function SecretTextInput({
 
   return (
     <div className="relative w-full">
-      <input
+      <Input
+        density="compact"
+        id={id}
         type={visible ? "text" : "password"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
         spellCheck={false}
-        className={`${controlClassName} ${mono ? "font-ui-mono" : ""}`}
-        style={{ ...inputStyle, paddingRight: 34 }}
+        className={mono ? "pr-9 font-ui-mono" : "pr-9"}
       />
       <Button
         aria-label={visible ? t.models.hideApiKey : t.models.showApiKey}

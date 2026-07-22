@@ -6,14 +6,12 @@ import {
   type CompatFieldDefinition,
 } from "@/contracts/model-compat";
 import { useI18n } from "@/i18n/use-i18n";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  controlClassName,
-  inputStyle,
-  selectStyle,
   SettingsRow,
   SettingsSection,
 } from "@/components/ui/settings-form";
-import { mergeClasses } from "@/lib/utils";
 import { changeCompatValue } from "./compat-editor-state";
 
 interface Props {
@@ -93,12 +91,14 @@ function CompatField({
     return (
       <SettingsRow
         label={label}
+        labelFor={`compat-${field.key}`}
         description={description}
         align="start"
         contentMaxWidth={400}
       >
         <JsonCompatTextarea
           ariaLabel={field.key}
+          id={`compat-${field.key}`}
           value={value}
           inheritedLabel={inheritedLabel}
           onChange={onChange}
@@ -117,26 +117,33 @@ function CompatField({
     const resolved =
       typeof value === "boolean" ? value : field.defaultValue;
     return (
-      <SettingsRow label={label} description={description}>
-        <select
+      <SettingsRow
+        label={label}
+        labelFor={`compat-${field.key}`}
+        description={description}
+      >
+        <NativeSelect
           aria-label={field.key}
-          className={controlClassName}
+          id={`compat-${field.key}`}
           value={String(resolved)}
           onChange={(event) => onChange(event.target.value === "true")}
-          style={selectStyle}
         >
           <option value="true">{t.models.enabled}</option>
           <option value="false">{t.models.disabled}</option>
-        </select>
+        </NativeSelect>
       </SettingsRow>
     );
   }
 
   return (
-    <SettingsRow label={label} description={description}>
-      <select
+    <SettingsRow
+      label={label}
+      labelFor={`compat-${field.key}`}
+      description={description}
+    >
+      <NativeSelect
         aria-label={field.key}
-        className={controlClassName}
+        id={`compat-${field.key}`}
         value={value === undefined ? "" : String(value)}
         onChange={(event) => {
           const next = event.target.value;
@@ -144,7 +151,6 @@ function CompatField({
           else if (field.kind === "boolean") onChange(next === "true");
           else onChange(next);
         }}
-        style={selectStyle}
       >
         <option value="">{inheritedLabel}</option>
         {field.kind === "boolean" ? (
@@ -159,18 +165,20 @@ function CompatField({
             </option>
           ))
         )}
-      </select>
+      </NativeSelect>
     </SettingsRow>
   );
 }
 
 function JsonCompatTextarea({
   ariaLabel,
+  id,
   value,
   inheritedLabel,
   onChange,
 }: {
   ariaLabel: string;
+  id: string;
   value: unknown;
   inheritedLabel: string;
   onChange: (value: unknown) => void;
@@ -181,12 +189,12 @@ function JsonCompatTextarea({
 
   return (
     <div className="flex flex-col gap-1">
-      <textarea
+      <Textarea
         aria-label={ariaLabel}
-        className={mergeClasses(
-          controlClassName,
-          invalid && "border-destructive hover:border-destructive",
-        )}
+        aria-invalid={invalid || undefined}
+        className="min-h-22 resize-y font-ui-mono"
+        density="compact"
+        id={id}
         rows={4}
         value={text}
         placeholder={inheritedLabel}
@@ -214,15 +222,9 @@ function JsonCompatTextarea({
             setInvalid(true);
           }
         }}
-        style={{
-          ...inputStyle,
-          minHeight: 88,
-          resize: "vertical",
-          fontFamily: "var(--font-ui-mono)",
-        }}
       />
       {invalid && (
-        <span className="text-meta text-destructive">
+        <span className="text-meta text-destructive-text">
           {t.models.invalidJsonObject}
         </span>
       )}

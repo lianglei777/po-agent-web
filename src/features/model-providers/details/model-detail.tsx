@@ -4,6 +4,9 @@ import { useState, useCallback, useMemo } from "react";
 import { testModelConfig } from "../api";
 import { getEffectiveApi } from "@/contracts/model-compat";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +25,9 @@ import {
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
 import {
-  controlClassName,
   SectionTitle,
   SettingsRow,
   SettingsSection,
-  inputStyle,
-  selectStyle,
 } from "@/components/ui/settings-form";
 import {
   getDefaultThinkingOnLevel,
@@ -274,9 +274,10 @@ export default function ModelDetail({
             </Button>
           </div>
         </SettingsRow>
-        <SettingsRow label={t.models.name}>
-          <input
-            className={controlClassName}
+        <SettingsRow label={t.models.name} labelFor="model-name">
+          <Input
+            density="compact"
+            id="model-name"
             value={model.name ?? ""}
             onChange={(e) =>
               onChange({
@@ -284,7 +285,6 @@ export default function ModelDetail({
                 name: e.target.value || undefined,
               })
             }
-            style={{ ...inputStyle }}
           />
         </SettingsRow>
         <SettingsRow
@@ -360,18 +360,16 @@ export default function ModelDetail({
       <SettingsSection title={t.models.advanced}>
         <SettingsRow
           label={t.models.apiProtocol}
+          labelFor="model-api-protocol"
           description={t.models.apiProtocolDescription}
         >
-          <select
-            className={controlClassName}
+          <NativeSelect
+            id="model-api-protocol"
             value={model.api ?? ""}
             onChange={(e) =>
               onChange(changeEntryApi(model, e.target.value || undefined))
             }
-            style={{
-              ...selectStyle,
-              color: model.api ? "var(--text)" : "var(--text-dim)",
-            }}
+            className={model.api ? "text-primary" : "text-dim"}
           >
             <option value="">{t.models.inheritNone}</option>
             {API_OPTIONS.map((opt) => (
@@ -379,16 +377,17 @@ export default function ModelDetail({
                 {opt}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </SettingsRow>
 
         {reasoningEnabled && supportedThinkingLevels.length > 0 && (
           <SettingsRow
             label={t.models.thinkingOnDefault}
+            labelFor="model-thinking-default"
             description={t.models.thinkingOnDefaultDescription}
           >
-            <select
-              className={controlClassName}
+            <NativeSelect
+              id="model-thinking-default"
               value={model.thinkingDefaultLevel ?? defaultThinkingLevel ?? "high"}
               onChange={(event) =>
                 onChange({
@@ -397,14 +396,13 @@ export default function ModelDetail({
                     .value as ConfiguredThinkingLevel,
                 })
               }
-              style={{ ...selectStyle }}
             >
               {supportedThinkingLevels.map((level) => (
                 <option key={level} value={level}>
                   {level}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </SettingsRow>
         )}
       </SettingsSection>
@@ -456,7 +454,7 @@ function DiagnosticPanel({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-ui-mono text-meta text-destructive">
+          <div className="font-ui-mono text-meta text-destructive-text">
             {diagnostic.code}
           </div>
           <p className="mt-1 text-xs leading-5 text-primary">
@@ -513,19 +511,11 @@ function CapabilityToggle({
 }) {
   return (
     <div className="flex items-center justify-end gap-2.5">
-      <label className="inline-flex items-center cursor-pointer">
-        <span className="sr-only">{label}</span>
-        <input
-          checked={checked}
-          className="peer sr-only"
-          onChange={(event) => onChange(event.target.checked)}
-          type="checkbox"
-        />
-        <span
-          aria-hidden="true"
-          className="relative h-5 w-9 rounded-full bg-line-strong transition-colors after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-elevated after:transition-transform peer-checked:bg-accent peer-checked:after:translate-x-4 peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:after:transition-none"
-        />
-      </label>
+      <Switch
+        aria-label={label}
+        checked={checked}
+        onCheckedChange={onChange}
+      />
     </div>
   );
 }

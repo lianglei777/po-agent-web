@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { logoutOAuth, submitOAuthInput } from "../api";
 import { useI18n } from "@/i18n/use-i18n";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -202,7 +203,7 @@ export default function OAuthDetail({
             </DialogDescription>
           </DialogHeader>
           {state.phase === "error" ? (
-            <p className="text-sm text-destructive" role="alert">
+            <p className="text-sm text-destructive-text" role="alert">
               {state.message}
             </p>
           ) : null}
@@ -281,12 +282,13 @@ function OAuthState({
       <div className="flex flex-col gap-2">
         <p className="text-body-sm text-muted">{state.message}</p>
         <div className="flex gap-1.5">
-          <input
+          <Input
             autoFocus
+            density="compact"
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder={state.placeholder}
-            className="flex-1 rounded-md border border-line bg-elevated px-2 py-1.5 text-xs text-primary"
+            className="flex-1"
           />
           <Button
             type="button"
@@ -322,13 +324,13 @@ function OAuthState({
   }
   if (state.phase === "success") {
     return (
-      <p className="text-body-sm text-success">
+      <p className="text-body-sm text-success-text">
         {t.models.connectedSuccessfully}
       </p>
     );
   }
   return (
-    <p className={`text-body-sm ${state.phase === "error" ? "text-destructive" : "text-muted"}`}>
+    <p className={`text-body-sm ${state.phase === "error" ? "text-destructive-text" : "text-muted"}`}>
       {state.message}
     </p>
   );

@@ -26,7 +26,7 @@ export function SettingsSection({
       <h2 className="px-0.5 text-body-sm font-semibold text-primary">
         {title}
       </h2>
-      <Card className="overflow-hidden rounded-xl border-line-subtle bg-elevated">
+      <Card className="overflow-hidden rounded-floating border-line-subtle bg-elevated">
         {children}
       </Card>
     </section>
@@ -35,12 +35,14 @@ export function SettingsSection({
 
 export function SettingsRow({
   label,
+  labelFor,
   description,
   children,
   align = "center",
   contentMaxWidth = 250,
 }: {
   label: ReactNode;
+  labelFor?: string;
   description?: ReactNode;
   children: ReactNode;
   align?: "center" | "start";
@@ -57,12 +59,18 @@ export function SettingsRow({
       }}
     >
       <div className="min-w-0">
-        <div className="text-xs font-medium text-primary">{label}</div>
-        {description && (
-          <p className="mt-1 max-w-[54ch] text-meta leading-4 text-dim">
+        {labelFor ? (
+          <label className="text-xs font-medium text-primary" htmlFor={labelFor}>
+            {label}
+          </label>
+        ) : (
+          <div className="text-xs font-medium text-primary">{label}</div>
+        )}
+        {description ? (
+          <p className="mt-1 max-w-[54ch] text-meta leading-4 text-muted">
             {description}
           </p>
-        )}
+        ) : null}
       </div>
       <div
         className="min-w-0 w-full justify-self-end"
@@ -73,28 +81,3 @@ export function SettingsRow({
     </div>
   );
 }
-
-// 边框、背景、圆角通过 Tailwind 类设置，以便支持 hover/focus 状态过渡
-export const controlClassName =
-  "border border-line-strong bg-elevated rounded-md transition-colors duration-[var(--motion-fast)] hover:border-accent/50 focus-visible:outline-none focus-visible:border-accent focus-visible:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent/20 focus-visible:ring-offset-1";
-
-export const inputStyle: React.CSSProperties = {
-  padding: "7px 10px",
-  color: "var(--text)",
-  fontSize: 12,
-  outline: "none",
-  width: "100%",
-  boxSizing: "border-box",
-};
-
-// 原生 select 样式：隐藏默认箭头，自定义箭头距右边框 10px，与文本左边距保持一致
-export const selectStyle: React.CSSProperties = {
-  ...inputStyle,
-  appearance: "none",
-  backgroundImage:
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9098' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
-  backgroundRepeat: "no-repeat",
-  backgroundPosition: "right 10px center",
-  backgroundSize: "12px",
-  paddingRight: "28px",
-};

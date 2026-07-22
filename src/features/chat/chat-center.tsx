@@ -393,7 +393,7 @@ function CenteredState({
 }) {
   return (
     <div
-      className={`grid flex-1 place-items-center text-sm ${error ? "text-destructive" : "text-muted"
+      className={`grid flex-1 place-items-center text-sm ${error ? "text-destructive-text" : "text-muted"
         }`}
     >
       {children}

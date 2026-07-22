@@ -320,7 +320,7 @@ export function SystemPromptDialog({
                     : t.instructions.sessionOutdatedDescription}
                 </p>
                 {reloadError ? (
-                  <p className="mt-1 text-caption text-destructive" role="alert">
+                  <p className="mt-1 text-caption text-destructive-text" role="alert">
                     {reloadError}
                   </p>
                 ) : null}
@@ -345,7 +345,7 @@ export function SystemPromptDialog({
 
           {agentId && !needsApply && reloadSuccess ? (
             <div
-              className="shrink-0 border-b border-line-subtle bg-subtle px-6 py-2 text-caption text-success"
+              className="shrink-0 border-b border-line-subtle bg-subtle px-6 py-2 text-caption text-success-text"
               role="status"
             >
               {t.instructions.applied}
@@ -453,7 +453,7 @@ export function SystemPromptDialog({
             <div className="min-w-0 flex-1">
               {activeView === "global" && globalState.doc?.exists ? (
                 <Button
-                  className="text-destructive hover:bg-destructive/8 hover:text-destructive"
+                  className="text-destructive-text hover:bg-destructive/8 hover:text-destructive-text"
                   disabled={globalState.deleting || globalState.loading}
                   onClick={() => setShowDeleteConfirm(true)}
                   size="sm"
@@ -703,7 +703,7 @@ function GlobalPromptEditor({
               className="shrink-0 space-y-2 rounded-lg border border-destructive/25 bg-destructive/8 p-3"
               role="alert"
             >
-              <p className="text-xs text-destructive">{error}</p>
+              <p className="text-xs text-destructive-text">{error}</p>
               {conflict ? (
                 <div className="flex gap-2">
                   <Button onClick={onForceSave} size="sm" variant="destructive">

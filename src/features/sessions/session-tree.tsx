@@ -245,7 +245,7 @@ function SessionRow({
         </span>
         {error && !confirming ? (
           <span
-            className="ml-2 min-w-0 max-w-28 flex-none truncate text-caption tabular-nums text-destructive"
+            className="ml-2 min-w-0 max-w-28 flex-none truncate text-caption tabular-nums text-destructive-text"
             title={error}
           >
             {error}
@@ -282,7 +282,7 @@ function SessionRow({
                   <span>{t.sessions.rename}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="justify-center text-destructive focus:text-destructive"
+                  className="justify-center text-destructive-text focus:text-destructive-text"
                   onSelect={() => {
                     setConfirming(true);
                     setError("");
@@ -314,7 +314,7 @@ function SessionRow({
             </DialogDescription>
           </DialogHeader>
           {error ? (
-            <p className="text-sm text-destructive" role="alert">
+            <p className="text-sm text-destructive-text" role="alert">
               {error}
             </p>
           ) : null}

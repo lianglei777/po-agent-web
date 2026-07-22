@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { RadioCard } from "@/components/ui/radio-card";
 import { useI18n } from "@/i18n/use-i18n";
 
 export function AddSkillPackDialog({
@@ -106,21 +107,19 @@ export function AddSkillPackDialog({
               {t.skills.packs.installScope}
             </legend>
             {(["project", "global"] as const).map((value) => (
-              <label
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-line-subtle px-3 py-2 text-sm has-[:checked]:border-ring has-[:checked]:bg-selected"
+              <RadioCard
+                checked={scope === value}
                 key={value}
+                name="manual-skill-pack-scope"
+                onChange={() => setScope(value)}
+                value={value}
               >
-                <input
-                  checked={scope === value}
-                  name="manual-skill-pack-scope"
-                  onChange={() => setScope(value)}
-                  type="radio"
-                  value={value}
-                />
-                {value === "project"
-                  ? t.skills.packs.installProject
-                  : t.skills.packs.installGlobal}
-              </label>
+                {
+                  value === "project"
+                    ? t.skills.packs.installProject
+                    : t.skills.packs.installGlobal
+                }
+              </RadioCard>
             ))}
           </fieldset>
 

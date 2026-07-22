@@ -10,11 +10,9 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  SectionTitle,
-  controlClassName,
-  inputStyle,
-} from "@/components/ui/settings-form";
+import { Input } from "@/components/ui/input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { SectionTitle } from "@/components/ui/settings-form";
 import { useI18n } from "@/i18n/use-i18n";
 import { createLocalSkill, installSkill, searchSkills } from "./api";
 import type {
@@ -149,41 +147,23 @@ export function AddSkillPanel({
         </header>
 
         {/* Tab 切换 */}
-        <div
-          className="inline-flex rounded-lg border border-line-subtle bg-panel p-1"
-          role="tablist"
-        >
-          <button
-            aria-selected={mode === "market"}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              mode === "market" ? "bg-selected text-primary" : "text-muted"
-            }`}
-            onClick={() => setMode("market")}
-            role="tab"
-            type="button"
-          >
-            {t.skills.market}
-          </button>
-          <button
-            aria-selected={mode === "local"}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              mode === "local" ? "bg-selected text-primary" : "text-muted"
-            }`}
-            onClick={() => setMode("local")}
-            role="tab"
-            type="button"
-          >
-            {t.skills.createLocal}
-          </button>
-        </div>
+        <SegmentedControl
+          ariaLabel={t.skills.addSkill}
+          items={[
+            { label: t.skills.market, value: "market" },
+            { label: t.skills.createLocal, value: "local" },
+          ]}
+          onValueChange={setMode}
+          value={mode}
+        />
 
         {error ? (
-          <p className="rounded-lg border border-destructive/25 bg-destructive/8 px-3 py-2 text-sm text-destructive">
+          <p className="rounded-floating border border-destructive/25 bg-destructive/8 px-3 py-2 text-sm text-destructive-text">
             {error}
           </p>
         ) : null}
         {success ? (
-          <p className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/8 px-3 py-2 text-sm text-success">
+          <p className="flex items-start gap-2 rounded-floating border border-success/30 bg-success/8 px-3 py-2 text-sm text-success-text">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
             {success}
           </p>
@@ -255,11 +235,10 @@ function MarketTab({
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-dim" />
-        <input
+        <Input
           aria-label={t.skills.searchSkillsMarket}
           autoFocus
-          className={`${controlClassName} h-10 pl-9 pr-9`}
-          style={{ ...inputStyle, padding: "0 36px", height: 40 }}
+          className="pl-9 pr-9"
           onChange={(event) => {
             const value = event.target.value;
             setQuery(value);
@@ -390,15 +369,14 @@ function CreateLocalTab({
           >
             {t.skills.skillFilePath}
           </label>
-          <input
+          <Input
             aria-describedby="skill-file-path-hint"
             autoFocus
-            className={`${controlClassName} mt-1.5 font-ui-mono`}
+            className="mt-1.5 font-ui-mono"
             disabled={creating}
             id="skill-file-path"
             onChange={(event) => setLocalFilePath(event.target.value)}
             placeholder={t.skills.skillFilePathPlaceholder}
-            style={inputStyle}
             value={localFilePath}
           />
           <p
@@ -438,26 +416,16 @@ function ScopeSelector({
 }) {
   const { t } = useI18n();
   return (
-    <div
-      aria-label={t.skills.installationScope}
-      className="inline-flex rounded-lg border border-line-subtle bg-panel p-1"
-      role="radiogroup"
-    >
-      {(["project", "global"] as const).map((value) => (
-        <button
-          aria-checked={scope === value}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-            scope === value ? "bg-selected text-primary" : "text-muted"
-          }`}
-          key={value}
-          onClick={() => setScope(value)}
-          role="radio"
-          type="button"
-        >
-          {value === "project" ? t.common.project : t.common.global}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      ariaLabel={t.skills.installationScope}
+      items={[
+        { label: t.common.project, value: "project" },
+        { label: t.common.global, value: "global" },
+      ]}
+      kind="radio"
+      onValueChange={setScope}
+      value={scope}
+    />
   );
 }
 

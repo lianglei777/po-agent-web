@@ -330,9 +330,9 @@ function AssistantTurnView({
           role="alert"
         >
           <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive-text" />
             <div className="min-w-0 flex-1">
-              <div className="font-medium text-destructive">
+              <div className="font-medium text-destructive-text">
                 {failureSummary(error.code, error.summary, t)}
               </div>
               <div className="mt-1 text-xs text-muted">

@@ -10,10 +10,11 @@ const source = readFileSync(
 describe("chat input visual contract", () => {
   it("keeps the composer structural and gives focus a semantic accent", () => {
     expect(source).toContain("focus-within:border-ring");
-    expect(source).toContain("focus-within:ring-2");
-    expect(source).toContain("focus-within:ring-ring");
+    expect(source).toContain("has-[textarea:focus-visible]:ring-2");
+    expect(source).toContain("has-[textarea:focus-visible]:ring-ring");
+    expect(source).not.toContain("focus-within:ring-2");
     expect(source).toContain(
-      "rounded-[22px] border border-line-strong bg-elevated shadow-[var(--shadow-composer)]",
+      "rounded-composer border border-line-strong bg-elevated shadow-[var(--shadow-composer)]",
     );
     expect(source).not.toContain("rounded-lg border bg-elevated");
     expect(source).not.toContain("backdrop-blur");

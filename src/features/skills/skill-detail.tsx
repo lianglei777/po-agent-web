@@ -16,6 +16,7 @@ import {
   SettingsRow,
   SettingsSection,
 } from "@/components/ui/settings-form";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -136,30 +137,13 @@ export function SkillDetail({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="inline-flex shrink-0">
-                    <button
-                      aria-busy={saving || undefined}
-                      aria-checked={enabled}
+                    <Switch
                       aria-label={t.skills.allowModelInvocation}
-                      className={`group relative h-6 w-11 shrink-0 rounded-full border outline-none transition-colors duration-[var(--motion-fast)] focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:border-line-subtle disabled:bg-[var(--disabled-surface)] ${
-                        enabled
-                          ? "border-accent bg-accent"
-                          : "border-line-strong bg-subtle"
-                      }`}
+                      checked={enabled}
                       disabled={saving || !skill.canModify}
-                      onClick={onToggle}
-                      role="switch"
-                      type="button"
-                    >
-                      <span
-                        className={`absolute left-0.5 top-0.5 flex size-[18px] items-center justify-center rounded-full bg-elevated text-primary transition-transform duration-[var(--motion-standard)] group-disabled:bg-[var(--disabled-text)] ${
-                          enabled ? "translate-x-5" : "translate-x-0"
-                        }`}
-                      >
-                        {saving ? (
-                          <LoaderCircle className="size-3 animate-spin" />
-                        ) : null}
-                      </span>
-                    </button>
+                      loading={saving}
+                      onCheckedChange={onToggle}
+                    />
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="top">

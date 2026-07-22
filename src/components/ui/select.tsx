@@ -18,12 +18,18 @@ function SelectValue(
 function SelectTrigger({
   className,
   children,
+  density = "compact",
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
+  density?: "default" | "compact";
+}) {
   return (
     <SelectPrimitive.Trigger
       className={mergeClasses(
-        "flex h-8 items-center justify-between gap-2 rounded-lg border border-line-strong bg-elevated px-2.5 text-xs whitespace-nowrap text-foreground outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] hover:border-line-strong hover:bg-hover disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:ring-2 focus-visible:ring-ring [&>span]:truncate [&_svg]:size-3.5 [&_svg]:opacity-60",
+        "flex items-center justify-between gap-2 rounded-control border border-line-strong bg-elevated whitespace-nowrap text-foreground outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] hover:bg-subtle disabled:cursor-not-allowed disabled:bg-[var(--disabled-surface)] disabled:text-[var(--disabled-text)] focus-visible:border-ring focus-visible:bg-elevated focus-visible:ring-2 focus-visible:ring-ring [&>span]:truncate [&_svg]:size-3.5 [&_svg]:opacity-60",
+        density === "compact"
+          ? "h-8 px-2.5 text-xs"
+          : "h-9 px-3 text-sm",
         className,
       )}
       data-slot="select-trigger"
@@ -47,7 +53,7 @@ function SelectContent({
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         className={mergeClasses(
-          "relative z-[1000] max-h-80 min-w-[8rem] overflow-hidden rounded-2xl border border-line-subtle bg-popover text-popover-foreground shadow-[var(--shadow-floating)]",
+          "relative z-[1000] max-h-80 min-w-[8rem] overflow-hidden rounded-floating border border-line-subtle bg-popover text-popover-foreground shadow-[var(--shadow-floating)]",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
           className,

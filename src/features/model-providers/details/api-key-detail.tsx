@@ -7,6 +7,7 @@ import {
 } from "../types";
 import { useI18n } from "@/i18n/use-i18n";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SectionTitle, inputStyle } from "@/components/ui/settings-form";
+import { SectionTitle } from "@/components/ui/settings-form";
 
 interface Props {
   provider: ApiKeyProvider;
@@ -103,6 +104,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
       {/* Input + Save */}
       <div className="flex gap-1.5">
         <SecretTextInput
+          label={t.models.apiKey}
           value={apiKey}
           onChange={setApiKey}
           onKeyDown={(e) => {
@@ -137,7 +139,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
       </div>
 
       {error && (
-        <p className="text-xs text-destructive">
+        <p className="text-xs text-destructive-text">
           {error}
         </p>
       )}
@@ -175,7 +177,7 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
             </DialogDescription>
           </DialogHeader>
           {error ? (
-            <p className="text-sm text-destructive" role="alert">
+            <p className="text-sm text-destructive-text" role="alert">
               {error}
             </p>
           ) : null}
@@ -205,12 +207,14 @@ export default function ApiKeyDetail({ provider, onRefresh }: Props) {
 }
 
 function SecretTextInput({
+  label,
   value,
   onChange,
   onKeyDown,
   placeholder,
   style,
 }: {
+  label: string;
   value: string;
   onChange: (v: string) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -223,7 +227,9 @@ function SecretTextInput({
 
   return (
     <div className="relative" style={style}>
-      <input
+      <Input
+        aria-label={label}
+        density="compact"
         type={visible ? "text" : "password"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -231,8 +237,7 @@ function SecretTextInput({
         placeholder={placeholder}
         autoComplete="off"
         spellCheck={false}
-        className="font-ui-mono"
-        style={{ ...inputStyle, paddingRight: 34 }}
+        className="pr-9 font-ui-mono"
       />
       <Button
         aria-label={visible ? t.models.hideApiKey : t.models.showApiKey}

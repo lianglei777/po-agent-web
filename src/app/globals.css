@@ -33,13 +33,19 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
+  --color-success-text: var(--success-text);
   --color-warning: var(--warning);
+  --color-destructive-text: var(--destructive-text);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-small-control: 6px;
+  --radius-control: 8px;
+  --radius-floating: 12px;
+  --radius-composer: 22px;
   --font-ui-mono: var(--font-noto-mono), "JetBrains Mono", "Fira Code",
     Consolas, ui-monospace, "PingFang SC", "Microsoft YaHei", monospace;
   /* 字号 token — 生成 text-caption / text-meta / text-body-sm / text-prose 工具类 */
@@ -98,8 +104,10 @@
   --muted-foreground: var(--text-muted);
   --accent-foreground: #1a1c1f;
   --destructive: #d92d20;
+  --destructive-text: #b42318;
   --destructive-foreground: #ffffff;
   --success: #12b76a;
+  --success-text: #067647;
   --warning: #b54708;
   --disabled-surface: #f1f1f1;
   --disabled-text: #a6abb2;

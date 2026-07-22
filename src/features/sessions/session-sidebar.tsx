@@ -240,7 +240,7 @@ export function SessionSidebar({
               variant="ghost"
             >
               {refreshed ? (
-                <Check className="text-success" />
+                <Check className="text-success-text" />
               ) : (
                 <RefreshCw />
               )}
@@ -251,7 +251,7 @@ export function SessionSidebar({
       </div>
 
       {projectError ? (
-        <p className="px-2 py-1 text-meta text-destructive">
+        <p className="px-2 py-1 text-meta text-destructive-text">
           {projectError}
         </p>
       ) : null}
@@ -270,7 +270,7 @@ export function SessionSidebar({
             <Skeleton className="h-14 w-[72%]" />
           </div>
         ) : error ? (
-          <div className="p-3 text-meta text-destructive">
+          <div className="p-3 text-meta text-destructive-text">
             <p>{error}</p>
             <Button
               className="mt-2"

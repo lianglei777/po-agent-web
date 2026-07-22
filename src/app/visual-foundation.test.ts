@@ -73,7 +73,7 @@ describe("visual foundation contract", () => {
     expect(topBar).toContain("truncate text-sm font-medium text-primary");
     expect(chatInput).not.toContain("rounded-[20px]");
     expect(chatInput).not.toContain("linear-gradient");
-    expect(chatInput).toContain("rounded-[22px]");
+    expect(chatInput).toContain("rounded-composer");
     expect(messageView).toContain("border-line-subtle");
   });
 

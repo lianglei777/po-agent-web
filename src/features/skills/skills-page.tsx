@@ -239,7 +239,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
                       diagnostic.severity === "warning"
                         ? "text-warning"
                         : diagnostic.severity === "error"
-                          ? "text-destructive"
+                          ? "text-destructive-text"
                           : "text-primary"
                     }`}
                   >
@@ -267,7 +267,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
         {activeError ? (
           <div
             aria-live="polite"
-            className="flex items-center justify-between gap-3 border-b border-destructive/25 bg-destructive/8 px-4 py-2 text-sm text-destructive"
+            className="flex items-center justify-between gap-3 border-b border-destructive/25 bg-destructive/8 px-4 py-2 text-sm text-destructive-text"
             role="alert"
           >
             <span>{activeError}</span>
@@ -286,7 +286,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
         {removeSuccess && !removing ? (
           <div
             aria-live="polite"
-            className="flex items-center gap-2 border-b border-success/30 bg-success/8 px-4 py-2 text-sm text-success"
+            className="flex items-center gap-2 border-b border-success/30 bg-success/8 px-4 py-2 text-sm text-success-text"
           >
             <CheckCircle2 className="size-4 shrink-0" />
             {removeSuccess}
@@ -295,7 +295,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
         {packSuccess && view === "packs" && !packBusy ? (
           <div
             aria-live="polite"
-            className="flex items-center gap-2 border-b border-success/30 bg-success/8 px-4 py-2 text-sm text-success"
+            className="flex items-center gap-2 border-b border-success/30 bg-success/8 px-4 py-2 text-sm text-success-text"
           >
             <CheckCircle2 className="size-4 shrink-0" />
             {packSuccess}

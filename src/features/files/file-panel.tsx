@@ -144,7 +144,7 @@ function LoadedFile({ file }: { file: OpenFile }) {
     return <div className="p-4 text-xs text-dim">{t.files.loading}</div>;
   }
   if (result.error) {
-    return <div className="p-4 text-xs text-destructive">{result.error}</div>;
+    return <div className="p-4 text-xs text-destructive-text">{result.error}</div>;
   }
   return (
     <pre className="m-0 min-h-0 flex-1 overflow-auto p-4 font-ui-mono text-xs leading-5 whitespace-pre-wrap text-primary">

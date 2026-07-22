@@ -8,12 +8,38 @@ const read = (name: string) =>
 
 describe("shared UI visual contract", () => {
   test("uses the Codex compact rounded control scale", () => {
-    expect(read("button")).toContain("rounded-lg");
-    expect(read("input")).toContain("rounded-lg");
-    expect(read("textarea")).toContain("rounded-lg");
-    expect(read("select")).toContain("rounded-lg");
-    expect(read("dialog")).toContain("rounded-xl");
+    expect(read("button")).toContain("rounded-control");
+    expect(read("input")).toContain("rounded-control");
+    expect(read("textarea")).toContain("rounded-control");
+    expect(read("select")).toContain("rounded-control");
+    expect(read("dialog")).toContain("rounded-floating");
+    expect(read("native-select")).toContain("rounded-control");
+    expect(read("segmented-control")).toContain("rounded-control");
+    expect(read("radio-card")).toContain("rounded-control");
     expect(read("button")).not.toContain("active:translate-y-px");
+  });
+
+  test("uses one density contract across form controls", () => {
+    for (const control of ["input", "textarea", "select", "native-select"]) {
+      const source = read(control);
+      expect(source).toContain('density?: "default" | "compact"');
+      expect(source).toContain('density === "compact"');
+    }
+  });
+
+  test("keeps dialog dismissal and binary choices keyboard visible", () => {
+    const dialog = read("dialog");
+    const segmented = read("segmented-control");
+    const radioCard = read("radio-card");
+    const switchControl = read("switch");
+
+    expect(dialog).toContain("inline-flex size-8");
+    expect(dialog).toContain("focus-visible:ring-2");
+    expect(segmented).toContain("ArrowLeft");
+    expect(segmented).toContain("ArrowRight");
+    expect(segmented).toContain('role={kind === "tabs" ? "tablist" : "radiogroup"}');
+    expect(radioCard).toContain("has-[:focus-visible]:ring-2");
+    expect(switchControl).toContain('role="switch"');
   });
 
   test("reserves shadows for floating surfaces", () => {
@@ -91,14 +117,16 @@ describe("shared UI visual contract", () => {
     expect(button).toContain("bg-primary text-primary-foreground hover:bg-primary/85 active:bg-primary/75");
     expect(button).toContain("bg-secondary text-secondary-foreground hover:bg-hover active:bg-selected");
     expect(button).toContain("text-muted-foreground hover:bg-hover hover:text-foreground active:bg-selected");
-    expect(input).toContain("hover:border-line-strong");
+    expect(input).toContain("hover:bg-subtle");
     expect(input).toContain("bg-elevated");
     expect(input).toContain("placeholder:text-dim");
-    expect(textarea).toContain("hover:border-line-strong");
+    expect(textarea).toContain("hover:bg-subtle");
     expect(textarea).toContain("bg-elevated");
     expect(textarea).toContain("placeholder:text-dim");
     expect(select).toContain("focus-visible:ring-ring");
     expect(select).not.toContain("focus-visible:ring-ring/");
+    expect(badge).toContain("text-success-text");
+    expect(badge).toContain("text-destructive-text");
     expect(badge).not.toContain("bg-accent text-accent-foreground");
   });
 });

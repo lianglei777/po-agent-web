@@ -114,7 +114,7 @@ function ModelProviderSaveIndicator({
         role="alert"
       >
         <span
-          className="min-w-0 truncate text-destructive"
+          className="min-w-0 truncate text-destructive-text"
           title={status.message}
         >
           {status.message}

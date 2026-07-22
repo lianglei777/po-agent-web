@@ -34,7 +34,7 @@ function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         align={align}
         className={mergeClasses(
-          "z-[1000] max-h-[var(--radix-dropdown-menu-content-available-height)] w-max min-w-32 max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))] overflow-x-hidden overflow-y-auto rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
+          "z-[1000] max-h-[var(--radix-dropdown-menu-content-available-height)] w-max min-w-32 max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))] overflow-x-hidden overflow-y-auto rounded-floating border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
           className,
         )}
         collisionPadding={collisionPadding}
@@ -198,7 +198,7 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       className={mergeClasses(
-        "z-[1000] max-h-[var(--radix-dropdown-menu-content-available-height)] w-max min-w-32 max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))] overflow-x-hidden overflow-y-auto rounded-2xl border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
+        "z-[1000] max-h-[var(--radix-dropdown-menu-content-available-height)] w-max min-w-32 max-w-[min(20rem,var(--radix-dropdown-menu-content-available-width))] overflow-x-hidden overflow-y-auto rounded-floating border border-line-subtle bg-popover p-1 text-popover-foreground shadow-[var(--shadow-floating)]",
         className,
       )}
       collisionPadding={collisionPadding}

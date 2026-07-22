@@ -101,7 +101,7 @@ export function FileTree({
       </div>
       <ScrollArea className="min-h-0 flex-1">
         {error ? (
-          <div className="p-3 text-meta text-destructive">
+          <div className="p-3 text-meta text-destructive-text">
             <p>{error}</p>
             <Button
               className="mt-2"

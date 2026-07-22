@@ -37,7 +37,7 @@ function TooltipContent({
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         className={mergeClasses(
-          "z-[1000] rounded-2xl border border-line-subtle bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-[var(--shadow-floating)]",
+          "z-[1000] max-w-72 rounded-floating border border-line-subtle bg-popover px-2.5 py-1.5 text-xs leading-4 text-popover-foreground shadow-[var(--shadow-floating)]",
           className,
         )}
         data-slot="tooltip-content"

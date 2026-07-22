@@ -30,6 +30,10 @@ const addPackSource = readFileSync(
   fileURLToPath(new URL("./add-skill-pack-dialog.tsx", import.meta.url)),
   "utf8",
 );
+const switchSource = readFileSync(
+  fileURLToPath(new URL("../../components/ui/switch.tsx", import.meta.url)),
+  "utf8",
+);
 
 describe("skills config UI contract", () => {
   it("describes model invocation instead of whole-skill enablement", () => {
@@ -39,7 +43,8 @@ describe("skills config UI contract", () => {
   });
 
   it("keeps the switch thumb positioned and explains read-only state", () => {
-    expect(detailSource).toContain("left-0.5");
+    expect(detailSource).toContain("<Switch");
+    expect(switchSource).toContain("left-0.5");
     expect(detailSource).toContain("<Tooltip>");
     expect(detailSource).toContain("t.skills.readOnlySymlink");
   });
@@ -87,7 +92,7 @@ describe("skills config UI contract", () => {
       "t.skills.diagnosticSeverity[diagnostic.severity]",
     );
     expect(pageSource).toContain('"text-warning"');
-    expect(pageSource).toContain('"text-destructive"');
+    expect(pageSource).toContain('"text-destructive-text"');
     expect(pageSource).toContain('"text-primary"');
   });
 

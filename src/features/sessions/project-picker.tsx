@@ -183,7 +183,7 @@ export function ProjectPicker({
                   value={pathInput}
                 />
                 {error ? (
-                  <p className="text-xs text-destructive">{error}</p>
+                  <p className="text-xs text-destructive-text">{error}</p>
                 ) : null}
               </div>
             ) : null}
@@ -260,7 +260,7 @@ export function ProjectPicker({
               </ScrollArea>
 
               {error ? (
-                <p className="text-xs text-destructive">{error}</p>
+                <p className="text-xs text-destructive-text">{error}</p>
               ) : null}
                 <Button
                   className="w-full"

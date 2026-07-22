@@ -196,7 +196,7 @@ export function ProjectInstructionsEditor({
                 </p>
               ) : null}
               {applyError ? (
-                <p className="mt-1 text-caption text-destructive" role="alert">
+                <p className="mt-1 text-caption text-destructive-text" role="alert">
                   {applyError}
                 </p>
               ) : null}
@@ -221,7 +221,7 @@ export function ProjectInstructionsEditor({
         ) : null}
         {agentId && !needsApply && applySuccess ? (
           <div
-            className="shrink-0 border-b border-line-subtle bg-subtle px-4 py-2 text-caption text-success"
+            className="shrink-0 border-b border-line-subtle bg-subtle px-4 py-2 text-caption text-success-text"
             role="status"
           >
             {t.instructions.applied}
@@ -235,7 +235,7 @@ export function ProjectInstructionsEditor({
             <p className="text-caption text-dim">{t.instructions.bytes.replace("{count}", String(new Blob([draft]).size))}</p>
             {error ? (
               <div className="space-y-2 rounded-lg border border-destructive/25 bg-destructive/8 p-3">
-                <p className="text-sm text-destructive">{error}</p>
+                <p className="text-sm text-destructive-text">{error}</p>
                 {conflict ? <div className="flex gap-2"><Button onClick={() => void save(true)} size="sm" variant="destructive">{t.instructions.conflictOverwrite}</Button><Button onClick={() => void load()} size="sm" variant="outline">{t.instructions.conflictReload}</Button></div> : null}
               </div>
             ) : null}

@@ -215,7 +215,7 @@ export function ChatInput({
         ) : null}
 
         {actionError ? (
-          <div className="mb-2 flex items-center gap-2 rounded-lg border border-destructive/25 bg-elevated px-3 py-2 text-xs text-destructive">
+          <div className="mb-2 flex items-center gap-2 rounded-floating border border-destructive/25 bg-elevated px-3 py-2 text-xs text-destructive-text">
             <span className="min-w-0 flex-1">{actionError}</span>
             <Button
               aria-label={t.chat.input.dismissError}
@@ -231,7 +231,7 @@ export function ChatInput({
         ) : null}
 
         <div
-          className={`overflow-hidden rounded-[22px] border border-line-strong bg-elevated shadow-[var(--shadow-composer)] transition-[border-color,box-shadow] duration-[var(--motion-standard)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring ${
+          className={`overflow-hidden rounded-composer border border-line-strong bg-elevated shadow-[var(--shadow-composer)] transition-[border-color,box-shadow] duration-[var(--motion-standard)] focus-within:border-ring has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring ${
             running ? "border-warning/50" : "border-line-strong"
           }`}
         >
@@ -418,7 +418,7 @@ export function ChatInput({
                       ? t.chat.input.stoppingAgent
                       : t.chat.input.stopAgent
                   }
-                  className="size-9 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="size-9 border-destructive/30 text-destructive-text hover:bg-destructive/10 hover:text-destructive-text"
                   disabled={stopping}
                   onClick={() => void stop()}
                   size="icon"
@@ -472,8 +472,8 @@ function InlineStatus({
 }) {
   const toneClasses: Record<typeof tone, string> = {
     warning: "border-warning/40 bg-warning/8 text-warning",
-    error: "border-destructive/25 bg-destructive/8 text-destructive",
-    success: "border-success/40 bg-success/8 text-success",
+    error: "border-destructive/25 bg-destructive/8 text-destructive-text",
+    success: "border-success/40 bg-success/8 text-success-text",
     info: "border-line-strong bg-subtle text-muted",
   };
   const actionButton = action ? (
@@ -576,18 +576,24 @@ function IconButton({
   className?: string;
 }) {
   return (
-    <Button
-      aria-label={label}
-      aria-pressed={pressed}
-      className={className}
-      disabled={disabled}
-      onClick={onClick}
-      size="icon-sm"
-      title={label}
-      type="button"
-      variant="ghost"
-    >
-      {children}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">
+          <Button
+            aria-label={label}
+            aria-pressed={pressed}
+            className={className}
+            disabled={disabled}
+            onClick={onClick}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            {children}
+          </Button>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top">{label}</TooltipContent>
+    </Tooltip>
   );
 }
