@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { FileText, LoaderCircle, RotateCw, Trash2 } from "lucide-react";
+import {
+  ChevronRight,
+  ExternalLink,
+  LoaderCircle,
+  RotateCw,
+  Trash2,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,9 +20,12 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import {
+  ABSENT_REVISION,
+  type InstructionDocument,
+} from "@/contracts/instructions";
 import { useI18n } from "@/i18n/use-i18n";
-import { ABSENT_REVISION, type InstructionDocument } from "@/contracts/instructions";
+import { mergeClasses } from "@/lib/utils";
 import {
   deleteSystemInstructions,
   getProjectInstructions,
@@ -49,6 +59,9 @@ interface EditorState {
   conflict: boolean;
 }
 
+type ActiveView = "effective" | "global" | "project";
+type DiscardAction = "close" | "project";
+
 const initialEditorState: EditorState = {
   doc: null,
   draft: "",
@@ -79,11 +92,15 @@ export function SystemPromptDialog({
   const { t } = useI18n();
   const [globalState, setGlobalState] = useState<EditorState>(initialEditorState);
   const [projectDoc, setProjectDoc] = useState<InstructionDocument | null>(null);
+  const [projectLoading, setProjectLoading] = useState(false);
   const [reloadBusy, setReloadBusy] = useState(false);
   const [reloadError, setReloadError] = useState("");
   const [reloadSuccess, setReloadSuccess] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [activeView, setActiveView] = useState<ActiveView>("effective");
+  const [discardAction, setDiscardAction] =
+    useState<DiscardAction>("close");
 
   const loadGlobal = useCallback(async () => {
     setGlobalState((state) => ({ ...state, loading: true, error: "" }));
@@ -109,16 +126,31 @@ export function SystemPromptDialog({
 
   useEffect(() => {
     if (!open) return;
+    let cancelled = false;
+    setActiveView("effective");
     void loadGlobal();
     setReloadError("");
     setReloadSuccess(false);
     if (cwd) {
+      setProjectLoading(true);
       void getProjectInstructions(cwd)
-        .then((result) => setProjectDoc(result.project))
-        .catch(() => setProjectDoc(null));
+        .then((result) => {
+          if (!cancelled) setProjectDoc(result.project);
+        })
+        .catch(() => {
+          if (!cancelled) setProjectDoc(null);
+        })
+        .finally(() => {
+          if (!cancelled) setProjectLoading(false);
+        });
     } else {
       setProjectDoc(null);
+      setProjectLoading(false);
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [cwd, loadGlobal, open]);
 
   const globalDirty = Boolean(
@@ -160,7 +192,12 @@ export function SystemPromptDialog({
         }));
       }
     },
-    [globalState.doc, globalState.draft, onInstructionsChanged, t.instructions.errorSave],
+    [
+      globalState.doc,
+      globalState.draft,
+      onInstructionsChanged,
+      t.instructions.errorSave,
+    ],
   );
 
   const deleteGlobal = useCallback(async () => {
@@ -204,7 +241,9 @@ export function SystemPromptDialog({
     setReloadError("");
     setReloadSuccess(false);
     try {
-      const result = (await reloadInstructions(agentId)) as { systemPrompt?: string };
+      const result = (await reloadInstructions(agentId)) as {
+        systemPrompt?: string;
+      };
       if (result.systemPrompt) onSystemPromptChange?.(result.systemPrompt);
       setReloadSuccess(true);
       onApplied?.();
@@ -215,180 +254,567 @@ export function SystemPromptDialog({
     } finally {
       setReloadBusy(false);
     }
-  }, [agentId, isRunning, onApplied, onSystemPromptChange, t.instructions.errorReload]);
+  }, [
+    agentId,
+    isRunning,
+    onApplied,
+    onSystemPromptChange,
+    t.instructions.errorReload,
+  ]);
 
   const handleClose = useCallback(() => {
-    if (globalDirty) setShowDiscardConfirm(true);
-    else onClose();
+    if (globalDirty) {
+      setDiscardAction("close");
+      setShowDiscardConfirm(true);
+      return;
+    }
+    onClose();
   }, [globalDirty, onClose]);
+
+  const handleOpenProjectInstructions = useCallback(() => {
+    if (!onOpenProjectInstructions) return;
+    if (globalDirty) {
+      setDiscardAction("project");
+      setShowDiscardConfirm(true);
+      return;
+    }
+    onOpenProjectInstructions();
+  }, [globalDirty, onOpenProjectInstructions]);
+
+  const handleDiscardConfirm = useCallback(() => {
+    setShowDiscardConfirm(false);
+    if (discardAction === "project") {
+      onOpenProjectInstructions?.();
+      return;
+    }
+    onClose();
+  }, [discardAction, onClose, onOpenProjectInstructions]);
+
+  const globalPath =
+    globalState.doc?.filePath ?? t.instructions.globalAppendFilePath;
+  const projectPath = projectDoc?.filePath ?? (cwd ? `${cwd}/AGENTS.md` : "");
 
   return (
     <>
       <Dialog onOpenChange={(next) => !next && handleClose()} open={open}>
-        <DialogContent closeLabel={t.common.close} className="flex max-h-[85vh] min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
-          <DialogHeader className="shrink-0 border-b border-line-subtle px-6 py-4">
+        <DialogContent
+          closeLabel={t.common.close}
+          className="flex h-[min(46rem,85vh)] max-h-[calc(100vh-2rem)] min-h-[34rem] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl"
+        >
+          <DialogHeader className="shrink-0 border-b border-line-subtle px-6 py-4 pr-14">
             <DialogTitle>{t.instructions.title}</DialogTitle>
-            <DialogDescription>{t.instructions.description}</DialogDescription>
+            <DialogDescription className="max-w-[65ch]">
+              {t.instructions.description}
+            </DialogDescription>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-            <div className="space-y-6">
-              <section className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium">{t.instructions.finalSystemPrompt}</h3>
-                  {currentSystemPrompt ? (
-                    <Badge variant="secondary">
-                      {t.instructions.bytes.replace("{count}", String(formatBytes(currentSystemPrompt)))}
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="text-xs text-muted">{t.instructions.finalSystemPromptDescription}</p>
-                {currentSystemPrompt ? (
-                  <ScrollArea className="h-52 rounded-lg border border-line-subtle bg-subtle">
-                    <pre className="whitespace-pre-wrap p-3 font-ui-mono text-xs">{currentSystemPrompt}</pre>
-                  </ScrollArea>
-                ) : (
-                  <div className="rounded-lg border border-line-subtle px-3 py-4 text-xs text-muted">
-                    {t.instructions.noActiveSystemPrompt}
-                  </div>
-                )}
-              </section>
 
-              <section className="space-y-2">
-                <h3 className="text-sm font-medium">{t.instructions.sources}</h3>
-                <div className="divide-y divide-line-subtle rounded-lg border border-line-subtle">
-                  <SourceRow label={t.instructions.builtinSource} status={t.instructions.active} />
-                  <SourceRow
-                    label={t.instructions.globalAppend}
-                    path={globalState.doc?.filePath ?? t.instructions.globalAppendPath.replace(/^.*?[：:]\s*/, "")}
-                    status={globalState.doc?.exists ? t.instructions.active : t.instructions.notConfigured}
-                  />
-                  <SourceRow
-                    action={cwd && onOpenProjectInstructions ? (
-                      <Button onClick={onOpenProjectInstructions} size="sm" variant="outline">
-                        {projectDoc?.exists ? t.instructions.openProjectFile : t.instructions.createProjectFile}
-                      </Button>
-                    ) : undefined}
-                    label={t.instructions.projectInstructions}
-                    path={cwd ? projectDoc?.filePath ?? `${cwd}/AGENTS.md` : undefined}
-                    status={projectDoc?.exists ? t.instructions.active : t.instructions.notConfigured}
-                  />
-                </div>
-              </section>
-
-              <section className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <FileText className="size-4 text-muted" />
-                      <h3 className="text-sm font-medium">{t.instructions.globalAppend}</h3>
-                      {globalDirty ? <Badge variant="secondary">{t.instructions.dirtyWarning}</Badge> : null}
-                    </div>
-                    <p className="mt-1 text-xs text-muted">{t.instructions.globalAppendDescription}</p>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <Button disabled={!globalDirty || globalState.saving || globalState.loading} onClick={() => void saveGlobal()} size="sm">
-                      {globalState.saving ? <LoaderCircle className="animate-spin" /> : null}
-                      {globalState.saving ? t.instructions.saving : t.instructions.save}
-                    </Button>
-                    {globalState.doc?.exists ? (
-                      <Button disabled={globalState.deleting || globalState.loading} onClick={() => setShowDeleteConfirm(true)} size="sm" variant="outline">
-                        <Trash2 />{t.instructions.delete}
-                      </Button>
-                    ) : null}
-                  </div>
-                </div>
-                {globalState.loading ? (
-                  <div className="flex h-36 items-center justify-center text-sm text-muted"><LoaderCircle className="mr-2 animate-spin" />{t.common.loading}</div>
-                ) : (
-                  <Textarea
-                    className="min-h-40 font-ui-mono text-xs"
-                    onChange={(event) => setGlobalState((state) => ({ ...state, draft: event.target.value, error: "", conflict: false }))}
-                    placeholder={t.instructions.globalContentPlaceholder}
-                    value={globalState.draft}
-                  />
-                )}
-                <p className="text-xs text-dim">{t.instructions.bytes.replace("{count}", String(formatBytes(globalState.draft)))}</p>
-                {globalState.error ? (
-                  <div className="space-y-2 rounded-lg border border-destructive/25 bg-destructive/8 p-3">
-                    <p className="text-sm text-destructive">{globalState.error}</p>
-                    {globalState.conflict ? (
-                      <div className="flex gap-2">
-                        <Button onClick={() => void saveGlobal(true)} size="sm" variant="destructive">{t.instructions.conflictOverwrite}</Button>
-                        <Button onClick={() => void loadGlobal()} size="sm" variant="outline">{t.instructions.conflictReload}</Button>
-                      </div>
-                    ) : null}
-                  </div>
+          {agentId && needsApply ? (
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-warning/30 bg-warning/8 px-6 py-3">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-warning">
+                  {t.instructions.sessionOutdated}
+                </p>
+                <p className="mt-0.5 text-caption text-muted">
+                  {isRunning
+                    ? t.instructions.reloadUnavailableWhileRunning
+                    : t.instructions.sessionOutdatedDescription}
+                </p>
+                {reloadError ? (
+                  <p className="mt-1 text-caption text-destructive" role="alert">
+                    {reloadError}
+                  </p>
                 ) : null}
-              </section>
+              </div>
+              <Button
+                disabled={isRunning || reloadBusy}
+                onClick={() => void handleReload()}
+                size="sm"
+                variant="outline"
+              >
+                {reloadBusy ? (
+                  <LoaderCircle className="animate-spin" />
+                ) : (
+                  <RotateCw />
+                )}
+                {reloadBusy
+                  ? t.instructions.applying
+                  : t.instructions.applyToSession}
+              </Button>
+            </div>
+          ) : null}
 
-              {agentId && (needsApply || reloadSuccess || reloadError) ? (
-                <section className="rounded-lg border border-line-subtle p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium">{needsApply ? t.instructions.sessionOutdated : t.instructions.sessionCurrent}</h3>
-                      <p className="mt-1 text-xs text-muted">{needsApply ? t.instructions.sessionOutdatedDescription : t.instructions.applied}</p>
-                    </div>
-                    {needsApply ? (
-                      <Button disabled={isRunning || reloadBusy} onClick={() => void handleReload()} size="sm" variant="outline">
-                        {reloadBusy ? <LoaderCircle className="animate-spin" /> : <RotateCw />}
-                        {reloadBusy ? t.instructions.applying : t.instructions.applyToSession}
-                      </Button>
-                    ) : null}
-                  </div>
-                  {isRunning && needsApply ? <p className="mt-2 text-xs text-muted">{t.instructions.reloadUnavailableWhileRunning}</p> : null}
-                  {reloadError ? <p className="mt-2 text-xs text-destructive">{reloadError}</p> : null}
-                </section>
+          {agentId && !needsApply && reloadSuccess ? (
+            <div
+              className="shrink-0 border-b border-line-subtle bg-subtle px-6 py-2 text-caption text-success"
+              role="status"
+            >
+              {t.instructions.applied}
+            </div>
+          ) : null}
+
+          <div className="grid min-h-0 flex-1 grid-cols-[14rem_minmax(0,1fr)]">
+            <aside
+              aria-label={t.instructions.title}
+              className="flex min-h-0 flex-col border-r border-line-subtle bg-subtle p-3"
+            >
+              <p className="px-2 pb-1.5 text-caption font-medium text-dim">
+                {t.instructions.currentResult}
+              </p>
+              <SourceNavButton
+                label={t.instructions.finalSystemPrompt}
+                onClick={() => setActiveView("effective")}
+                selected={activeView === "effective"}
+                status={
+                  agentId ? t.instructions.active : t.instructions.noSession
+                }
+              />
+
+              <p className="mt-5 px-2 pb-1.5 text-caption font-medium text-dim">
+                {t.instructions.managedContent}
+              </p>
+              <SourceNavButton
+                label={t.instructions.globalAppend}
+                onClick={() => setActiveView("global")}
+                path={globalPath}
+                selected={activeView === "global"}
+                status={
+                  globalState.loading
+                    ? t.common.loading
+                    : globalDirty
+                      ? t.instructions.unsaved
+                      : globalState.doc?.exists
+                        ? t.instructions.active
+                        : t.instructions.notConfigured
+                }
+                trailing={<ChevronRight />}
+              />
+              <SourceNavButton
+                disabled={!cwd}
+                label={t.instructions.projectInstructions}
+                onClick={() => setActiveView("project")}
+                path={
+                  cwd
+                    ? projectPath
+                    : t.instructions.projectNotSelected
+                }
+                selected={activeView === "project"}
+                status={
+                  projectLoading
+                    ? t.common.loading
+                    : projectDoc?.exists
+                      ? t.instructions.active
+                      : t.instructions.notConfigured
+                }
+                trailing={<ChevronRight />}
+              />
+              <div className="mt-auto border-t border-line-subtle px-2 pt-3">
+                <p className="text-caption font-medium text-muted">
+                  {t.instructions.builtinSource}
+                </p>
+                <p className="mt-1 text-caption leading-4 text-dim">
+                  {t.instructions.builtinSourceDescription}
+                </p>
+              </div>
+            </aside>
+
+            <section className="flex min-h-0 min-w-0 flex-col bg-canvas">
+              {activeView === "effective" ? (
+                <EffectivePromptView prompt={currentSystemPrompt} />
+              ) : activeView === "global" ? (
+                <GlobalPromptEditor
+                  dirty={globalDirty}
+                  error={globalState.error}
+                  conflict={globalState.conflict}
+                  draft={globalState.draft}
+                  filePath={globalPath}
+                  loading={globalState.loading}
+                  onChange={(draft) =>
+                    setGlobalState((state) => ({
+                      ...state,
+                      draft,
+                      error: "",
+                      conflict: false,
+                    }))
+                  }
+                  onForceSave={() => void saveGlobal(true)}
+                  onReload={() => void loadGlobal()}
+                />
+              ) : (
+                <ProjectInstructionsView
+                  doc={projectDoc}
+                  filePath={projectPath}
+                  loading={projectLoading}
+                />
+              )}
+            </section>
+          </div>
+
+          <DialogFooter className="shrink-0 flex-row items-center justify-between border-t border-line-subtle px-4 py-3">
+            <div className="min-w-0 flex-1">
+              {activeView === "global" && globalState.doc?.exists ? (
+                <Button
+                  className="text-destructive hover:bg-destructive/8 hover:text-destructive"
+                  disabled={globalState.deleting || globalState.loading}
+                  onClick={() => setShowDeleteConfirm(true)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  <Trash2 />
+                  {t.instructions.delete}
+                </Button>
               ) : null}
             </div>
-          </div>
-          <DialogFooter className="shrink-0 border-t border-line-subtle px-6 py-4">
-            <Button onClick={handleClose} variant="outline">{t.common.close}</Button>
+            <div className="flex shrink-0 items-center gap-2">
+              {activeView === "global" && !globalState.loading ? (
+                <span className="mr-1 font-ui-mono text-caption text-dim">
+                  {t.instructions.bytes.replace(
+                    "{count}",
+                    String(formatBytes(globalState.draft)),
+                  )}
+                </span>
+              ) : null}
+              <Button onClick={handleClose} variant="outline">
+                {t.common.close}
+              </Button>
+              {activeView === "global" ? (
+                <Button
+                  disabled={
+                    !globalDirty || globalState.saving || globalState.loading
+                  }
+                  onClick={() => void saveGlobal()}
+                >
+                  {globalState.saving ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : null}
+                  {globalState.saving
+                    ? t.instructions.saving
+                    : t.instructions.save}
+                </Button>
+              ) : null}
+              {activeView === "project" &&
+              cwd &&
+              onOpenProjectInstructions ? (
+                <Button onClick={handleOpenProjectInstructions}>
+                  <ExternalLink />
+                  {projectDoc?.exists
+                    ? t.instructions.editInFileWorkspace
+                    : t.instructions.createInFileWorkspace}
+                </Button>
+              ) : null}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <ConfirmDialog
+        confirmLabel={t.instructions.discardChanges}
         description={t.instructions.discardChangesDescription}
         onCancel={() => setShowDiscardConfirm(false)}
-        onConfirm={() => { setShowDiscardConfirm(false); onClose(); }}
+        onConfirm={handleDiscardConfirm}
         open={showDiscardConfirm}
         title={t.instructions.discardChangesTitle}
-        confirmLabel={t.instructions.discardChanges}
       />
       <ConfirmDialog
-        description={t.instructions.deleteGlobalDescription.replace("{path}", globalState.doc?.filePath ?? t.instructions.globalAppendPath)}
+        confirmLabel={t.instructions.delete}
+        description={t.instructions.deleteGlobalDescription.replace(
+          "{path}",
+          globalPath,
+        )}
         onCancel={() => setShowDeleteConfirm(false)}
         onConfirm={() => void deleteGlobal()}
         open={showDeleteConfirm}
         title={t.instructions.deleteGlobalTitle}
-        confirmLabel={t.instructions.delete}
       />
     </>
   );
 }
 
-function SourceRow({ label, path, status, action }: { label: string; path?: string; status: string; action?: React.ReactNode }) {
+function EffectivePromptView({ prompt }: { prompt?: string | null }) {
+  const { t } = useI18n();
+
   return (
-    <div className="flex min-h-12 items-center gap-3 px-3 py-2">
-      <div className="min-w-0 flex-1">
-        <div className="text-xs font-medium text-primary">{label}</div>
-        {path ? <div className="truncate font-ui-mono text-caption text-dim" title={path}>{path}</div> : null}
+    <>
+      <div className="flex shrink-0 items-start justify-between gap-4 border-b border-line-subtle px-5 py-4">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-primary">
+            {t.instructions.finalSystemPrompt}
+          </h3>
+          <p className="mt-1 max-w-[65ch] text-xs text-muted">
+            {t.instructions.finalSystemPromptDescription}
+          </p>
+        </div>
+        {prompt ? (
+          <span className="shrink-0 font-ui-mono text-caption text-dim">
+            {t.instructions.bytes.replace(
+              "{count}",
+              String(formatBytes(prompt)),
+            )}
+          </span>
+        ) : null}
       </div>
-      <span className="text-caption text-muted">{status}</span>
-      {action}
-    </div>
+      {prompt ? (
+        <ScrollArea className="min-h-0 flex-1">
+          <pre className="min-h-full whitespace-pre-wrap break-words p-5 font-ui-mono text-xs leading-5 text-primary">
+            {prompt}
+          </pre>
+        </ScrollArea>
+      ) : (
+        <div className="grid min-h-0 flex-1 place-items-center px-8 text-center">
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-primary">
+              {t.instructions.noActiveSystemPromptTitle}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              {t.instructions.noActiveSystemPrompt}
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
-function ConfirmDialog({ open, title, description, confirmLabel, onCancel, onConfirm }: { open: boolean; title: string; description: string; confirmLabel: string; onCancel: () => void; onConfirm: () => void }) {
+function ProjectInstructionsView({
+  doc,
+  filePath,
+  loading,
+}: {
+  doc: InstructionDocument | null;
+  filePath: string;
+  loading: boolean;
+}) {
   const { t } = useI18n();
+
+  return (
+    <>
+      <div className="shrink-0 border-b border-line-subtle px-5 py-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-primary">
+            {t.instructions.projectInstructions}
+          </h3>
+          {!loading ? (
+            <Badge variant={doc?.exists ? "success" : "outline"}>
+              {doc?.exists
+                ? t.instructions.active
+                : t.instructions.notConfigured}
+            </Badge>
+          ) : null}
+        </div>
+        <p className="mt-1 max-w-[65ch] text-xs text-muted">
+          {t.instructions.projectInstructionsPreviewDescription}
+        </p>
+        <p
+          className="mt-1 truncate font-ui-mono text-caption text-dim"
+          title={filePath}
+        >
+          {filePath}
+        </p>
+      </div>
+      {loading ? (
+        <div className="grid min-h-0 flex-1 place-items-center text-sm text-muted">
+          <span className="flex items-center gap-2">
+            <LoaderCircle className="animate-spin" />
+            {t.common.loading}
+          </span>
+        </div>
+      ) : doc?.content ? (
+        <ScrollArea className="min-h-0 flex-1">
+          <pre className="min-h-full whitespace-pre-wrap break-words p-5 font-ui-mono text-xs leading-5 text-primary">
+            {doc.content}
+          </pre>
+        </ScrollArea>
+      ) : (
+        <div className="grid min-h-0 flex-1 place-items-center px-8 text-center">
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-primary">
+              {t.instructions.noProjectInstructionsTitle}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              {t.instructions.noProjectInstructionsDescription}
+            </p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function GlobalPromptEditor({
+  dirty,
+  error,
+  conflict,
+  draft,
+  filePath,
+  loading,
+  onChange,
+  onForceSave,
+  onReload,
+}: {
+  dirty: boolean;
+  error: string;
+  conflict: boolean;
+  draft: string;
+  filePath: string;
+  loading: boolean;
+  onChange: (draft: string) => void;
+  onForceSave: () => void;
+  onReload: () => void;
+}) {
+  const { t } = useI18n();
+
+  return (
+    <>
+      <div className="shrink-0 border-b border-line-subtle px-5 py-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-primary">
+            {t.instructions.globalAppend}
+          </h3>
+          {dirty ? (
+            <Badge variant="secondary">{t.instructions.unsaved}</Badge>
+          ) : null}
+        </div>
+        <p className="mt-1 max-w-[65ch] text-xs text-muted">
+          {t.instructions.globalAppendDescription}
+        </p>
+        <p
+          className="mt-1 truncate font-ui-mono text-caption text-dim"
+          title={filePath}
+        >
+          {filePath}
+        </p>
+      </div>
+      {loading ? (
+        <div className="grid min-h-0 flex-1 place-items-center text-sm text-muted">
+          <span className="flex items-center gap-2">
+            <LoaderCircle className="animate-spin" />
+            {t.common.loading}
+          </span>
+        </div>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+          <Textarea
+            className="min-h-0 flex-1 resize-none font-ui-mono text-xs leading-5"
+            onChange={(event) => onChange(event.target.value)}
+            placeholder={t.instructions.globalContentPlaceholder}
+            value={draft}
+          />
+          {error ? (
+            <div
+              className="shrink-0 space-y-2 rounded-lg border border-destructive/25 bg-destructive/8 p-3"
+              role="alert"
+            >
+              <p className="text-xs text-destructive">{error}</p>
+              {conflict ? (
+                <div className="flex gap-2">
+                  <Button onClick={onForceSave} size="sm" variant="destructive">
+                    {t.instructions.conflictOverwrite}
+                  </Button>
+                  <Button onClick={onReload} size="sm" variant="outline">
+                    {t.instructions.conflictReload}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      )}
+    </>
+  );
+}
+
+function SourceNavButton({
+  label,
+  path,
+  status,
+  selected = false,
+  disabled = false,
+  trailing,
+  onClick,
+}: {
+  label: string;
+  path?: string;
+  status: string;
+  selected?: boolean;
+  disabled?: boolean;
+  trailing?: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-pressed={selected}
+      className={mergeClasses(
+        "group flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left outline-none transition-colors duration-[var(--motion-fast)] hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-55",
+        selected && "bg-selected",
+      )}
+      disabled={disabled}
+      onClick={onClick}
+      type="button"
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-xs font-medium text-primary">
+            {label}
+          </span>
+          <SourceStatus label={status} />
+        </div>
+        {path ? (
+          <div
+            className="mt-0.5 truncate font-ui-mono text-caption text-dim"
+            title={path}
+          >
+            {path}
+          </div>
+        ) : null}
+      </div>
+      {trailing ? (
+        <span className="shrink-0 text-dim [&_svg]:size-3.5">
+          {trailing}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function SourceStatus({ label }: { label: string }) {
+  return (
+    <span className="flex shrink-0 items-center gap-1.5 text-caption text-muted">
+      <span aria-hidden className="size-1.5 rounded-full bg-border-strong" />
+      {label}
+    </span>
+  );
+}
+
+function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { t } = useI18n();
+
   return (
     <Dialog onOpenChange={(next) => !next && onCancel()} open={open}>
       <DialogContent className="sm:max-w-md" closeLabel={t.common.close}>
-        <DialogHeader><DialogTitle>{title}</DialogTitle><DialogDescription>{description}</DialogDescription></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
         <DialogFooter>
-          <Button autoFocus onClick={onCancel} variant="outline">{t.common.cancel}</Button>
-          <Button onClick={onConfirm} variant="destructive">{confirmLabel}</Button>
+          <Button autoFocus onClick={onCancel} variant="outline">
+            {t.common.cancel}
+          </Button>
+          <Button onClick={onConfirm} variant="destructive">
+            {confirmLabel}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
