@@ -545,8 +545,6 @@ export const zh = {
     finalSystemPromptDescription: "所有来源组合后，当前会话的生效系统提示词。",
     noActiveSystemPromptTitle: "尚无生效的系统提示词",
     noActiveSystemPrompt: "新建或选择一个会话后，可以查看其当前生效的系统提示词。",
-    builtinSource: "Pi 内置系统提示词",
-    builtinSourceDescription: "由 Pi 运行时提供并自动包含在最终结果中，当前不能单独查看或编辑。",
     noSession: "未选择会话",
     active: "已启用",
     notConfigured: "未配置",

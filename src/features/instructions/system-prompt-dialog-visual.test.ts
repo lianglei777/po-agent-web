@@ -37,11 +37,6 @@ describe("system prompt dialog visual contract", () => {
     expect(source).not.toContain("deleteProjectInstructions");
   });
 
-  it("presents the Pi built-in prompt as context instead of navigation", () => {
-    expect(source).toContain("builtinSourceDescription");
-    expect(source).not.toContain("label={t.instructions.builtinSource}");
-    expect(source).not.toContain("function SourceInfoRow");
-  });
 
   it("protects unsaved global edits before opening project instructions", () => {
     expect(source).toContain('type DiscardAction = "close" | "project"');

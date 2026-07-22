@@ -407,14 +407,6 @@ export function SystemPromptDialog({
                 }
                 trailing={<ChevronRight />}
               />
-              <div className="mt-auto border-t border-line-subtle px-2 pt-3">
-                <p className="text-caption font-medium text-muted">
-                  {t.instructions.builtinSource}
-                </p>
-                <p className="mt-1 text-caption leading-4 text-dim">
-                  {t.instructions.builtinSourceDescription}
-                </p>
-              </div>
             </aside>
 
             <section className="flex min-h-0 min-w-0 flex-col bg-canvas">

@@ -187,15 +187,20 @@ function UserMessageView({
     typeof message.content === "string"
       ? [{ type: "text" as const, text: message.content }]
       : message.content;
+  // 按类型分组，避免空图片容器占据 first-child 导致文本块的 first:mt-0 失效
+  const imageBlocks = blocks.filter(
+    (block): block is ImageContent => block.type === "image",
+  );
+  const textBlocks = blocks.filter(
+    (block): block is TextContent => block.type === "text",
+  );
   return (
     <div className="flex flex-col items-end">
       <div className="max-w-[78%] rounded-2xl bg-[var(--user-bg)] px-4 py-2.5 text-sm leading-[1.65] break-words whitespace-pre-wrap">
-        <div className="flex flex-wrap gap-2">
-
-          {/* image content */}
-          {blocks
-            .filter((block) => block.type === "image")
-            .map((block, index) => (
+        {imageBlocks.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {/* image content */}
+            {imageBlocks.map((block, index) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 alt={t.chat.message.attachedImage}
@@ -207,16 +212,15 @@ function UserMessageView({
                 }
               />
             ))}
-        </div>
+          </div>
+        ) : null}
 
         {/* text content */}
-        {blocks
-          .filter((block) => block.type === "text")
-          .map((block, index) => (
-            <div className="mt-1 first:mt-0" key={index}>
-              {block.text}
-            </div>
-          ))}
+        {textBlocks.map((block, index) => (
+          <div className="mt-1 first:mt-0" key={index}>
+            {block.text}
+          </div>
+        ))}
       </div>
 
 

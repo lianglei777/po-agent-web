@@ -545,8 +545,6 @@ export const en = {
     finalSystemPromptDescription: "The effective system prompt for the current session after all sources are combined.",
     noActiveSystemPromptTitle: "No effective system prompt yet",
     noActiveSystemPrompt: "Start or select a session to inspect its effective system prompt.",
-    builtinSource: "Pi built-in system prompt",
-    builtinSourceDescription: "Provided by the Pi runtime and included automatically in the final result. It cannot currently be viewed or edited separately.",
     noSession: "No session selected",
     active: "Active",
     notConfigured: "Not configured",
