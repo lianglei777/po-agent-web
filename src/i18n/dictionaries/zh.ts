@@ -122,7 +122,6 @@ export const zh = {
       selectProjectBeforeStart: "先选择项目，然后开始会话。",
       eventStreamFailed: "无法连接 Agent 事件流。",
       retrying: "重试中",
-      disclaimer: "AI也可能会犯错。请核查重要信息。",
     },
     message: {
       attachedImage: "附带的图片",

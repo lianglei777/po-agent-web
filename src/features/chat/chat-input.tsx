@@ -148,7 +148,7 @@ export function ChatInput({
 
   return (
     <div
-      className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-canvas px-4 pt-3 pb-2"
+      className="pointer-events-none absolute right-9 bottom-0 left-0 z-20 bg-canvas px-4 pt-3 pb-3"
       ref={rootRef}
     >
       <div className="pointer-events-auto mx-auto max-w-[820px]">
@@ -444,9 +444,6 @@ export function ChatInput({
             )}
           </div>
         </div>
-        <p className="mt-2 text-center text-meta leading-5 text-dim">
-          {t.chat.input.disclaimer}
-        </p>
       </div>
     </div>
   );

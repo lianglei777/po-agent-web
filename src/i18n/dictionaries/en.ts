@@ -121,7 +121,6 @@ export const en = {
       selectProjectBeforeStart: "Select a project before starting a session.",
       eventStreamFailed: "Unable to connect to the agent event stream.",
       retrying: "Retrying",
-      disclaimer: "AI can make mistakes. Please verify important information.",
     },
     message: {
       attachedImage: "Attached image",

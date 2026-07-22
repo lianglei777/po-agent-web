@@ -70,7 +70,7 @@ export function FilePanel({
           <TooltipTrigger asChild>
             <Button
               aria-label={t.workspace.hideFilePanel}
-              className="rounded-none border-l border-line-subtle"
+              className="h-full rounded-none border-l border-line-subtle"
               onClick={onClose}
               size="icon"
               type="button"
