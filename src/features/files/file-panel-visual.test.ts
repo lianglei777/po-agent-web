@@ -33,4 +33,11 @@ describe("file panel visual contract", () => {
     expect(source).toContain('border-line-subtle bg-canvas');
     expect(source).toContain('w-[clamp(160px,42%,224px)]');
   });
+
+  it("shows the current project-relative file hierarchy without a shortcut action", () => {
+    expect(source).toContain("relativePath(cwd, currentPath)");
+    expect(source).toContain("t.files.currentFilePath");
+    expect(source).toContain("<ChevronRight");
+    expect(source).not.toContain("headerAction");
+  });
 });

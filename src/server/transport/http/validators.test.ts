@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   parseAgentCommand,
   parseCreateAgent,
+  parseDeleteProjectInstructions,
+  parseDeleteSystemInstructions,
   parseModelsConfig,
   parseProjectPath,
+  parseSaveProjectInstructions,
+  parseSaveSystemInstructions,
   parseSkillCreateLocal,
   parseSkillInstall,
   parseSkillPackInstall,
@@ -214,5 +218,93 @@ describe("agent HTTP validation", () => {
     expect(() => parseProjectPath({ path: "" })).toThrow(
       "path must be a non-empty string",
     );
+  });
+
+  it("parses reload_instructions command", () => {
+    expect(parseAgentCommand({ type: "reload_instructions" })).toEqual({
+      type: "reload_instructions",
+    });
+  });
+
+  it("parses save system instructions requests", () => {
+    expect(
+      parseSaveSystemInstructions({
+        content: "test content",
+        expectedRevision: "sha256:abc",
+      }),
+    ).toEqual({
+      content: "test content",
+      expectedRevision: "sha256:abc",
+      force: undefined,
+    });
+    expect(
+      parseSaveSystemInstructions({
+        content: "",
+        expectedRevision: "sha256:absent",
+        force: true,
+      }),
+    ).toEqual({
+      content: "",
+      expectedRevision: "sha256:absent",
+      force: true,
+    });
+    expect(() =>
+      parseSaveSystemInstructions({ content: 123, expectedRevision: "r" }),
+    ).toThrow("content must be a string");
+    expect(() =>
+      parseSaveSystemInstructions({ content: "x" }),
+    ).toThrow("expectedRevision must be a non-empty string");
+  });
+
+  it("parses delete system instructions requests", () => {
+    expect(
+      parseDeleteSystemInstructions({
+        expectedRevision: "sha256:abc",
+      }),
+    ).toEqual({
+      expectedRevision: "sha256:abc",
+      force: undefined,
+    });
+    expect(() =>
+      parseDeleteSystemInstructions({ expectedRevision: 123 }),
+    ).toThrow("expectedRevision must be a non-empty string");
+  });
+
+  it("parses save project instructions requests", () => {
+    expect(
+      parseSaveProjectInstructions({
+        cwd: "C:\\work",
+        content: "test",
+        expectedRevision: "sha256:abc",
+      }),
+    ).toEqual({
+      cwd: "C:\\work",
+      content: "test",
+      expectedRevision: "sha256:abc",
+      force: undefined,
+    });
+    expect(() =>
+      parseSaveProjectInstructions({
+        cwd: "",
+        content: "x",
+        expectedRevision: "r",
+      }),
+    ).toThrow("cwd must be a non-empty string");
+  });
+
+  it("parses delete project instructions requests", () => {
+    expect(
+      parseDeleteProjectInstructions({
+        cwd: "C:\\work",
+        expectedRevision: "sha256:abc",
+      }),
+    ).toEqual({
+      cwd: "C:\\work",
+      expectedRevision: "sha256:abc",
+      force: undefined,
+    });
+    expect(() =>
+      parseDeleteProjectInstructions({ cwd: "C:\\work" }),
+    ).toThrow("expectedRevision must be a non-empty string");
   });
 });

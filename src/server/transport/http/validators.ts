@@ -27,6 +27,12 @@ import type {
   MaintainSkillPackRequest,
   RemoveSkillPackRequest,
 } from "@/contracts/skill-packs";
+import type {
+  DeleteSystemInstructionsRequest,
+  DeleteProjectInstructionsRequest,
+  SaveSystemInstructionsRequest,
+  SaveProjectInstructionsRequest,
+} from "@/contracts/instructions";
 
 type JsonObject = Record<string, unknown>;
 
@@ -99,6 +105,7 @@ export function parseAgentCommand(value: unknown): AgentCommand {
     case "get_state":
     case "get_tools":
     case "abort_compaction":
+    case "reload_instructions":
       return { type };
     case "set_model":
       return {
@@ -259,6 +266,50 @@ export function parseSkillCreateLocal(value: unknown): ImportLocalSkillInput {
   };
 }
 
+export function parseSaveSystemInstructions(
+  value: unknown,
+): SaveSystemInstructionsRequest {
+  const object = asObject(value);
+  return {
+    content: parseContent(object.content),
+    expectedRevision: requiredString(object, "expectedRevision"),
+    force: optionalBoolean(object, "force"),
+  };
+}
+
+export function parseDeleteSystemInstructions(
+  value: unknown,
+): DeleteSystemInstructionsRequest {
+  const object = asObject(value);
+  return {
+    expectedRevision: requiredString(object, "expectedRevision"),
+    force: optionalBoolean(object, "force"),
+  };
+}
+
+export function parseSaveProjectInstructions(
+  value: unknown,
+): SaveProjectInstructionsRequest {
+  const object = asObject(value);
+  return {
+    cwd: requiredString(object, "cwd"),
+    content: parseContent(object.content),
+    expectedRevision: requiredString(object, "expectedRevision"),
+    force: optionalBoolean(object, "force"),
+  };
+}
+
+export function parseDeleteProjectInstructions(
+  value: unknown,
+): DeleteProjectInstructionsRequest {
+  const object = asObject(value);
+  return {
+    cwd: requiredString(object, "cwd"),
+    expectedRevision: requiredString(object, "expectedRevision"),
+    force: optionalBoolean(object, "force"),
+  };
+}
+
 function parseThinkingLevel(value: unknown): ThinkingLevel {
   if (
     typeof value !== "string" ||
@@ -323,6 +374,23 @@ function parseStringRecord(
     invalid(`${key} must contain only string values`);
   }
   return Object.fromEntries(entries) as Record<string, string>;
+}
+
+/** 解析可选布尔值，undefined 时返回 undefined。 */
+function optionalBoolean(
+  object: JsonObject,
+  key: string,
+): boolean | undefined {
+  const value = object[key];
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") invalid(`${key} must be a boolean`);
+  return value;
+}
+
+/** 解析指令内容字段，允许空字符串但不允许非字符串。 */
+function parseContent(value: unknown): string {
+  if (typeof value !== "string") invalid("content must be a string");
+  return value;
 }
 
 function invalid(message: string): never {

@@ -34,10 +34,14 @@ describe("workspace sidebar", () => {
     );
   });
 
-  it("keeps locale as the bottom icon control", () => {
+  it("keeps system prompt and locale together in the bottom action row", () => {
     expect(source).toContain("mt-auto");
+    expect(source).toContain("onOpenSystemPrompt");
+    expect(source).toContain("t.workspace.systemPrompt");
     expect(source).toContain("setLocale(nextLocale)");
     expect(source).toContain("<TooltipContent");
+    expect(topBarSource).not.toContain("onOpenSystemPrompt");
+    expect(topBarSource).not.toContain("t.workspace.systemPrompt");
   });
 
   it("explains disabled new-chat and Skills actions", () => {

@@ -36,6 +36,7 @@ export type BranchState = {
   tree: SessionTreeNode[];
   activeLeafId: string | null;
   running: boolean;
+  busy: boolean;
   changeLeaf: (leafId: string) => Promise<boolean>;
 };
 
@@ -90,7 +91,7 @@ export function ChatCenter({
   const [composerHeight, setComposerHeight] = useState(0);
   const dragCounter = useRef(0);
   const messageElementsRef = useRef<Map<string, HTMLElement>>(new Map());
-  const { activeLeafId, changeLeaf, running, tree } = controller;
+  const { activeLeafId, changeLeaf, isCompacting, running, tree } = controller;
 
   const minimapEntries = useMemo(
     () =>
@@ -124,10 +125,11 @@ export function ChatCenter({
       tree,
       activeLeafId,
       running,
+      busy: running || isCompacting,
       changeLeaf: (leafId) => changeLeaf(leafId),
     });
     return () => onBranchState?.(null);
-  }, [activeLeafId, changeLeaf, onBranchState, running, tree]);
+  }, [activeLeafId, changeLeaf, isCompacting, onBranchState, running, tree]);
 
   useEffect(() => {
     if (!composerNode) return;

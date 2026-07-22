@@ -24,6 +24,8 @@ import {
   ModelProviderPage,
   type ModelProviderSaveStatus,
 } from "@/features/model-providers/model-provider-page";
+import { SystemPromptDialog } from "@/features/instructions/system-prompt-dialog";
+import { ProjectInstructionsEditor } from "@/features/instructions/project-instructions-editor";
 import { loadSessions } from "@/features/sessions/api";
 import {
   getProjectName,
@@ -69,6 +71,11 @@ export function AgentWorkspace() {
   const [modelProviderSaveStatus, setModelProviderSaveStatus] =
     useState<ModelProviderSaveStatus>({ phase: "idle" });
   const [openFile, setOpenFile] = useState<OpenFile | null>(null);
+  const [systemPromptOpen, setSystemPromptOpen] = useState(false);
+  const [currentSystemPrompt, setCurrentSystemPrompt] = useState<string | null>(null);
+  const [instructionsNeedApply, setInstructionsNeedApply] = useState(false);
+  const [projectInstructionsOpen, setProjectInstructionsOpen] = useState(false);
+  const [projectInstructionsDirty, setProjectInstructionsDirty] = useState(false);
   const [initialSessionId, setInitialSessionId] = useState<
     string | null | undefined
   >(undefined);
@@ -127,6 +134,11 @@ export function AgentWorkspace() {
 
   const requestNavigation = useCallback(
     (targetView: WorkspaceView, action: () => void) => {
+      if (projectInstructionsOpen && projectInstructionsDirty) {
+        pendingNavigationRef.current = action;
+        setConfirmingDiscard(true);
+        return;
+      }
       if (
         shouldConfirmWorkspaceNavigation(
           activeView,
@@ -140,7 +152,7 @@ export function AgentWorkspace() {
       }
       action();
     },
-    [activeView, modelProviderDirty],
+    [activeView, modelProviderDirty, projectInstructionsDirty, projectInstructionsOpen],
   );
 
   const handleOpenModelProvider = useCallback(
@@ -164,6 +176,8 @@ export function AgentWorkspace() {
     const action = pendingNavigationRef.current;
     pendingNavigationRef.current = null;
     setModelProviderDirty(false);
+    setProjectInstructionsDirty(false);
+    setProjectInstructionsOpen(false);
     setConfirmingDiscard(false);
     action?.();
   }
@@ -177,6 +191,8 @@ export function AgentWorkspace() {
 
   const resetChat = useCallback(() => {
     setChatInstanceKey((current) => current + 1);
+    setCurrentSystemPrompt(null);
+    setInstructionsNeedApply(false);
   }, []);
 
   const handleCwdChange = useCallback(
@@ -274,9 +290,42 @@ export function AgentWorkspace() {
   );
 
   const handleOpenFile = useCallback((path: string, name: string) => {
-    setOpenFile({ path, name });
-    setFilePanelOpen(true);
-  }, []);
+    requestNavigation("chat", () => {
+      if (isRootAgentsFile(activeCwd, path, name)) {
+        setOpenFile(null);
+        setProjectInstructionsOpen(true);
+      } else {
+        setProjectInstructionsOpen(false);
+        setOpenFile({ path, name });
+      }
+      setFilePanelOpen(true);
+    });
+  }, [activeCwd, requestNavigation]);
+
+  const handleOpenProjectInstructions = useCallback(() => {
+    requestNavigation("chat", () => {
+      setOpenFile(null);
+      setProjectInstructionsOpen(true);
+      setFilePanelOpen(true);
+      setSystemPromptOpen(false);
+    });
+  }, [requestNavigation]);
+
+  const handleInstructionsChanged = useCallback(() => {
+    setExplorerRefreshKey((current) => current + 1);
+    if (selectedSession) setInstructionsNeedApply(true);
+  }, [selectedSession]);
+
+  const handleToggleFilePanel = useCallback(() => {
+    if (!filePanelOpen) {
+      setFilePanelOpen(true);
+      return;
+    }
+    requestNavigation("chat", () => {
+      setFilePanelOpen(false);
+      setProjectInstructionsOpen(false);
+    });
+  }, [filePanelOpen, requestNavigation]);
 
   const handleAtMention = useCallback((path: string) => {
     window.dispatchEvent(
@@ -316,6 +365,7 @@ export function AgentWorkspace() {
               }}
               onOpenModelProvider={handleOpenModelProvider}
               onOpenSkills={handleOpenSkills}
+              onOpenSystemPrompt={() => setSystemPromptOpen(true)}
               sessionProps={{
                 draftSession,
                 initialSessionId,
@@ -367,7 +417,7 @@ export function AgentWorkspace() {
                 ? (leafId) => void branchState.changeLeaf(leafId)
                 : undefined
             }
-            onToggleFilePanel={() => setFilePanelOpen((open) => !open)}
+            onToggleFilePanel={handleToggleFilePanel}
             onToggleSidebar={() => setSidebarOpen((open) => !open)}
             projectName={activeCwd ? getProjectName(activeCwd) : null}
             sessionTitle={
@@ -392,6 +442,7 @@ export function AgentWorkspace() {
               onOpenSkills={handleOpenSkills}
               onSessionCreated={handleSessionCreated}
               onSessionForked={handleSessionForked}
+              onSystemPromptChange={setCurrentSystemPrompt}
               projectName={activeCwd ? getProjectName(activeCwd) : null}
               session={selectedSession}
             />
@@ -439,9 +490,24 @@ export function AgentWorkspace() {
                 cwd={activeCwd}
                 file={openFile}
                 onAtMention={handleAtMention}
-                onClose={() => setFilePanelOpen(false)}
+                onClose={handleToggleFilePanel}
                 onOpenFile={handleOpenFile}
                 refreshKey={explorerRefreshKey}
+                specialContent={
+                  activeCwd && projectInstructionsOpen ? (
+                    <ProjectInstructionsEditor
+                      agentId={selectedSession?.id}
+                      cwd={activeCwd}
+                      isRunning={branchState?.busy}
+                      needsApply={instructionsNeedApply}
+                      onChanged={handleInstructionsChanged}
+                      onApplied={() => setInstructionsNeedApply(false)}
+                      onDirtyChange={setProjectInstructionsDirty}
+                      onSystemPromptChange={setCurrentSystemPrompt}
+                    />
+                  ) : undefined
+                }
+                specialTitle={projectInstructionsOpen ? "AGENTS.md" : undefined}
               />
             </aside>
           </>
@@ -455,22 +521,52 @@ export function AgentWorkspace() {
         >
           <DialogContent showCloseButton={false}>
             <DialogHeader>
-              <DialogTitle>{t.models.discardChangesTitle}</DialogTitle>
+              <DialogTitle>
+                {projectInstructionsDirty
+                  ? t.instructions.discardChangesTitle
+                  : t.models.discardChangesTitle}
+              </DialogTitle>
               <DialogDescription>
-                {t.models.discardChangesDescription}
+                {projectInstructionsDirty
+                  ? t.instructions.discardChangesDescription
+                  : t.models.discardChangesDescription}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button autoFocus onClick={cancelDiscard} variant="outline">
-                {t.models.continueEditing}
+              {projectInstructionsDirty
+                ? t.instructions.continueEditing
+                : t.models.continueEditing}
               </Button>
               <Button onClick={confirmDiscard} variant="destructive">
-                {t.models.discardChanges}
+                {projectInstructionsDirty
+                  ? t.instructions.discardChanges
+                  : t.models.discardChanges}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <SystemPromptDialog
+          agentId={selectedSession?.id}
+          currentSystemPrompt={currentSystemPrompt}
+          cwd={activeCwd ?? undefined}
+          isRunning={branchState?.busy}
+          needsApply={instructionsNeedApply}
+          onApplied={() => setInstructionsNeedApply(false)}
+          onClose={() => setSystemPromptOpen(false)}
+          onInstructionsChanged={handleInstructionsChanged}
+          onOpenProjectInstructions={handleOpenProjectInstructions}
+          onSystemPromptChange={setCurrentSystemPrompt}
+          open={systemPromptOpen}
+        />
       </div>
     </TooltipProvider>
   );
+}
+
+function isRootAgentsFile(cwd: string | null, filePath: string, name: string) {
+  if (!cwd || name.toLowerCase() !== "agents.md") return false;
+  const normalize = (value: string) => value.replaceAll("\\", "/").replace(/\/$/, "").toLowerCase();
+  return normalize(filePath) === `${normalize(cwd)}/agents.md`;
 }

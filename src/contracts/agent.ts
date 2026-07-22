@@ -33,7 +33,8 @@ export type AgentCommand =
   | { type: "get_tools" }
   | { type: "set_tools"; toolNames: string[] }
   | { type: "abort_compaction" }
-  | { type: "set_auto_retry"; enabled: boolean };
+  | { type: "set_auto_retry"; enabled: boolean }
+  | { type: "reload_instructions" };
 
 export type AgentFailureCode =
   | "MODEL_REQUEST_FAILED"
@@ -298,4 +299,6 @@ export type AgentCommandResult<C extends AgentCommand> =
             ? CompactAgentResponse
             : C["type"] extends "get_tools"
               ? AgentToolsResponse
-              : SuccessResponse;
+              : C["type"] extends "reload_instructions"
+                ? AgentRuntimeState
+                : SuccessResponse;

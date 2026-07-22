@@ -1,6 +1,7 @@
 import {
   Cpu,
   MessageSquarePlus,
+  ScrollText,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export type WorkspaceSidebarProps = {
   onNewChat: () => void;
   onOpenModelProvider: () => void;
   onOpenSkills: () => void;
+  onOpenSystemPrompt: () => void;
   sessionProps: SessionSidebarProps;
 };
 
@@ -29,6 +31,7 @@ export function WorkspaceSidebar({
   onNewChat,
   onOpenModelProvider,
   onOpenSkills,
+  onOpenSystemPrompt,
   sessionProps,
 }: WorkspaceSidebarProps) {
   const { locale, setLocale, t } = useI18n();
@@ -93,6 +96,20 @@ export function WorkspaceSidebar({
       <SessionSidebar {...sessionProps} />
 
       <div className="mt-auto flex gap-1 border-t border-line-subtle pt-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="min-w-0 flex-1 justify-start text-xs text-primary"
+              onClick={onOpenSystemPrompt}
+              type="button"
+              variant="ghost"
+            >
+              <ScrollText className="size-3.5 shrink-0" />
+              <span className="truncate">{t.workspace.systemPrompt}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t.workspace.systemPromptDescription}</TooltipContent>
+        </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

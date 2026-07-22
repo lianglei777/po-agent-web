@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FileText, PanelRightClose } from "lucide-react";
+import type { ReactNode } from "react";
+import { ChevronRight, FileText, PanelRightClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -11,6 +12,7 @@ import {
 import { useI18n } from "@/i18n/use-i18n";
 import { loadFile } from "./api";
 import { FileTree } from "./file-tree";
+import { joinPath, relativePath } from "./path";
 import type { OpenFile } from "./types";
 
 export type { OpenFile } from "./types";
@@ -22,6 +24,8 @@ export function FilePanel({
   onClose,
   onOpenFile,
   refreshKey = 0,
+  specialContent,
+  specialTitle,
 }: {
   cwd?: string | null;
   file: OpenFile | null;
@@ -29,18 +33,39 @@ export function FilePanel({
   onClose: () => void;
   onOpenFile?: (path: string, name: string) => void;
   refreshKey?: number;
+  specialContent?: ReactNode;
+  specialTitle?: string;
 }) {
   const { t } = useI18n();
+  const currentPath =
+    file?.path ?? (cwd && specialTitle ? joinPath(cwd, specialTitle) : null);
+  const pathSegments = currentPath && cwd
+    ? relativePath(cwd, currentPath).split("/").filter(Boolean)
+    : [];
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col">
       <div className="flex h-11 flex-none items-stretch border-b border-line-subtle bg-canvas text-meta text-muted">
-        <span
-          className="flex min-w-0 flex-1 items-center truncate px-3"
-          title={file?.path}
+        <nav
+          aria-label={t.files.currentFilePath}
+          className="flex min-w-0 flex-1 items-center overflow-hidden px-3"
+          title={currentPath ?? undefined}
         >
-          {file?.name ?? t.files.files}
-        </span>
+          {pathSegments.length ? (
+            <ol className="flex min-w-0 items-center font-ui-mono">
+              {pathSegments.map((segment, index) => (
+                <li className="flex min-w-0 items-center" key={`${segment}-${index}`}>
+                  {index > 0 ? <ChevronRight className="mx-1 size-3 shrink-0 text-dim" /> : null}
+                  <span className={index === pathSegments.length - 1 ? "truncate text-primary" : "truncate text-muted"}>
+                    {segment}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <span className="truncate">{t.files.files}</span>
+          )}
+        </nav>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -61,7 +86,7 @@ export function FilePanel({
       </div>
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
-          {file ? <LoadedFile file={file} key={file.path} /> : <EmptyFile />}
+          {specialContent ?? (file ? <LoadedFile file={file} key={file.path} /> : <EmptyFile />)}
         </div>
         {cwd && onOpenFile ? (
           <aside className="flex w-[clamp(160px,42%,224px)] shrink-0 border-l border-line-subtle bg-panel">

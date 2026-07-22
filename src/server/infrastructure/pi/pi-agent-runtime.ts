@@ -179,6 +179,28 @@ export class PiAgentRuntime implements AgentRuntime {
       case "set_auto_retry":
         this.session.setAutoRetryEnabled(command.enabled);
         return undefined as T;
+      case "reload_instructions": {
+        // 繁忙守卫：流式输出或压缩进行中时拒绝重载
+        if (this.session.isStreaming || this.session.isCompacting) {
+          throw new AppError(
+            "AGENT_BUSY",
+            "Cannot reload instructions while the agent is streaming or compacting",
+            409,
+          );
+        }
+        try {
+          await this.session.reload();
+        } catch (cause) {
+          throw new AppError(
+            "INSTRUCTION_RELOAD_FAILED",
+            cause instanceof Error
+              ? cause.message
+              : "Failed to reload instructions",
+            500,
+          );
+        }
+        return (await this.getState()) as T;
+      }
       default:
         throw new AppError(
           "UNSUPPORTED_COMMAND",

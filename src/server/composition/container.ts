@@ -3,6 +3,7 @@ import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import { AgentService } from "@/server/application/agent-service";
 import { AuthService } from "@/server/application/auth-service";
 import { FileService } from "@/server/application/file-service";
+import { InstructionService } from "@/server/application/instruction-service";
 import { ModelService } from "@/server/application/model-service";
 import { ProjectService } from "@/server/application/project-service";
 import { SessionService } from "@/server/application/session-service";
@@ -11,6 +12,7 @@ import { SkillService } from "@/server/application/skill-service";
 import { NodeWorkspaceFileService } from "@/server/infrastructure/filesystem/node-file-system";
 import { JsonProjectRepository } from "@/server/infrastructure/filesystem/json-project-repository";
 import { NodeDirectoryBrowser } from "@/server/infrastructure/filesystem/node-directory-browser";
+import { NodeInstructionStore } from "@/server/infrastructure/filesystem/node-instruction-store";
 import { InMemoryWorkspaceRoots } from "@/server/infrastructure/filesystem/workspace-roots";
 import { PiAgentRuntimeFactory } from "@/server/infrastructure/pi/pi-agent-runtime";
 import { PiCredentialProvider } from "@/server/infrastructure/pi/pi-credential-provider";
@@ -38,6 +40,7 @@ function createContainer() {
   const processes = new NodeProcessRunner();
   const skills = new PiSkillProvider(processes);
   const skillPacks = new PiSkillPackProvider(undefined, undefined, undefined, roots);
+  const instructionStore = new NodeInstructionStore(getAgentDir());
 
   return {
     roots,
@@ -59,6 +62,7 @@ function createContainer() {
     fileService: new FileService(fileSystem, roots),
     skillService: new SkillService(skills, roots),
     skillPackService: new SkillPackService(skillPacks, roots),
+    instructionService: new InstructionService(instructionStore, roots),
   };
 }
 
