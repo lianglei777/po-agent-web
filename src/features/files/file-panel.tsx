@@ -44,7 +44,7 @@ export function FilePanel({
     : [];
 
   return (
-    <div className="flex h-full w-full min-w-0 flex-col">
+    <div className="flex h-full w-full min-w-0 flex-col bg-canvas">
       <div className="flex h-11 flex-none items-stretch border-b border-line-subtle bg-canvas text-meta text-muted">
         <nav
           aria-label={t.files.currentFilePath}
@@ -89,7 +89,7 @@ export function FilePanel({
           {specialContent ?? (file ? <LoadedFile file={file} key={file.path} /> : <EmptyFile />)}
         </div>
         {cwd && onOpenFile ? (
-          <aside className="flex w-[clamp(160px,42%,224px)] shrink-0 border-l border-line-subtle bg-panel">
+          <aside className="flex w-[clamp(160px,42%,224px)] shrink-0 border-l border-line-subtle bg-canvas">
             <FileTree
               cwd={cwd}
               onAtMention={onAtMention}

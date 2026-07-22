@@ -99,17 +99,22 @@ export function WorkspaceSidebar({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="min-w-0 flex-1 justify-start text-xs text-primary"
+              aria-label={t.workspace.systemPrompt}
               onClick={onOpenSystemPrompt}
+              size="icon-sm"
               type="button"
               variant="ghost"
             >
-              <ScrollText className="size-3.5 shrink-0" />
-              <span className="truncate">{t.workspace.systemPrompt}</span>
+              <ScrollText className="size-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t.workspace.systemPromptDescription}</TooltipContent>
         </Tooltip>
+        <div
+          aria-orientation="vertical"
+          className="mx-0.5 h-4 w-px self-center bg-line-subtle"
+          role="separator"
+        />
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

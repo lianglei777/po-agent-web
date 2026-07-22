@@ -38,6 +38,10 @@ describe("workspace sidebar", () => {
     expect(source).toContain("mt-auto");
     expect(source).toContain("onOpenSystemPrompt");
     expect(source).toContain("t.workspace.systemPrompt");
+    expect(source).toContain('aria-label={t.workspace.systemPrompt}');
+    expect(source).not.toContain('<span className="truncate">{t.workspace.systemPrompt}</span>');
+    expect(source).toContain('role="separator"');
+    expect(source).toContain("h-4 w-px self-center bg-line-subtle");
     expect(source).toContain("setLocale(nextLocale)");
     expect(source).toContain("<TooltipContent");
     expect(topBarSource).not.toContain("onOpenSystemPrompt");

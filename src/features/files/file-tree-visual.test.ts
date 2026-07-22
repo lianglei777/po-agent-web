@@ -16,4 +16,9 @@ describe("file tree", () => {
     expect(source).not.toContain("<Input");
     expect(source).not.toContain("placeholder=");
   });
+
+  it("uses the white canvas background", () => {
+    expect(source).toContain("bg-canvas");
+    expect(source).not.toContain("bg-panel");
+  });
 });

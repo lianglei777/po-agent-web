@@ -475,7 +475,7 @@ export function AgentWorkspace() {
               value={panelWidths.filePanel}
             />
             <aside
-              className={`flex-none overflow-hidden bg-panel ${
+              className={`flex-none overflow-hidden bg-canvas ${
                 resizingPanel === "filePanel"
                   ? "duration-0"
                   : "duration-[var(--motion-standard)]"

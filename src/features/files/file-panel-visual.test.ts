@@ -9,7 +9,8 @@ const source = readFileSync(
 
 describe("file panel visual contract", () => {
   it("uses the panel hierarchy without inventing context content", () => {
-    expect(source).toContain("bg-panel");
+    expect(source).toContain("bg-canvas");
+    expect(source).not.toContain("bg-panel");
     expect(source).toContain("border-line-subtle");
     expect(source).toContain("t.files.noFileOpen");
     expect(source).not.toContain("Context Inspector");

@@ -85,7 +85,7 @@ export function FileTree({
   }
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col bg-panel">
+    <section className="flex min-h-0 flex-1 flex-col bg-canvas">
       <div className="flex h-9 flex-none items-center border-b border-line-subtle px-2 text-meta font-medium text-muted">
         <span className="flex-1">{t.files.explorer}</span>
         <Button
