@@ -2057,13 +2057,14 @@ Content-Type: application/json
 
 行为：
 
-读取 `sourceFilePath` 指定的 skill 文件。如果路径是目录，则自动查找该目录下的
-`SKILL.md`。从其 frontmatter 中解析 `name` 字段；
-如果没有 frontmatter 或没有 `name` 字段，则用源文件名（不含扩展名）作为技能名。
-然后将文件内容复制到 `<cwd>/.agents/skills/<name>/SKILL.md`（Project scope）或
-`~/.agents/skills/<name>/SKILL.md`（Global scope）。写入后重新运行
-`DefaultResourceLoader` 验证技能已被发现。正在运行的 AgentSession 不会被静默重启，
-新会话、恢复会话或显式资源 reload 后生效。
+读取 `sourceFilePath` 指定的 skill 文件或目录。如果路径是目录，则查找该目录下的
+`SKILL.md`。从其 frontmatter 中解析 `name` 字段；如果没有 frontmatter 或没有
+`name` 字段，目录模式回退到源目录名，文件模式回退到源文件名（不含扩展名）作为技能名。
+源为目录时会递归复制整个目录（保留脚本、模板等兄弟资源，跳过符号链接、`node_modules`
+和以 `.` 开头的条目）；源为 `.md` 文件时仅写入 `SKILL.md`。目标路径为
+`<cwd>/.agents/skills/<name>/`（Project scope）或 `~/.agents/skills/<name>/`（Global scope）。
+写入后重新运行 `DefaultResourceLoader` 验证技能已被发现。正在运行的 AgentSession 不会被
+静默重启，新会话、恢复会话或显式资源 reload 后生效。
 
 成功响应：
 

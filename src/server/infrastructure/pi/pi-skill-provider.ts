@@ -281,12 +281,14 @@ export class PiSkillProvider implements SkillProvider {
 
       // 解析源路径：支持 .md 文件路径或包含 SKILL.md 的目录路径
       const rawPath = path.resolve(input.sourceFilePath);
+      let isDirectory = false;
       let sourcePath: string;
       let sourceContent: string;
       try {
         const stat = await fs.stat(rawPath);
         if (stat.isDirectory()) {
           // 目录路径：查找目录内的 SKILL.md
+          isDirectory = true;
           sourcePath = path.join(rawPath, "SKILL.md");
           sourceContent = await fs.readFile(sourcePath, "utf8");
         } else if (rawPath.endsWith(".md")) {
@@ -308,10 +310,10 @@ export class PiSkillProvider implements SkillProvider {
         );
       }
 
-      // 从 frontmatter 解析 name，没有则用文件名（不含扩展名）
+      // 从 frontmatter 解析 name；目录模式回退到源目录名，文件模式回退到文件名（不含扩展名）
       const skillName = parseSkillNameFromContent(
         sourceContent,
-        path.basename(sourcePath, ".md"),
+        isDirectory ? path.basename(rawPath) : path.basename(sourcePath, ".md"),
       );
       validateSkillName(skillName);
 
@@ -344,7 +346,12 @@ export class PiSkillProvider implements SkillProvider {
 
       await this.withFileLock(skillFile, async () => {
         await fs.mkdir(skillDir, { recursive: true });
-        await fs.writeFile(skillFile, sourceContent, "utf8");
+        if (isDirectory) {
+          // 目录模式：递归复制整个 skill 目录，保留脚本、模板、参考文档等兄弟资源
+          await copySkillDirectory(rawPath, skillDir);
+        } else {
+          await fs.writeFile(skillFile, sourceContent, "utf8");
+        }
       });
 
       // 重新加载验证
@@ -744,6 +751,35 @@ function parseSkillNameFromContent(
     }
   }
   return fallback;
+}
+
+/**
+ * 递归复制 skill 目录，保留 SKILL.md 的兄弟资源（脚本、模板、参考文档等）。
+ *
+ * 仅复制常规文件与目录；跳过符号链接、node_modules 和以 "." 开头的条目，
+ * 避免链接逃逸或意外纳入版本控制元数据。目标目录由调用方保证在 skillsRoot 之下。
+ */
+async function copySkillDirectory(
+  sourceDir: string,
+  destDir: string,
+): Promise<void> {
+  const entries = await fs.readdir(sourceDir, { withFileTypes: true });
+  await fs.mkdir(destDir, { recursive: true });
+  for (const entry of entries) {
+    if (entry.name.startsWith(".") || entry.name === "node_modules") {
+      continue;
+    }
+    if (entry.isSymbolicLink()) {
+      continue;
+    }
+    const sourceEntry = path.join(sourceDir, entry.name);
+    const destEntry = path.join(destDir, entry.name);
+    if (entry.isDirectory()) {
+      await copySkillDirectory(sourceEntry, destEntry);
+    } else if (entry.isFile()) {
+      await fs.copyFile(sourceEntry, destEntry);
+    }
+  }
 }
 
 export function buildInstallArgs(

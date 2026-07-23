@@ -252,3 +252,158 @@ describe("PiSkillProvider helpers", () => {
     expect(() => validateSkillName("a")).not.toThrow();
   });
 });
+
+describe("PiSkillProvider importLocal", () => {
+  function mockProjectSkill(cwd: string, name: string): SkillInfo {
+    const skillDir = path.join(cwd, ".pi", "skills", name);
+    const filePath = path.join(skillDir, "SKILL.md");
+    return {
+      skillId: "id",
+      name,
+      description: "d",
+      filePath,
+      displayPath: `.pi/skills/${name}/SKILL.md`,
+      baseDir: skillDir,
+      sourceInfo: {
+        path: filePath,
+        source: "auto",
+        scope: "project",
+        origin: "top-level",
+      },
+      canModify: true,
+      disableModelInvocation: false,
+      version: "v1",
+    };
+  }
+
+  it("copies sibling files and subdirectories when importing a skill directory", async () => {
+    const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "skill-import-cwd-"));
+    const sourceRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), "skill-import-src-"),
+    );
+    const sourceDir = path.join(sourceRoot, "my-skill");
+    await fs.mkdir(sourceDir, { recursive: true });
+    await fs.writeFile(
+      path.join(sourceDir, "SKILL.md"),
+      "---\nname: my-skill\ndescription: d\n---\nbody\n",
+    );
+    await fs.writeFile(path.join(sourceDir, "check.sh"), "echo hi");
+    await fs.mkdir(path.join(sourceDir, "templates"));
+    await fs.writeFile(path.join(sourceDir, "templates", "report.md"), "# tpl");
+
+    const provider = new PiSkillProvider({ run: vi.fn() } as ProcessRunner);
+    const loadSpy = vi
+      .spyOn(provider, "load")
+      .mockResolvedValue({
+        diagnostics: [],
+        skills: [mockProjectSkill(cwd, "my-skill")],
+      });
+
+    try {
+      const result = await provider.importLocal({
+        sourceFilePath: sourceDir,
+        scope: "project",
+        cwd,
+      });
+      expect(result.created).toBe(true);
+
+      const skillDir = path.join(cwd, ".pi", "skills", "my-skill");
+      expect(await fs.readFile(path.join(skillDir, "SKILL.md"), "utf8")).toContain(
+        "name: my-skill",
+      );
+      // 兄弟文件被复制
+      expect(await fs.readFile(path.join(skillDir, "check.sh"), "utf8")).toBe(
+        "echo hi",
+      );
+      // 子目录文件被复制
+      expect(
+        await fs.readFile(path.join(skillDir, "templates", "report.md"), "utf8"),
+      ).toBe("# tpl");
+      expect(loadSpy).toHaveBeenCalledWith(cwd);
+    } finally {
+      loadSpy.mockRestore();
+      await fs.rm(cwd, { recursive: true, force: true });
+      await fs.rm(sourceRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("falls back to the source directory name when frontmatter has no name", async () => {
+    const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "skill-import-cwd-"));
+    const sourceRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), "skill-import-src-"),
+    );
+    const sourceDir = path.join(sourceRoot, "dir-named-skill");
+    await fs.mkdir(sourceDir, { recursive: true });
+    await fs.writeFile(
+      path.join(sourceDir, "SKILL.md"),
+      "---\ndescription: d\n---\nbody\n",
+    );
+
+    const provider = new PiSkillProvider({ run: vi.fn() } as ProcessRunner);
+    const loadSpy = vi
+      .spyOn(provider, "load")
+      .mockResolvedValue({
+        diagnostics: [],
+        skills: [mockProjectSkill(cwd, "dir-named-skill")],
+      });
+
+    try {
+      const result = await provider.importLocal({
+        sourceFilePath: sourceDir,
+        scope: "project",
+        cwd,
+      });
+      expect(result.skills[0]?.name).toBe("dir-named-skill");
+      await fs.access(
+        path.join(cwd, ".pi", "skills", "dir-named-skill", "SKILL.md"),
+      );
+    } finally {
+      loadSpy.mockRestore();
+      await fs.rm(cwd, { recursive: true, force: true });
+      await fs.rm(sourceRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("skips node_modules and hidden entries when copying a directory", async () => {
+    const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "skill-import-cwd-"));
+    const sourceRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), "skill-import-src-"),
+    );
+    const sourceDir = path.join(sourceRoot, "my-skill");
+    await fs.mkdir(sourceDir, { recursive: true });
+    await fs.writeFile(
+      path.join(sourceDir, "SKILL.md"),
+      "---\nname: my-skill\ndescription: d\n---\nbody\n",
+    );
+    await fs.mkdir(path.join(sourceDir, "node_modules"), { recursive: true });
+    await fs.writeFile(
+      path.join(sourceDir, "node_modules", "evil.js"),
+      "module.exports = 1",
+    );
+    await fs.writeFile(path.join(sourceDir, ".secret"), "hidden");
+
+    const provider = new PiSkillProvider({ run: vi.fn() } as ProcessRunner);
+    const loadSpy = vi
+      .spyOn(provider, "load")
+      .mockResolvedValue({
+        diagnostics: [],
+        skills: [mockProjectSkill(cwd, "my-skill")],
+      });
+
+    try {
+      await provider.importLocal({
+        sourceFilePath: sourceDir,
+        scope: "project",
+        cwd,
+      });
+      const skillDir = path.join(cwd, ".pi", "skills", "my-skill");
+      await expect(fs.access(path.join(skillDir, "node_modules"))).rejects.toThrow();
+      await expect(fs.access(path.join(skillDir, ".secret"))).rejects.toThrow();
+      await fs.access(path.join(skillDir, "SKILL.md"));
+    } finally {
+      loadSpy.mockRestore();
+      await fs.rm(cwd, { recursive: true, force: true });
+      await fs.rm(sourceRoot, { recursive: true, force: true });
+    }
+  });
+});

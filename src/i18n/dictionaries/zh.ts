@@ -403,7 +403,7 @@ export const zh = {
     createLocalDescription: "将本地已有的 skill 文件导入到项目的 skills 目录中。",
     skillFilePath: "Skill 文件或目录路径",
     skillFilePathPlaceholder: "D:\\my-skills\\review\\SKILL.md",
-    skillFilePathHint: "本地 .md skill 文件的绝对路径，或包含 SKILL.md 的目录路径。技能名称从 frontmatter 的 name 字段读取，没有则用文件名。",
+    skillFilePathHint: "本地 .md skill 文件的绝对路径，或包含 SKILL.md 的目录路径。导入目录时会复制整个目录（含脚本、模板等兄弟资源）；技能名称从 frontmatter 的 name 字段读取，没有则用目录名或文件名。",
     importSkill: "导入",
     creating: "导入中...",
     skillExists: "同名技能已存在。",

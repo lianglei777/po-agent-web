@@ -38,11 +38,12 @@ export interface SkillProvider {
    */
   remove(input: RemoveSkillInput): Promise<SkillLoadResult>;
   /**
-   * 导入本地 skill 文件。
+   * 导入本地 skill。
    *
-   * 读取指定路径的 skill 文件，解析 frontmatter 中的 name，复制到
-   * .pi/skills/<name>/SKILL.md（项目级）或 ~/.pi/agent/skills/<name>/SKILL.md（全局）。
-   * 此操作有副作用（会读取和写入文件），
+   * 读取指定路径的 skill 文件或目录，解析 frontmatter 中的 name，复制到
+   * .pi/skills/<name>/（项目级）或 ~/.pi/agent/skills/<name>/（全局）。
+   * 源为目录时会递归复制整个目录，保留 SKILL.md 的兄弟资源（脚本、模板、参考文档等）；
+   * 源为 .md 文件时仅写入 SKILL.md。此操作有副作用（会读取和写入文件），
    * 需保留用户反馈和错误状态。
    */
   importLocal(input: ImportLocalSkillInput): Promise<ImportLocalSkillResult>;

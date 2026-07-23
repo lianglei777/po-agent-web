@@ -403,7 +403,7 @@ export const en = {
     createLocalDescription: "Import an existing local skill file into the project's skills directory.",
     skillFilePath: "Skill file or directory path",
     skillFilePathPlaceholder: "D:\\my-skills\\review\\SKILL.md",
-    skillFilePathHint: "Absolute path to a local .md skill file, or a directory containing SKILL.md. The skill name is read from frontmatter or filename.",
+    skillFilePathHint: "Absolute path to a local .md skill file, or a directory containing SKILL.md. Importing a directory copies the entire folder (including sibling resources like scripts and templates). The skill name is read from frontmatter, falling back to the directory or file name.",
     importSkill: "Import",
     creating: "Importing...",
     skillExists: "A skill with this name already exists.",

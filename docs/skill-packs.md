@@ -187,6 +187,8 @@ D:\agent-packs\my-workflows
 
 ## 创建一个最小技能包
 
+> 完整的格式规范见 [skill-pack-format.md](./skill-pack-format.md)。下文只给出快速上手示例。
+
 当前项目兼容 Pi Package 的约定目录和 `package.json` 中的 `pi` manifest。只分发技能时，
 最小结构如下：
 
@@ -268,6 +270,7 @@ Skills。候选名称可以这样比较：
 ## 相关实现
 
 - `resources/official-packs/git-release-workflows`：当前官方技能包；
+- `docs/skill-pack-format.md`：技能包格式规范；
 - `src/server/infrastructure/pi/pi-skill-pack-provider.ts`：Pi Package 适配与生命周期；
 - `src/server/infrastructure/pi/pi-resource-loader.ts`：会话资源加载；
 - `src/features/skills/skills-page.tsx`：技能与技能包的用户操作入口；
