@@ -1,4 +1,5 @@
 import { Bot, Terminal } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/use-i18n";
 import { groupSkills, packageSourceLabel } from "./skill-state";
 import type { SkillInfo } from "./types";
@@ -7,10 +8,12 @@ export function SkillList({
   skills,
   selectedSkillId,
   onSelect,
+  projectName,
 }: {
   skills: SkillInfo[];
   selectedSkillId: string | null;
   onSelect: (skillId: string) => void;
+  projectName: string;
 }) {
   const { t } = useI18n();
 
@@ -31,7 +34,7 @@ export function SkillList({
                 ? t.skills.builtIn
                 : group.origin === "package"
                   ? `${t.skills.fromSkillPack}: ${packageSourceLabel(group.detail)}`
-                  : groupLabel(group.scope, t)}
+                  : groupLabel(group.scope, projectName, t)}
             </h3>
           </div>
           {group.skills.map((skill) => {
@@ -66,10 +69,15 @@ export function SkillList({
                     <Bot className="size-3.5 text-accent-deep" />
                   )}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
+                <span className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">
                     {skill.name}
                   </span>
+                  {group.origin === "package" ? (
+                    <Badge className="shrink-0" variant="outline">
+                      {scopeLabel(skill.sourceInfo.scope, t)}
+                    </Badge>
+                  ) : null}
                 </span>
               </button>
             );
@@ -82,9 +90,21 @@ export function SkillList({
 
 function groupLabel(
   scope: SkillInfo["sourceInfo"]["scope"],
+  projectName: string,
+  t: ReturnType<typeof useI18n>["t"],
+): string {
+  if (scope === "project") {
+    return t.skills.scopeProject.replace("{project}", projectName);
+  }
+  if (scope === "user") return t.skills.scopeGlobal;
+  return t.skills.path;
+}
+
+function scopeLabel(
+  scope: SkillInfo["sourceInfo"]["scope"],
   t: ReturnType<typeof useI18n>["t"],
 ): string {
   if (scope === "project") return t.common.project;
   if (scope === "user") return t.common.global;
-  return t.skills.path;
+  return t.skills.builtIn;
 }

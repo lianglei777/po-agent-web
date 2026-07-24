@@ -1,6 +1,12 @@
 "use client";
 
-import { AlertTriangle, Box, LoaderCircle, ShieldAlert } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Box,
+  LoaderCircle,
+  ShieldAlert,
+} from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +35,8 @@ export function SkillPackDetail({
   onRemove,
   onUpdate,
   onRepair,
+  onBack,
+  projectName,
 }: {
   pack: SkillPackInfo;
   busy: boolean;
@@ -36,6 +44,8 @@ export function SkillPackDetail({
   onRemove: () => void;
   onUpdate: () => void;
   onRepair: () => void;
+  onBack: () => void;
+  projectName: string;
 }) {
   const { t } = useI18n();
   const copy = packCopy(pack);
@@ -46,8 +56,18 @@ export function SkillPackDetail({
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 px-6 py-6">
+      <div className="flex w-full flex-col gap-5 px-4 py-4">
         <header>
+          <Button
+            className="-ml-2 mb-2"
+            onClick={onBack}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            <ArrowLeft />
+            {t.skills.backToList}
+          </Button>
           <SectionTitle>{t.skills.packs.tabPacks}</SectionTitle>
           <div className="mt-1 flex items-center gap-2">
             <Box className="size-5 text-accent-deep" />
@@ -147,11 +167,16 @@ export function SkillPackDetail({
                   onChange={() => setScope(value)}
                   value={value}
                 >
-                  {
-                    value === "project"
-                      ? t.skills.packs.installProject
-                      : t.skills.packs.installGlobal
-                  }
+                  <span className="block text-xs font-medium text-primary">
+                    {value === "project"
+                      ? t.skills.scopeProject.replace("{project}", projectName)
+                      : t.skills.scopeGlobal}
+                  </span>
+                  <span className="mt-0.5 block text-meta leading-4 text-muted">
+                    {value === "project"
+                      ? t.skills.scopeProjectDescription
+                      : t.skills.scopeGlobalDescription}
+                  </span>
                 </RadioCard>
               ))}
             </fieldset>
@@ -229,27 +254,27 @@ export function SkillPackDetail({
         </Dialog>
 
         <SettingsSection title={t.skills.packs.basicInfo}>
-          <SettingsRow label={t.skills.packs.status}>
+          <SettingsRow compact label={t.skills.packs.status}>
             <span className="text-xs text-primary">
               {statusLabel(pack.status, t.skills.packs)}
             </span>
           </SettingsRow>
-          <SettingsRow label={t.skills.scope}>
+          <SettingsRow compact label={t.skills.scope}>
             <span className="text-xs text-primary">
-              {scopeLabel(pack, t.skills.packs)}
+              {scopeLabel(pack, projectName, t)}
             </span>
           </SettingsRow>
-          <SettingsRow label={t.skills.packs.currentVersion}>
+          <SettingsRow compact label={t.skills.packs.currentVersion}>
             <span className="font-ui-mono text-xs text-primary">
               {pack.version ?? t.skills.packs.versionUnknown}
             </span>
           </SettingsRow>
-          <SettingsRow label={t.skills.packs.availableVersion}>
+          <SettingsRow compact label={t.skills.packs.availableVersion}>
             <span className="font-ui-mono text-xs text-primary">
               {pack.availableVersion ?? t.skills.packs.versionUnknown}
             </span>
           </SettingsRow>
-          <SettingsRow label={t.skills.source} contentMaxWidth={400}>
+          <SettingsRow compact label={t.skills.source} contentMaxWidth={400}>
             <span className="break-all font-ui-mono text-xs text-primary">
               {pack.source}
             </span>
@@ -263,7 +288,7 @@ export function SkillPackDetail({
         ) : null}
 
         <SettingsSection title={t.skills.packs.resources}>
-          <div className="grid gap-4 p-4 sm:grid-cols-2">
+          <div className="grid gap-4 p-4">
             <ResourceList
               label={t.skills.title}
               values={pack.resources.skills}
@@ -354,9 +379,12 @@ function Warning({
 
 function scopeLabel(
   pack: SkillPackInfo,
-  t: ReturnType<typeof useI18n>["t"]["skills"]["packs"],
+  projectName: string,
+  t: ReturnType<typeof useI18n>["t"],
 ) {
-  if (pack.scope === "project") return t.scopeProject;
-  if (pack.scope === "user") return t.scopeUser;
-  return t.scopeNotInstalled;
+  if (pack.scope === "project") {
+    return t.skills.scopeProject.replace("{project}", projectName);
+  }
+  if (pack.scope === "user") return t.skills.scopeGlobal;
+  return t.skills.packs.scopeNotInstalled;
 }

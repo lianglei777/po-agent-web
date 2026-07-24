@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, PackageOpen } from "lucide-react";
+import { ArrowLeft, LoaderCircle, PackageOpen } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,8 @@ export function SkillDetail({
   onToggle,
   onRemove,
   onViewPack,
+  onBack,
+  projectName,
 }: {
   skill: SkillInfo;
   saving: boolean;
@@ -40,6 +42,8 @@ export function SkillDetail({
   onToggle: () => void;
   onRemove: () => void;
   onViewPack?: () => void;
+  onBack: () => void;
+  projectName: string;
 }) {
   const enabled = !skill.disableModelInvocation;
   const managed = isManagedSkill(skill);
@@ -53,8 +57,18 @@ export function SkillDetail({
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 px-6 py-6">
+      <div className="flex w-full flex-col gap-5 px-4 py-4">
         <header>
+          <Button
+            className="-ml-2 mb-2"
+            onClick={onBack}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            <ArrowLeft />
+            {t.skills.backToList}
+          </Button>
           <SectionTitle>{t.skills.title}</SectionTitle>
           <h1 className="mt-1 truncate font-ui-mono text-lg font-semibold text-primary">
             {skill.name}
@@ -108,6 +122,7 @@ export function SkillDetail({
 
         <SettingsSection title={t.skills.modelInvocation}>
           <SettingsRow
+            compact
             label={t.skills.modelInvocation}
             description={
               <>
@@ -161,7 +176,7 @@ export function SkillDetail({
         </SettingsSection>
 
         <SettingsSection title={t.skills.metadata}>
-          <SettingsRow label={t.skills.source}>
+          <SettingsRow compact label={t.skills.source}>
             <span className="font-ui-mono text-xs text-primary">
               {sourceLabel(
                 skill.sourceInfo.source,
@@ -170,12 +185,12 @@ export function SkillDetail({
               )}
             </span>
           </SettingsRow>
-          <SettingsRow label={t.skills.scope}>
+          <SettingsRow compact label={t.skills.scope}>
             <span className="text-xs text-primary">
-              {scopeLabel(skill, t)}
+              {scopeLabel(skill, projectName, t)}
             </span>
           </SettingsRow>
-          <SettingsRow label={t.skills.path} contentMaxWidth={400}>
+          <SettingsRow compact label={t.skills.path} contentMaxWidth={400}>
             <span className="break-all font-ui-mono text-xs text-primary">
               {skill.displayPath}
             </span>
@@ -192,6 +207,7 @@ export function SkillDetail({
         {canRemove ? (
           <SettingsSection title={t.skills.dangerZone}>
             <SettingsRow
+              compact
               label={t.skills.removeSkill}
               description={t.skills.removeSkillRowDescription}
             >
@@ -218,9 +234,12 @@ export function SkillDetail({
 
 function scopeLabel(
   skill: SkillInfo,
+  projectName: string,
   t: ReturnType<typeof useI18n>["t"],
 ): string {
-  if (skill.sourceInfo.scope === "project") return t.common.project;
-  if (skill.sourceInfo.scope === "user") return t.common.global;
+  if (skill.sourceInfo.scope === "project") {
+    return t.skills.scopeProject.replace("{project}", projectName);
+  }
+  if (skill.sourceInfo.scope === "user") return t.skills.scopeGlobal;
   return t.skills.path;
 }

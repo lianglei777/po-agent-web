@@ -93,9 +93,9 @@ function groupId(skill: SkillInfo): string {
 }
 
 function groupRank(id: string): number {
-  if (id === "builtin") return 0;
-  if (id === "project") return 1;
-  if (id === "global") return 2;
+  if (id === "project") return 0;
+  if (id === "global") return 1;
+  if (id === "builtin") return 2;
   if (id.startsWith("package:")) return 3;
   return 4;
 }

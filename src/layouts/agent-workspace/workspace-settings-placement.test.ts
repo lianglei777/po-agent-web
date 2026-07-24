@@ -14,13 +14,18 @@ const sidebarSource = readFileSync(
   fileURLToPath(new URL("./workspace-sidebar.tsx", import.meta.url)),
   "utf8",
 );
+const projectPanelSource = readFileSync(
+  fileURLToPath(new URL("./project-panel.tsx", import.meta.url)),
+  "utf8",
+);
 
 describe("workspace composition", () => {
-  it("moves Model Provider and Skills into the sidebar", () => {
+  it("keeps global Model Provider in the sidebar and project Skills in the right panel", () => {
     expect(sidebarSource).toContain("t.workspace.modelProvider");
-    expect(sidebarSource).toContain("t.workspace.skills");
+    expect(sidebarSource).not.toContain("t.workspace.skills");
+    expect(projectPanelSource).toContain("t.workspace.skills");
+    expect(projectPanelSource).toContain("<SkillsPage");
     expect(topBarSource).not.toContain("Cpu");
-    expect(topBarSource).not.toContain("Sparkles");
     expect(topBarSource).not.toContain("Moon");
   });
 
@@ -29,18 +34,17 @@ describe("workspace composition", () => {
       'activeView === "chat" ? "flex min-h-0 flex-1" : "hidden"',
     );
     expect(workspaceSource).toContain('activeView === "model-provider"');
-    expect(workspaceSource).toContain('activeView === "skills"');
     expect(workspaceSource).toContain("<ModelProviderPage");
-    expect(workspaceSource).toContain("<SkillsPage");
+    expect(workspaceSource).toContain("<ProjectPanel");
     expect(workspaceSource).not.toContain("<ModelsConfigDialog");
     expect(workspaceSource).not.toContain("<SkillsConfigDialog");
   });
 
-  it("restores the manual File Workspace only for Chat", () => {
-    expect(workspaceSource).toContain(
-      'activeView === "chat" && filePanelOpen',
-    );
+  it("restores the manual Project panel only for Chat", () => {
+    expect(workspaceSource).toContain('activeView === "chat"');
+    expect(workspaceSource).toContain("projectPanelOpen");
     expect(workspaceSource).toContain("cwd={activeCwd}");
+    expect(workspaceSource).toContain("activeTab={projectPanelTab}");
     expect(workspaceSource).toContain("onOpenFile={handleOpenFile}");
     expect(workspaceSource).toContain("refreshKey={explorerRefreshKey}");
   });

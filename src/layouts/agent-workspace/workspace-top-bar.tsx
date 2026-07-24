@@ -17,9 +17,9 @@ import type { WorkspaceView } from "./workspace-navigation";
 
 type WorkspaceTopBarProps = {
   activeView: WorkspaceView;
-  filePanelOpen: boolean;
+  projectPanelOpen: boolean;
   modelProviderSaveStatus?: ModelProviderSaveStatus;
-  onToggleFilePanel: () => void;
+  onToggleProjectPanel: () => void;
   onToggleSidebar: () => void;
   projectName: string | null;
   sessionTitle: string | null;
@@ -33,9 +33,9 @@ type WorkspaceTopBarProps = {
 
 export function WorkspaceTopBar({
   activeView,
-  filePanelOpen,
+  projectPanelOpen,
   modelProviderSaveStatus,
-  onToggleFilePanel,
+  onToggleProjectPanel,
   onToggleSidebar,
   projectName,
   sessionTitle,
@@ -50,9 +50,7 @@ export function WorkspaceTopBar({
   const title =
     activeView === "model-provider"
       ? t.workspace.modelProvider
-      : activeView === "skills"
-        ? t.workspace.skills
-        : sessionTitle ?? t.workspace.newChat;
+      : sessionTitle ?? t.workspace.newChat;
 
   return (
     <header className="flex h-11 flex-none items-center border-b border-line-subtle bg-canvas">
@@ -86,11 +84,11 @@ export function WorkspaceTopBar({
         </div>
       ) : null}
 
-      {activeView === "chat" && projectName && !filePanelOpen ? (
+      {activeView === "chat" && projectName && !projectPanelOpen ? (
         <TopBarIconButton
           borderSide="left"
-          label={t.workspace.showFilePanel}
-          onClick={onToggleFilePanel}
+          label={t.workspace.showProjectPanel}
+          onClick={onToggleProjectPanel}
         >
           <PanelRightOpen />
         </TopBarIconButton>

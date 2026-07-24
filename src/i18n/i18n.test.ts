@@ -55,6 +55,14 @@ describe("dictionaries", () => {
     expect(en.skills.packs.updateAction).toBe("Check & Update");
     expect(zh.skills.packs.repairAction).toBe("修复");
   });
+
+  it("explains project and global Skill scope without hidden context", () => {
+    expect(en.skills.scopeProject).toContain("{project}");
+    expect(en.skills.scopeGlobal).toContain("all projects");
+    expect(en.skills.scopeGlobalDescription).toContain("added later");
+    expect(zh.skills.scopeProject).toContain("{project}");
+    expect(zh.skills.scopeGlobalDescription.length).toBeGreaterThan(0);
+  });
 });
 
 function flattenKeys(value: unknown, prefix = ""): string[] {

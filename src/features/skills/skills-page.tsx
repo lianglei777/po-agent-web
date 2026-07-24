@@ -7,8 +7,10 @@ import {
   Plus,
   RefreshCw,
 } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { SectionTitle } from "@/components/ui/settings-form";
 import { useI18n } from "@/i18n/use-i18n";
 import { AddSkillPanel } from "./add-skill-panel";
 import { AddSkillPackDialog } from "./add-skill-pack-dialog";
@@ -20,30 +22,28 @@ import { findOwningSkillPack } from "./skill-state";
 import { useSkillPacks } from "./use-skill-packs";
 import { useSkills } from "./use-skills";
 
-export function SkillsPage({ cwd }: { cwd: string }) {
-  const [adding, setAdding] = useState(false);
+type SkillsView = "skills" | "packs";
+type SkillsScreen = "list" | "add-skill" | "skill-detail" | "pack-detail";
+
+export function SkillsPage({
+  cwd,
+  projectName,
+}: {
+  cwd: string;
+  projectName: string;
+}) {
   const [addingPack, setAddingPack] = useState(false);
-  const [view, setView] = useState<"skills" | "packs">("skills");
+  const [view, setView] = useState<SkillsView>("skills");
+  const [screen, setScreen] = useState<SkillsScreen>("list");
   const [removeSuccess, setRemoveSuccess] = useState<string | null>(null);
   const [packSuccess, setPackSuccess] = useState<string | null>(null);
   const skills = useSkills(cwd);
   const packs = useSkillPacks(cwd);
   const { t } = useI18n();
 
-  function selectView(next: "skills" | "packs") {
+  function selectView(next: SkillsView) {
     setView(next);
-    setAdding(false);
-  }
-
-  function handleViewTabKeyDown(
-    event: KeyboardEvent<HTMLButtonElement>,
-    tab: "skills" | "packs",
-  ) {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    event.preventDefault();
-    const next = tab === "skills" ? "packs" : "skills";
-    selectView(next);
-    document.getElementById(`skills-${next}-tab`)?.focus();
+    setScreen("list");
   }
 
   async function handleRemove() {
@@ -53,6 +53,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
     const ok = await skills.removeSkill();
     if (ok) {
       setRemoveSuccess(`${t.skills.removed} ${skillName}.`);
+      setScreen("list");
     }
   }
 
@@ -72,6 +73,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
     const ok = await packs.remove(packs.selectedPack.packId);
     if (ok) {
       setPackSuccess(t.skills.packs.removedSuccess);
+      setScreen("list");
       void skills.refresh();
     }
   }
@@ -97,6 +99,7 @@ export function SkillsPage({ cwd }: { cwd: string }) {
     const ok = await packs.installSource(source, scope);
     if (ok) {
       setPackSuccess(t.skills.packs.installedSuccess);
+      setScreen("pack-detail");
       void skills.refresh();
     }
     return ok;
@@ -110,270 +113,292 @@ export function SkillsPage({ cwd }: { cwd: string }) {
   const activeError = view === "skills" ? skills.error : packs.error;
 
   return (
-    <div className="flex min-h-0 flex-1 bg-canvas">
-      <aside className="flex min-h-0 w-[224px] shrink-0 flex-col border-r border-line-subtle">
-        <div className="grid grid-cols-2 gap-1 border-b border-line p-2" role="tablist">
-          {(["skills", "packs"] as const).map((tab) => (
-            <Button
-              aria-controls="skills-view-panel"
-              aria-selected={view === tab}
-              className={
-                view === tab ? "bg-selected text-foreground" : undefined
-              }
-              id={`skills-${tab}-tab`}
-              key={tab}
-              onClick={() => selectView(tab)}
-              onKeyDown={(event) => handleViewTabKeyDown(event, tab)}
-              role="tab"
-              size="sm"
-              tabIndex={view === tab ? 0 : -1}
-              type="button"
-              variant="ghost"
-            >
-              {tab === "skills"
-                ? t.skills.packs.tabSkills
-                : t.skills.packs.tabPacks}
-            </Button>
-          ))}
-        </div>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-canvas">
+      <header className="border-b border-line-subtle px-4 py-3">
+        <SectionTitle>{t.skills.title}</SectionTitle>
+        <h2 className="truncate text-sm font-semibold text-primary">
+          {projectName}
+        </h2>
+        <p className="mt-0.5 text-meta leading-4 text-muted">
+          {t.skills.availableForProject.replace("{project}", projectName)}
+        </p>
+      </header>
 
-        <div className="flex gap-1 p-2">
-          {view === "skills" ? (
+      <div className="flex items-center gap-2 border-b border-line-subtle p-2">
+        <SegmentedControl
+          ariaLabel={t.skills.title}
+          className="min-w-0 flex-1"
+          items={[
+            { label: t.skills.packs.tabSkills, value: "skills" },
+            { label: t.skills.packs.tabPacks, value: "packs" },
+          ]}
+          kind="radio"
+          onValueChange={selectView}
+          value={view}
+        />
+        {screen === "list" ? (
+          <>
             <Button
-              aria-pressed={adding}
-              className="flex-1 justify-start"
-              onClick={() => setAdding((current) => !current)}
-              size="sm"
-              type="button"
-              variant={adding ? "secondary" : "ghost"}
-            >
-              <Plus />
-              {t.skills.addSkill}
-            </Button>
-          ) : (
-            <Button
-              className="flex-1 justify-start"
-              disabled={packBusy}
-              onClick={() => setAddingPack(true)}
-              size="sm"
+              aria-label={
+                view === "skills" ? t.skills.addSkill : t.skills.packs.addAction
+              }
+              disabled={view === "packs" && packBusy}
+              onClick={() =>
+                view === "skills"
+                  ? setScreen("add-skill")
+                  : setAddingPack(true)
+              }
+              size="icon-sm"
               type="button"
               variant="ghost"
             >
               <Plus />
-              {t.skills.packs.addAction}
             </Button>
-          )}
-          <Button
-            aria-label={
-              view === "skills" ? t.skills.refreshSkills : t.skills.packs.refresh
-            }
-            disabled={
-              view === "skills" ? skills.loading : packs.loading || packBusy
-            }
-            onClick={() =>
-              void (view === "skills" ? skills.refresh() : packs.refresh())
-            }
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <RefreshCw
-              className={
-                (view === "skills" ? skills.loading : packs.loading)
-                  ? "animate-spin"
-                  : ""
-              }
-            />
-          </Button>
-        </div>
-
-        {view === "packs" ? (
-          packs.loading && packs.packs.length === 0 ? (
-            <Loading label={t.skills.packs.loading} />
-          ) : packs.packs.length > 0 ? (
-            <SkillPackList
-              onSelect={packs.setSelectedPackId}
-              packs={packs.packs}
-              selectedPackId={packs.selectedPackId}
-            />
-          ) : (
-            <EmptyState title={t.skills.packs.empty} />
-          )
-        ) : skills.loading && skills.skills.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-muted">
-            <LoaderCircle className="size-5 animate-spin" />
-            <span className="sr-only">{t.skills.loadingSkills}</span>
-          </div>
-        ) : skills.skills.length > 0 ? (
-          <SkillList
-            onSelect={(skillId) => {
-              setAdding(false);
-              skills.setSelectedSkillId(skillId);
-            }}
-            selectedSkillId={skills.selectedSkillId}
-            skills={skills.skills}
-          />
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-            <p className="text-sm font-medium">{t.skills.noSkillsFound}</p>
-            <p className="mt-1 text-xs leading-5 text-muted">
-              {t.skills.noSkillsFoundDescription}
-            </p>
-          </div>
-        )}
-
-        {view === "skills" && skills.diagnostics.length > 0 ? (
-          <details className="border-t border-line p-3 text-xs">
-            <summary className="flex cursor-pointer items-center gap-2 text-muted">
-              <AlertTriangle className="size-3.5" />
-              {skills.diagnostics.length}{" "}
-              {skills.diagnostics.length === 1
-                ? t.skills.diagnostic
-                : t.skills.diagnostics}
-            </summary>
-            <ul className="mt-2 space-y-2 text-muted">
-              {skills.diagnostics.map((diagnostic, index) => (
-                <li key={`${diagnostic.message}-${index}`}>
-                  <span
-                    className={`mr-1.5 font-medium ${
-                      diagnostic.severity === "warning"
-                        ? "text-warning"
-                        : diagnostic.severity === "error"
-                          ? "text-destructive-text"
-                          : "text-primary"
-                    }`}
-                  >
-                    {t.skills.diagnosticSeverity[diagnostic.severity]}
-                  </span>
-                  <span>{diagnostic.message}</span>
-                  {diagnostic.path ? (
-                    <span className="mt-0.5 block break-all font-ui-mono text-meta text-dim">
-                      {diagnostic.path}
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
-      </aside>
-
-      <main
-        aria-labelledby={`skills-${view}-tab`}
-        className="flex min-h-0 min-w-0 flex-1 flex-col bg-canvas"
-        id="skills-view-panel"
-        role="tabpanel"
-      >
-        {activeError ? (
-          <div
-            aria-live="polite"
-            className="flex items-center justify-between gap-3 border-b border-destructive/25 bg-destructive/8 px-4 py-2 text-sm text-destructive-text"
-            role="alert"
-          >
-            <span>{activeError}</span>
             <Button
+              aria-label={
+                view === "skills"
+                  ? t.skills.refreshSkills
+                  : t.skills.packs.refresh
+              }
+              disabled={
+                view === "skills" ? skills.loading : packs.loading || packBusy
+              }
               onClick={() =>
                 void (view === "skills" ? skills.refresh() : packs.refresh())
               }
-              size="sm"
+              size="icon-sm"
               type="button"
               variant="ghost"
             >
-              {t.common.retry}
+              <RefreshCw
+                className={
+                  (view === "skills" ? skills.loading : packs.loading)
+                    ? "animate-spin"
+                    : ""
+                }
+              />
             </Button>
-          </div>
+          </>
         ) : null}
-        {removeSuccess && !removing ? (
-          <div
-            aria-live="polite"
-            className="flex items-center gap-2 border-b border-success/30 bg-success/8 px-4 py-2 text-sm text-success-text"
-          >
-            <CheckCircle2 className="size-4 shrink-0" />
-            {removeSuccess}
-          </div>
-        ) : null}
-        {packSuccess && view === "packs" && !packBusy ? (
-          <div
-            aria-live="polite"
-            className="flex items-center gap-2 border-b border-success/30 bg-success/8 px-4 py-2 text-sm text-success-text"
-          >
-            <CheckCircle2 className="size-4 shrink-0" />
-            {packSuccess}
-          </div>
-        ) : null}
-        {view === "packs" ? (
-          packs.selectedPack ? (
-            <SkillPackDetail
-              busy={packBusy}
-              onInstall={(scope) => void handlePackInstall(scope)}
-              onRemove={() => void handlePackRemove()}
-              onRepair={() => void handlePackLifecycle("repair")}
-              onUpdate={() => void handlePackLifecycle("update")}
-              pack={packs.selectedPack}
-            />
-          ) : (
-            <div className="flex flex-1 items-center justify-center p-8 text-sm text-muted">
-              {t.skills.packs.select}
-            </div>
-          )
-        ) : adding ? (
-          <AddSkillPanel
-            cwd={cwd}
-            onInstalled={(result) => {
-              const installedSkillId = result.skills[0]?.skillId;
-              if (installedSkillId) {
-                skills.setSelectedSkillId(installedSkillId);
-              }
-              setAdding(false);
-              void skills.refresh();
-            }}
-          />
-        ) : skills.selectedSkill ? (
-          <SkillDetail
-            onRemove={() => void handleRemove()}
-            onToggle={() => void skills.toggleModelInvocation()}
-            onViewPack={
-              selectedSkillOwnerPack
-                ? () => {
-                    packs.setSelectedPackId(selectedSkillOwnerPack.packId);
-                    selectView("packs");
-                  }
-                : undefined
+      </div>
+
+      {activeError ? (
+        <div
+          aria-live="polite"
+          className="flex items-center justify-between gap-3 border-b border-destructive/25 bg-destructive/8 px-3 py-2 text-xs text-destructive-text"
+          role="alert"
+        >
+          <span>{activeError}</span>
+          <Button
+            onClick={() =>
+              void (view === "skills" ? skills.refresh() : packs.refresh())
             }
-            removing={removing}
-            saving={skills.savingSkillId === skills.selectedSkill.skillId}
-            skill={skills.selectedSkill}
-          />
-        ) : (
-          <div className="flex flex-1 items-center justify-center p-8 text-sm text-muted">
-            {t.skills.selectSkill}
-          </div>
-        )}
-      </main>
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            {t.common.retry}
+          </Button>
+        </div>
+      ) : null}
+
+      {removeSuccess && !removing ? (
+        <SuccessBanner>{removeSuccess}</SuccessBanner>
+      ) : null}
+      {packSuccess && view === "packs" && !packBusy ? (
+        <SuccessBanner>{packSuccess}</SuccessBanner>
+      ) : null}
+
+      {screen === "add-skill" ? (
+        <AddSkillPanel
+          cwd={cwd}
+          onBack={() => setScreen("list")}
+          onInstalled={(result) => {
+            const installedSkillId = result.skills[0]?.skillId;
+            if (installedSkillId) {
+              skills.setSelectedSkillId(installedSkillId);
+            }
+            setScreen("skill-detail");
+            void skills.refresh();
+          }}
+          projectName={projectName}
+        />
+      ) : screen === "skill-detail" && skills.selectedSkill ? (
+        <SkillDetail
+          onBack={() => setScreen("list")}
+          onRemove={() => void handleRemove()}
+          onToggle={() => void skills.toggleModelInvocation()}
+          onViewPack={
+            selectedSkillOwnerPack
+              ? () => {
+                  packs.setSelectedPackId(selectedSkillOwnerPack.packId);
+                  setView("packs");
+                  setScreen("pack-detail");
+                }
+              : undefined
+          }
+          projectName={projectName}
+          removing={removing}
+          saving={skills.savingSkillId === skills.selectedSkill.skillId}
+          skill={skills.selectedSkill}
+        />
+      ) : screen === "pack-detail" && packs.selectedPack ? (
+        <SkillPackDetail
+          busy={packBusy}
+          onBack={() => setScreen("list")}
+          onInstall={(scope) => void handlePackInstall(scope)}
+          onRemove={() => void handlePackRemove()}
+          onRepair={() => void handlePackLifecycle("repair")}
+          onUpdate={() => void handlePackLifecycle("update")}
+          pack={packs.selectedPack}
+          projectName={projectName}
+        />
+      ) : (
+        <SkillsListView
+          loading={view === "skills" ? skills.loading : packs.loading}
+          onSelectPack={(packId) => {
+            packs.setSelectedPackId(packId);
+            setScreen("pack-detail");
+          }}
+          onSelectSkill={(skillId) => {
+            skills.setSelectedSkillId(skillId);
+            setScreen("skill-detail");
+          }}
+          packs={packs.packs}
+          projectName={projectName}
+          selectedPackId={packs.selectedPackId}
+          selectedSkillId={skills.selectedSkillId}
+          skills={skills.skills}
+          view={view}
+        />
+      )}
+
+      {screen === "list" &&
+      view === "skills" &&
+      skills.diagnostics.length > 0 ? (
+        <details className="border-t border-line p-3 text-xs">
+          <summary className="flex cursor-pointer items-center gap-2 text-muted">
+            <AlertTriangle className="size-3.5" />
+            {skills.diagnostics.length}{" "}
+            {skills.diagnostics.length === 1
+              ? t.skills.diagnostic
+              : t.skills.diagnostics}
+          </summary>
+          <ul className="mt-2 space-y-2 text-muted">
+            {skills.diagnostics.map((diagnostic, index) => (
+              <li key={`${diagnostic.message}-${index}`}>
+                <span
+                  className={`mr-1.5 font-medium ${
+                    diagnostic.severity === "warning"
+                      ? "text-warning"
+                      : diagnostic.severity === "error"
+                        ? "text-destructive-text"
+                        : "text-primary"
+                  }`}
+                >
+                  {t.skills.diagnosticSeverity[diagnostic.severity]}
+                </span>
+                <span>{diagnostic.message}</span>
+                {diagnostic.path ? (
+                  <span className="mt-0.5 block break-all font-ui-mono text-meta text-dim">
+                    {diagnostic.path}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
 
       <AddSkillPackDialog
         busy={packs.mutation?.operation === "install-source"}
         onClose={() => setAddingPack(false)}
         onInstall={handleInstallSource}
         open={addingPack}
+        projectName={projectName}
       />
     </div>
   );
 }
 
-function Loading({ label }: { label: string }) {
-  return (
-    <div className="flex flex-1 items-center justify-center text-muted">
-      <LoaderCircle className="size-5 animate-spin" />
-      <span className="sr-only">{label}</span>
-    </div>
+function SkillsListView({
+  loading,
+  onSelectPack,
+  onSelectSkill,
+  packs,
+  projectName,
+  selectedPackId,
+  selectedSkillId,
+  skills,
+  view,
+}: {
+  loading: boolean;
+  onSelectPack: (packId: string) => void;
+  onSelectSkill: (skillId: string) => void;
+  packs: ReturnType<typeof useSkillPacks>["packs"];
+  projectName: string;
+  selectedPackId: string | null;
+  selectedSkillId: string | null;
+  skills: ReturnType<typeof useSkills>["skills"];
+  view: SkillsView;
+}) {
+  const { t } = useI18n();
+  const empty = view === "skills" ? skills.length === 0 : packs.length === 0;
+
+  if (loading && empty) {
+    return (
+      <div className="flex flex-1 items-center justify-center text-muted">
+        <LoaderCircle className="size-5 animate-spin" />
+        <span className="sr-only">
+          {view === "skills"
+            ? t.skills.loadingSkills
+            : t.skills.packs.loading}
+        </span>
+      </div>
+    );
+  }
+
+  if (empty) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+        <p className="text-sm font-medium">
+          {view === "skills"
+            ? t.skills.noSkillsFound
+            : t.skills.packs.empty}
+        </p>
+        {view === "skills" ? (
+          <p className="mt-1 text-xs leading-5 text-muted">
+            {t.skills.noSkillsFoundDescription}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return view === "skills" ? (
+    <SkillList
+      onSelect={onSelectSkill}
+      projectName={projectName}
+      selectedSkillId={selectedSkillId}
+      skills={skills}
+    />
+  ) : (
+    <SkillPackList
+      onSelect={onSelectPack}
+      packs={packs}
+      selectedPackId={selectedPackId}
+    />
   );
 }
 
-function EmptyState({ title }: { title: string }) {
+function SuccessBanner({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-1 items-center justify-center p-6 text-center">
-      <p className="text-sm font-medium">{title}</p>
+    <div
+      aria-live="polite"
+      className="flex items-start gap-2 border-b border-success/30 bg-success/8 px-3 py-2 text-xs leading-4 text-success-text"
+    >
+      <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
+      {children}
     </div>
   );
 }

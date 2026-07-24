@@ -45,12 +45,20 @@ Po Agent is a focused desktop developer tool, not a marketing or entertainment s
 
 ## Workspace architecture
 
-- The left rail owns New chat, Model Provider, Skills, projects, sessions, and locale.
+- The left rail owns New chat, Model Provider, projects, sessions, and locale.
 - The central workspace switches views while Chat remains mounted.
-- The right File Workspace is user-opened, resizable, and hidden on configuration views without losing state.
+- The right Project panel is user-opened, resizable, and switches between Files and Skills for the project selected in the left rail. It is hidden on configuration views without losing state.
 - The minimum supported viewport width is 1024px; there is no mobile-specific layout.
 - Projects and sessions use compact single-line rows. Secondary metadata must not overpower titles or displace row actions.
-- Model Provider and Skills share a 224px settings rail. The File tree adapts between 160px and 224px so the preview remains usable in a narrow file panel.
+- Model Provider keeps its 224px settings rail. The File tree adapts between 160px and 224px so the preview remains usable in a narrow Project panel. Skills uses single-column list, detail, and add states rather than nesting a settings rail inside the panel.
+
+## Project panel
+
+- Files and Skills are sibling tabs in the right Project panel because both are interpreted relative to the project selected in the left rail.
+- The Skills tab shows the effective Skill set for that project: project-scoped, global, built-in, and Skill Pack-provided Skills.
+- Project installation means only the selected project. Global installation means every project, including projects added later. Installation controls must name both the selected project and the global effect explicitly.
+- Switching projects reloads the effective Skill set and leaves no stale detail from the previous project.
+- Opening a file selects Files; opening Skills from Chat selects Skills. The panel keeps its last selected tab when it is closed and reopened.
 
 ## Token architecture
 

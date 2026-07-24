@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { ChevronRight, FileText, PanelRightClose } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ChevronRight, FileText } from "lucide-react";
 import { useI18n } from "@/i18n/use-i18n";
 import { loadFile } from "./api";
 import { FileTree } from "./file-tree";
@@ -21,7 +15,6 @@ export function FilePanel({
   cwd,
   file,
   onAtMention,
-  onClose,
   onOpenFile,
   refreshKey = 0,
   specialContent,
@@ -30,7 +23,6 @@ export function FilePanel({
   cwd?: string | null;
   file: OpenFile | null;
   onAtMention?: (path: string) => void;
-  onClose: () => void;
   onOpenFile?: (path: string, name: string) => void;
   refreshKey?: number;
   specialContent?: ReactNode;
@@ -45,7 +37,7 @@ export function FilePanel({
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col bg-canvas">
-      <div className="flex h-11 flex-none items-stretch border-b border-line-subtle bg-canvas text-meta text-muted">
+      <div className="flex h-9 flex-none items-stretch border-b border-line-subtle bg-canvas text-meta text-muted">
         <nav
           aria-label={t.files.currentFilePath}
           className="flex min-w-0 flex-1 items-center overflow-hidden px-3"
@@ -66,23 +58,6 @@ export function FilePanel({
             <span className="truncate">{t.files.files}</span>
           )}
         </nav>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              aria-label={t.workspace.hideFilePanel}
-              className="h-full rounded-none border-l border-line-subtle"
-              onClick={onClose}
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <PanelRightClose />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            {t.workspace.hideFilePanel}
-          </TooltipContent>
-        </Tooltip>
       </div>
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">

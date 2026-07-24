@@ -89,6 +89,31 @@ describe("skills config state", () => {
       .toEqual(["project", "user", "temporary"]);
   });
 
+  it("puts the selected project's Skills before global and built-in Skills", () => {
+    const global = {
+      ...base,
+      skillId: "global-id",
+      sourceInfo: {
+        ...base.sourceInfo,
+        source: "global",
+        scope: "user" as const,
+      },
+    };
+    const builtin = {
+      ...base,
+      skillId: "builtin-id",
+      sourceInfo: {
+        ...base.sourceInfo,
+        source: "po-agent-builtin",
+        scope: "temporary" as const,
+      },
+    };
+
+    expect(groupSkills([builtin, global, base]).map((group) => group.id)).toEqual(
+      ["project", "global", "builtin"],
+    );
+  });
+
   it("groups package-owned skills by package source", () => {
     const packed = {
       ...base,

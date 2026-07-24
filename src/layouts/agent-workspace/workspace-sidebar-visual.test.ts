@@ -22,16 +22,14 @@ const workspaceSource = readFileSync(
 );
 
 describe("workspace sidebar", () => {
-  it("orders global actions before project sessions", () => {
+  it("orders global actions before project sessions without a project-scoped Skills shortcut", () => {
     expect(source.indexOf("t.workspace.newChat")).toBeLessThan(
       source.indexOf("t.workspace.modelProvider"),
     );
     expect(source.indexOf("t.workspace.modelProvider")).toBeLessThan(
-      source.indexOf("t.workspace.skills"),
-    );
-    expect(source.indexOf("t.workspace.skills")).toBeLessThan(
       source.indexOf("<SessionSidebar"),
     );
+    expect(source).not.toContain("t.workspace.skills");
   });
 
   it("keeps system prompt and locale together in the bottom action row", () => {
@@ -48,10 +46,9 @@ describe("workspace sidebar", () => {
     expect(topBarSource).not.toContain("t.workspace.systemPrompt");
   });
 
-  it("explains disabled new-chat and Skills actions", () => {
+  it("explains the disabled new-chat action", () => {
     expect(source).toContain("disabled={!selectedCwd}");
     expect(source).toContain("t.chat.input.selectProjectBeforeStart");
-    expect(source).toContain("t.workspace.selectProjectForSkills");
     expect(source).toContain('className="inline-flex"');
   });
 

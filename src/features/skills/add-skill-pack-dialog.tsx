@@ -20,6 +20,7 @@ export function AddSkillPackDialog({
   busy,
   onClose,
   onInstall,
+  projectName,
 }: {
   open: boolean;
   busy: boolean;
@@ -28,6 +29,7 @@ export function AddSkillPackDialog({
     source: string,
     scope: "global" | "project",
   ) => Promise<boolean>;
+  projectName: string;
 }) {
   const { t } = useI18n();
   const [source, setSource] = useState("");
@@ -114,11 +116,16 @@ export function AddSkillPackDialog({
                 onChange={() => setScope(value)}
                 value={value}
               >
-                {
-                  value === "project"
-                    ? t.skills.packs.installProject
-                    : t.skills.packs.installGlobal
-                }
+                <span className="block text-xs font-medium text-primary">
+                  {value === "project"
+                    ? t.skills.scopeProject.replace("{project}", projectName)
+                    : t.skills.scopeGlobal}
+                </span>
+                <span className="mt-0.5 block text-meta leading-4 text-muted">
+                  {value === "project"
+                    ? t.skills.scopeProjectDescription
+                    : t.skills.scopeGlobalDescription}
+                </span>
               </RadioCard>
             ))}
           </fieldset>

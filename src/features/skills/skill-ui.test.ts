@@ -83,8 +83,19 @@ describe("skills config UI contract", () => {
   it("selects the installed skill and returns to its details", () => {
     expect(pageSource).toContain("result.skills[0]?.skillId");
     expect(pageSource).toContain("skills.setSelectedSkillId");
-    expect(pageSource).toContain("setAdding(false)");
+    expect(pageSource).toContain('setScreen("skill-detail")');
     expect(pageSource).toContain("skills.refresh()");
+  });
+
+  it("makes project and global installation scope explicit", () => {
+    const addSource = readFileSync(
+      fileURLToPath(new URL("./add-skill-panel.tsx", import.meta.url)),
+      "utf8",
+    );
+    expect(addSource).toContain("t.skills.scopeProject");
+    expect(addSource).toContain("t.skills.scopeGlobal");
+    expect(addSource).toContain("t.skills.scopeGlobalDescription");
+    expect(addSource).toContain("projectName");
   });
 
   it("labels every diagnostic severity with semantic color", () => {

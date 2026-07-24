@@ -1,4 +1,4 @@
-export type WorkspaceView = "chat" | "model-provider" | "skills";
+export type WorkspaceView = "chat" | "model-provider";
 
 export function shouldConfirmWorkspaceNavigation(
   activeView: WorkspaceView,

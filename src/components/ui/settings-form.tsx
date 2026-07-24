@@ -39,6 +39,7 @@ export function SettingsRow({
   description,
   children,
   align = "center",
+  compact = false,
   contentMaxWidth = 250,
 }: {
   label: ReactNode;
@@ -46,16 +47,20 @@ export function SettingsRow({
   description?: ReactNode;
   children: ReactNode;
   align?: "center" | "start";
+  compact?: boolean;
   contentMaxWidth?: number;
 }) {
   return (
     <div
       className={mergeClasses(
-        "grid gap-6 border-t border-line-subtle px-4 py-3.5 first:border-t-0",
+        "grid border-t border-line-subtle px-4 py-3.5 first:border-t-0",
+        compact ? "gap-3" : "gap-6",
         align === "center" ? "items-center" : "items-start",
       )}
       style={{
-        gridTemplateColumns: `minmax(160px,1fr) minmax(200px,${contentMaxWidth}px)`,
+        gridTemplateColumns: compact
+          ? "minmax(0, 1fr)"
+          : `minmax(160px,1fr) minmax(200px,${contentMaxWidth}px)`,
       }}
     >
       <div className="min-w-0">
@@ -73,8 +78,11 @@ export function SettingsRow({
         ) : null}
       </div>
       <div
-        className="min-w-0 w-full justify-self-end"
-        style={{ maxWidth: contentMaxWidth }}
+        className={mergeClasses(
+          "min-w-0 w-full",
+          compact ? "justify-self-stretch" : "justify-self-end",
+        )}
+        style={{ maxWidth: compact ? undefined : contentMaxWidth }}
       >
         {children}
       </div>

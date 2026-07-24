@@ -2,7 +2,6 @@ import {
   Cpu,
   MessageSquarePlus,
   ScrollText,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +20,6 @@ export type WorkspaceSidebarProps = {
   activeView: WorkspaceView;
   onNewChat: () => void;
   onOpenModelProvider: () => void;
-  onOpenSkills: () => void;
   onOpenSystemPrompt: () => void;
   sessionProps: SessionSidebarProps;
 };
@@ -30,7 +28,6 @@ export function WorkspaceSidebar({
   activeView,
   onNewChat,
   onOpenModelProvider,
-  onOpenSkills,
   onOpenSystemPrompt,
   sessionProps,
 }: WorkspaceSidebarProps) {
@@ -71,27 +68,6 @@ export function WorkspaceSidebar({
         <Cpu className="size-3.5" />
         {t.workspace.modelProvider}
       </Button>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex">
-            <Button
-              aria-current={activeView === "skills" ? "page" : undefined}
-              className="mt-0.5 w-full justify-start text-xs text-primary"
-              disabled={!selectedCwd}
-              onClick={onOpenSkills}
-              type="button"
-              variant={activeView === "skills" ? "secondary" : "ghost"}
-            >
-              <Sparkles className="size-3.5" />
-              {t.workspace.skills}
-            </Button>
-          </span>
-        </TooltipTrigger>
-        {!selectedCwd ? (
-          <TooltipContent>{t.workspace.selectProjectForSkills}</TooltipContent>
-        ) : null}
-      </Tooltip>
 
       <SessionSidebar {...sessionProps} />
 

@@ -19,7 +19,7 @@ import {
 import { ResizeHandle } from "@/components/ui/resize-handle";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatCenter, type BranchState } from "@/features/chat/chat-center";
-import { FilePanel, type OpenFile } from "@/features/files/file-panel";
+import type { OpenFile } from "@/features/files/file-panel";
 import {
   ModelProviderPage,
   type ModelProviderSaveStatus,
@@ -32,7 +32,6 @@ import {
   getSessionTitle,
 } from "@/features/sessions/session-utils";
 import type { SessionInfo } from "@/features/sessions/types";
-import { SkillsPage } from "@/features/skills/skills-page";
 import { useI18n } from "@/i18n/use-i18n";
 import {
   DEFAULT_FILE_PANEL_WIDTH,
@@ -42,6 +41,10 @@ import {
   getSidebarWidthBounds,
   type PanelWidths,
 } from "./panel-sizing";
+import {
+  ProjectPanel,
+  type ProjectPanelTab,
+} from "./project-panel";
 import {
   shouldConfirmWorkspaceNavigation,
   type WorkspaceView,
@@ -57,7 +60,9 @@ type DraftSession = {
 
 export function AgentWorkspace() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [filePanelOpen, setFilePanelOpen] = useState(false);
+  const [projectPanelOpen, setProjectPanelOpen] = useState(false);
+  const [projectPanelTab, setProjectPanelTab] =
+    useState<ProjectPanelTab>("files");
   const [activeView, setActiveView] = useState<WorkspaceView>("chat");
   const [modelProviderDirty, setModelProviderDirty] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
@@ -92,11 +97,12 @@ export function AgentWorkspace() {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const pendingNavigationRef = useRef<(() => void) | null>(null);
   const { t } = useI18n();
-  const showFilePanel = activeView === "chat" && filePanelOpen;
+  const showProjectPanel =
+    activeView === "chat" && projectPanelOpen && Boolean(activeCwd);
   const sidebarBounds = getSidebarWidthBounds(
     workspaceWidth,
     panelWidths.filePanel,
-    showFilePanel,
+    showProjectPanel,
   );
   const filePanelBounds = getFilePanelWidthBounds(
     workspaceWidth,
@@ -121,7 +127,7 @@ export function AgentWorkspace() {
       setWorkspaceWidth(workspace.clientWidth);
       setPanelWidths((current) =>
         fitPanelWidths(workspace.clientWidth, current, {
-          filePanelOpen: showFilePanel,
+          filePanelOpen: showProjectPanel,
           sidebarOpen,
         }),
       );
@@ -130,7 +136,7 @@ export function AgentWorkspace() {
     observer.observe(workspace);
 
     return () => observer.disconnect();
-  }, [showFilePanel, sidebarOpen]);
+  }, [showProjectPanel, sidebarOpen]);
 
   const requestNavigation = useCallback(
     (targetView: WorkspaceView, action: () => void) => {
@@ -163,7 +169,12 @@ export function AgentWorkspace() {
     [requestNavigation],
   );
   const handleOpenSkills = useCallback(
-    () => requestNavigation("skills", () => setActiveView("skills")),
+    () =>
+      requestNavigation("chat", () => {
+        setActiveView("chat");
+        setProjectPanelTab("skills");
+        setProjectPanelOpen(true);
+      }),
     [requestNavigation],
   );
 
@@ -298,7 +309,8 @@ export function AgentWorkspace() {
         setProjectInstructionsOpen(false);
         setOpenFile({ path, name });
       }
-      setFilePanelOpen(true);
+      setProjectPanelTab("files");
+      setProjectPanelOpen(true);
     });
   }, [activeCwd, requestNavigation]);
 
@@ -306,7 +318,8 @@ export function AgentWorkspace() {
     requestNavigation("chat", () => {
       setOpenFile(null);
       setProjectInstructionsOpen(true);
-      setFilePanelOpen(true);
+      setProjectPanelTab("files");
+      setProjectPanelOpen(true);
       setSystemPromptOpen(false);
     });
   }, [requestNavigation]);
@@ -316,16 +329,26 @@ export function AgentWorkspace() {
     if (selectedSession) setInstructionsNeedApply(true);
   }, [selectedSession]);
 
-  const handleToggleFilePanel = useCallback(() => {
-    if (!filePanelOpen) {
-      setFilePanelOpen(true);
+  const handleToggleProjectPanel = useCallback(() => {
+    if (!projectPanelOpen) {
+      setProjectPanelOpen(true);
       return;
     }
     requestNavigation("chat", () => {
-      setFilePanelOpen(false);
+      setProjectPanelOpen(false);
       setProjectInstructionsOpen(false);
     });
-  }, [filePanelOpen, requestNavigation]);
+  }, [projectPanelOpen, requestNavigation]);
+
+  const handleProjectPanelTabChange = useCallback(
+    (tab: ProjectPanelTab) => {
+      if (tab === projectPanelTab) return;
+      requestNavigation("chat", () => {
+        setProjectPanelTab(tab);
+      });
+    },
+    [projectPanelTab, requestNavigation],
+  );
 
   const handleAtMention = useCallback((path: string) => {
     window.dispatchEvent(
@@ -337,7 +360,7 @@ export function AgentWorkspace() {
     <TooltipProvider>
       <div
         className="flex h-dvh min-w-[1024px] overflow-hidden bg-canvas"
-        data-file-panel-open={showFilePanel}
+        data-project-panel-open={showProjectPanel}
         data-sidebar-open={sidebarOpen}
         data-testid="agent-workspace"
         ref={workspaceRef}
@@ -364,7 +387,6 @@ export function AgentWorkspace() {
                 );
               }}
               onOpenModelProvider={handleOpenModelProvider}
-              onOpenSkills={handleOpenSkills}
               onOpenSystemPrompt={() => setSystemPromptOpen(true)}
               sessionProps={{
                 draftSession,
@@ -410,14 +432,14 @@ export function AgentWorkspace() {
             branchActiveLeafId={branchState?.activeLeafId}
             branchRunning={branchState?.running}
             branchTree={branchState?.tree}
-            filePanelOpen={filePanelOpen}
+            projectPanelOpen={projectPanelOpen}
             modelProviderSaveStatus={modelProviderSaveStatus}
             onBranchChangeLeaf={
               branchState
                 ? (leafId) => void branchState.changeLeaf(leafId)
                 : undefined
             }
-            onToggleFilePanel={handleToggleFilePanel}
+            onToggleProjectPanel={handleToggleProjectPanel}
             onToggleSidebar={() => setSidebarOpen((open) => !open)}
             projectName={activeCwd ? getProjectName(activeCwd) : null}
             sessionTitle={
@@ -455,15 +477,12 @@ export function AgentWorkspace() {
               onSaveStatusChange={setModelProviderSaveStatus}
             />
           ) : null}
-          {activeView === "skills" && activeCwd ? (
-            <SkillsPage cwd={activeCwd} />
-          ) : null}
         </section>
 
-        {activeView === "chat" && filePanelOpen ? (
+        {showProjectPanel && activeCwd ? (
           <>
             <ResizeHandle
-              ariaLabel={t.workspace.resizeFilePanel}
+              ariaLabel={t.workspace.resizeProjectPanel}
               direction={-1}
               max={filePanelBounds.max}
               min={filePanelBounds.min}
@@ -486,12 +505,15 @@ export function AgentWorkspace() {
                 } as CSSProperties
               }
             >
-              <FilePanel
+              <ProjectPanel
+                activeTab={projectPanelTab}
                 cwd={activeCwd}
                 file={openFile}
                 onAtMention={handleAtMention}
-                onClose={handleToggleFilePanel}
+                onClose={handleToggleProjectPanel}
                 onOpenFile={handleOpenFile}
+                onTabChange={handleProjectPanelTabChange}
+                projectName={getProjectName(activeCwd)}
                 refreshKey={explorerRefreshKey}
                 specialContent={
                   activeCwd && projectInstructionsOpen ? (

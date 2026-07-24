@@ -7,9 +7,6 @@ describe("workspace navigation guard", () => {
       shouldConfirmWorkspaceNavigation("model-provider", "chat", true),
     ).toBe(true);
     expect(
-      shouldConfirmWorkspaceNavigation("model-provider", "skills", true),
-    ).toBe(true);
-    expect(
       shouldConfirmWorkspaceNavigation(
         "model-provider",
         "model-provider",
@@ -19,11 +16,6 @@ describe("workspace navigation guard", () => {
     expect(
       shouldConfirmWorkspaceNavigation("model-provider", "chat", false),
     ).toBe(false);
-    expect(shouldConfirmWorkspaceNavigation("chat", "skills", true)).toBe(
-      false,
-    );
-    expect(
-      shouldConfirmWorkspaceNavigation("skills", "chat", true),
-    ).toBe(false);
+    expect(shouldConfirmWorkspaceNavigation("chat", "chat", true)).toBe(false);
   });
 });

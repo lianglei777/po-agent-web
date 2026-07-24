@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeft,
   CheckCircle2,
   Download,
   ExternalLink,
@@ -11,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RadioCard } from "@/components/ui/radio-card";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SectionTitle } from "@/components/ui/settings-form";
 import { useI18n } from "@/i18n/use-i18n";
@@ -24,10 +26,14 @@ type SkillOperationResult = { skills: SkillInfo[] };
 
 export function AddSkillPanel({
   cwd,
+  onBack,
   onInstalled,
+  projectName,
 }: {
   cwd: string;
+  onBack: () => void;
   onInstalled: (result: SkillOperationResult) => void;
+  projectName: string;
 }) {
   const [mode, setMode] = useState<"market" | "local">("market");
   const [query, setQuery] = useState("");
@@ -138,8 +144,18 @@ export function AddSkillPanel({
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-6 px-6 py-6">
+      <div className="flex w-full flex-col gap-5 px-4 py-4">
         <header>
+          <Button
+            className="-ml-2 mb-2"
+            onClick={onBack}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            <ArrowLeft />
+            {t.skills.backToList}
+          </Button>
           <SectionTitle>{t.skills.addSkill}</SectionTitle>
           <h1 className="mt-1 text-lg font-semibold text-primary">
             {t.skills.addSkill}
@@ -174,6 +190,7 @@ export function AddSkillPanel({
             error={error}
             installing={installing}
             onInstall={handleInstall}
+            projectName={projectName}
             query={query}
             results={results}
             scope={scope}
@@ -189,6 +206,7 @@ export function AddSkillPanel({
             creating={creating}
             localFilePath={localFilePath}
             onCreate={handleCreateLocal}
+            projectName={projectName}
             scope={scope}
             setLocalFilePath={setLocalFilePath}
             setScope={setScope}
@@ -203,6 +221,7 @@ function MarketTab({
   error,
   installing,
   onInstall,
+  projectName,
   query,
   results,
   scope,
@@ -216,6 +235,7 @@ function MarketTab({
   error: string | null;
   installing: string | null;
   onInstall: (skill: SkillSearchResult) => void;
+  projectName: string;
   query: string;
   results: SkillSearchResult[];
   scope: "project" | "global";
@@ -256,7 +276,11 @@ function MarketTab({
         ) : null}
       </div>
 
-      <ScopeSelector scope={scope} setScope={setScope} />
+      <ScopeSelector
+        projectName={projectName}
+        scope={scope}
+        setScope={setScope}
+      />
 
       <div className="space-y-2">
         {!searching && query.trim() && results.length === 0 && !error ? (
@@ -341,6 +365,7 @@ function CreateLocalTab({
   creating,
   localFilePath,
   onCreate,
+  projectName,
   scope,
   setLocalFilePath,
   setScope,
@@ -348,6 +373,7 @@ function CreateLocalTab({
   creating: boolean;
   localFilePath: string;
   onCreate: () => void;
+  projectName: string;
   scope: "project" | "global";
   setLocalFilePath: (value: string) => void;
   setScope: (scope: "project" | "global") => void;
@@ -387,7 +413,11 @@ function CreateLocalTab({
           </p>
         </div>
 
-        <ScopeSelector scope={scope} setScope={setScope} />
+        <ScopeSelector
+          projectName={projectName}
+          scope={scope}
+          setScope={setScope}
+        />
 
         <Button
           className="w-full"
@@ -408,24 +438,41 @@ function CreateLocalTab({
 }
 
 function ScopeSelector({
+  projectName,
   scope,
   setScope,
 }: {
+  projectName: string;
   scope: "project" | "global";
   setScope: (scope: "project" | "global") => void;
 }) {
   const { t } = useI18n();
   return (
-    <SegmentedControl
-      ariaLabel={t.skills.installationScope}
-      items={[
-        { label: t.common.project, value: "project" },
-        { label: t.common.global, value: "global" },
-      ]}
-      kind="radio"
-      onValueChange={setScope}
-      value={scope}
-    />
+    <fieldset className="space-y-2">
+      <legend className="mb-2 text-xs font-medium text-primary">
+        {t.skills.installationScope}
+      </legend>
+      {(["project", "global"] as const).map((value) => (
+        <RadioCard
+          checked={scope === value}
+          key={value}
+          name="skill-installation-scope"
+          onChange={() => setScope(value)}
+          value={value}
+        >
+          <span className="block text-xs font-medium text-primary">
+            {value === "project"
+              ? t.skills.scopeProject.replace("{project}", projectName)
+              : t.skills.scopeGlobal}
+          </span>
+          <span className="mt-0.5 block text-meta leading-4 text-muted">
+            {value === "project"
+              ? t.skills.scopeProjectDescription
+              : t.skills.scopeGlobalDescription}
+          </span>
+        </RadioCard>
+      ))}
+    </fieldset>
   );
 }
 

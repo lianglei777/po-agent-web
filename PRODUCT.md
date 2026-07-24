@@ -10,7 +10,7 @@ Solo developers running Pi Agent locally through a desktop Web workspace to writ
 
 ## Product Purpose
 
-Po Agent is the local desktop Web interface for the Pi coding agent. It turns projects and agent sessions into a navigable, inspectable workspace: start a session, watch the agent's reasoning and tool calls, optionally open a file workspace, configure model providers and project skills, and resume or fork past sessions. The interface exists to keep the developer in control, not to entertain them.
+Po Agent is the local desktop Web interface for the Pi coding agent. It turns projects and agent sessions into a navigable, inspectable workspace: start a session, watch the agent's reasoning and tool calls, open the current project's file or Skill panel when needed, configure model providers, and resume or fork past sessions. The interface exists to keep the developer in control, not to entertain them.
 
 ## Brand Personality
 
@@ -30,7 +30,7 @@ Focused productivity tools: Linear, Vercel dashboard, Notion. The relevant quali
 
 ## Design Principles
 
-1. **Information density is a feature.** Project and session navigation stay visible, while Chat, configuration, and the optional File Workspace reveal only the context needed for the current task.
+1. **Information density is a feature.** Project and session navigation stay visible, while Chat, configuration, and the optional Project panel reveal only the files or Skills needed for the current task.
 2. **Quiet surfaces, active states.** At rest the UI is neutral and breathable; blue appears only for focus, links, switches, live state, and explicit status.
 3. **The agent is a tool, not a character.** No personality avatars, no confetti, no cheerleading copy.
 4. **Respect system conventions.** Support reduced motion and keep keyboard paths obvious.
